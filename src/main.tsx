@@ -1,17 +1,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import { App } from './App';
 import './styles/tokens.css';
 import './styles/base.css';
-
-// Minimal shell placeholder for Phase A foundation
-export function App(): React.JSX.Element {
-  return (
-    <main style={{ padding: '2rem', maxWidth: '640px', margin: '0 auto' }}>
-      <h1>AirWise</h1>
-      <p>Clean-Air Decision Assistant — Phase A Foundation &amp; Domain Core Ready.</p>
-    </main>
-  );
-}
+import './styles/components.css';
 
 const rootElement = document.getElementById('root');
 if (rootElement) {
@@ -21,4 +13,3 @@ if (rootElement) {
     </React.StrictMode>,
   );
 }
-
