@@ -23,6 +23,9 @@ import { QuickChecksCard } from '../components/QuickChecksCard';
 import { TrustPanel } from '../components/TrustPanel';
 import { SevereSmogView } from '../components/SevereSmogView';
 import { MenuModal } from '../components/MenuModal';
+import { TabBar, AppTab } from '../components/TabBar';
+import { IndoorScreen } from './IndoorScreen';
+import { MoveScreen } from './MoveScreen';
 
 interface TodayScreenProps {
   profile: HouseholdProfile;
@@ -40,6 +43,7 @@ export const TodayScreen: React.FC<TodayScreenProps> = ({
   const { scenario, setScenario } = useScenario();
   const { isManualSevereMode, toggleSevereMode } = useManualSevereMode();
 
+  const [currentTab, setCurrentTab] = useState<AppTab>('today');
   const [snapshot, setSnapshot] = useState<AirSnapshot | null>(null);
   const [sourceTier, setSourceTier] = useState<'live' | 'cached' | 'sample'>('sample');
   const [isFallback, setIsFallback] = useState<boolean>(false);
@@ -99,14 +103,15 @@ export const TodayScreen: React.FC<TodayScreenProps> = ({
   if (!snapshot) return null;
 
   // Domain Calculations
-  const baseLevel = computeBaseLevel(snapshot.pm25.now, profile.location.country === 'IN' ? 'IN' : 'US');
+  const targetRegion = profile.location.country === 'IN' ? 'IN' : 'US';
+  const baseLevel = computeBaseLevel(snapshot.pm25.now, targetRegion);
   const effectiveLevel = computeEffectiveLevel(baseLevel, profile.members);
-  const slots = deriveTimeSlots(profile, snapshot.pm25.hourly, profile.location.country === 'IN' ? 'IN' : 'US');
+  const slots = deriveTimeSlots(profile, snapshot.pm25.hourly, targetRegion);
   const radar = computeRiskRadar(profile, snapshot, slots);
   const plan: Plan = buildDeterministicPlan(profile, snapshot, {
-    targetRegion: profile.location.country === 'IN' ? 'IN' : 'US',
+    targetRegion,
   });
-  const quickChecks = evaluateQuickChecks(profile, snapshot, profile.location.country === 'IN' ? 'IN' : 'US');
+  const quickChecks = evaluateQuickChecks(profile, snapshot, targetRegion);
 
   const trust: TrustModel = buildTrustModel(
     snapshot,
@@ -155,6 +160,13 @@ export const TodayScreen: React.FC<TodayScreenProps> = ({
       />
 
       <main className="main-content">
+        {/* Navigation Tab Bar */}
+        <TabBar
+          currentTab={currentTab}
+          onTabChange={setCurrentTab}
+          isLowCostMode={plan.flags.lowCostMode}
+        />
+
         {/* Offline / Fallback Notice */}
         {isFallback && fallbackReason && (
           <div className="banner banner-offline" role="status">
@@ -174,85 +186,106 @@ export const TodayScreen: React.FC<TodayScreenProps> = ({
           </div>
         )}
 
-        {/* Air Briefing Card */}
-        <AirBriefingCard snapshot={snapshot} effectiveLevel={effectiveLevel} />
+        {/* Tab Content Routing */}
+        {currentTab === 'indoor' && (
+          <IndoorScreen profile={profile} snapshot={snapshot} />
+        )}
 
-        {/* Household Risk Headline */}
-        <section
-          className="card"
-          style={{
-            backgroundColor: `var(--level-${effectiveLevel}-bg)`,
-            borderColor: `var(--level-${effectiveLevel}-border)`,
-          }}
-        >
-          <div style={{ fontWeight: 700, fontSize: '1rem', color: `var(--level-${effectiveLevel}-text)` }}>
-            {plan.headline}
-          </div>
-        </section>
+        {currentTab === 'move' && (
+          <MoveScreen profile={profile} snapshot={snapshot} />
+        )}
 
-        {/* Household Risk Radar */}
-        <RiskRadarCard radar={radar} />
+        {currentTab === 'today' && (
+          <>
+            {/* Air Briefing Card */}
+            <AirBriefingCard snapshot={snapshot} effectiveLevel={effectiveLevel} />
 
-        {/* Top 3 Actions */}
-        <section aria-label="Today's Top 3 Actions">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-            <h2 style={{ fontSize: '1.05rem', fontWeight: 700 }}>Today's Top Actions</h2>
-            <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
-              Deterministic ranking
-            </span>
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {plan.topActions.map((cand) => (
-              <ActionCard
-                key={cand.action.id}
-                candidate={cand}
-                onSelect={(c) => setSelectedAction(c)}
-              />
-            ))}
-          </div>
-        </section>
-
-        {/* 6-Slot Daily Timeline */}
-        <section aria-label="Daily Routine Timeline">
-          <h2 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: '12px' }}>
-            Daily Clean-Air Timeline
-          </h2>
-
-          <div className="timeline-list">
-            {plan.timeline.map((slot) => (
-              <div key={slot.slotId} className="timeline-slot">
-                <div className="slot-header">
-                  <span className="slot-title">{slot.slotLabel}</span>
-                  <span className="slot-time">{slot.note}</span>
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  {slot.actions.map((cand) => (
-                    <ActionCard
-                      key={cand.action.id}
-                      candidate={cand}
-                      onSelect={(c) => setSelectedAction(c)}
-                    />
-                  ))}
-                </div>
+            {/* Household Risk Headline */}
+            <section
+              className="card"
+              style={{
+                backgroundColor: `var(--level-${effectiveLevel}-bg)`,
+                borderColor: `var(--level-${effectiveLevel}-border)`,
+              }}
+            >
+              <div style={{ fontWeight: 700, fontSize: '1rem', color: `var(--level-${effectiveLevel}-text)` }}>
+                {plan.headline}
               </div>
-            ))}
-          </div>
-        </section>
+            </section>
 
-        {/* Quick Checks */}
-        <QuickChecksCard checks={quickChecks} />
+            {/* Household Risk Radar */}
+            <RiskRadarCard radar={radar} />
 
-        {/* Trust Panel */}
-        <TrustPanel trust={trust} />
+            {/* Top 3 Actions */}
+            <section aria-label="Today's Top 3 Actions">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                <h2 style={{ fontSize: '1.05rem', fontWeight: 700 }}>Today's Top Actions</h2>
+                <span
+                  style={{
+                    fontSize: '0.8rem',
+                    fontWeight: 600,
+                    color: plan.source === 'ai' ? '#1a73e8' : 'var(--color-text-muted)',
+                  }}
+                >
+                  {plan.source === 'ai' ? '✨ AI-personalised' : '🛡️ Standard plan'}
+                </span>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {plan.topActions.map((cand) => (
+                  <ActionCard
+                    key={cand.action.id}
+                    candidate={cand}
+                    onSelect={(c) => setSelectedAction(c)}
+                  />
+                ))}
+              </div>
+            </section>
+
+            {/* 6-Slot Daily Timeline */}
+            <section aria-label="Daily Clean-Air Timeline">
+              <h2 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: '12px' }}>
+                Daily Clean-Air Timeline
+              </h2>
+
+              <div className="timeline-list">
+                {plan.timeline.map((slot) => (
+                  <div key={slot.slotId} className="timeline-slot">
+                    <div className="slot-header">
+                      <span className="slot-title">{slot.slotLabel}</span>
+                      <span className="slot-time">{slot.note}</span>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      {slot.actions.map((cand) => (
+                        <ActionCard
+                          key={cand.action.id}
+                          candidate={cand}
+                          onSelect={(c) => setSelectedAction(c)}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            {/* Quick Checks */}
+            <QuickChecksCard checks={quickChecks} />
+
+            {/* Trust Panel */}
+            <TrustPanel trust={trust} />
+          </>
+        )}
       </main>
 
       {/* Action Detail Modal Sheet */}
-      <ActionDetailModal
-        candidate={selectedAction}
-        onClose={() => setSelectedAction(null)}
-      />
+      {selectedAction && (
+        <ActionDetailModal
+          candidate={selectedAction}
+          onClose={() => setSelectedAction(null)}
+        />
+      )}
 
       {/* Menu / Settings Modal */}
       <MenuModal
