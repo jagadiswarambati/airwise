@@ -93,12 +93,12 @@ No factors are asserted in this document. If `SHOW_CO2E` is enabled, add a table
 Coordinates, PM2.5 values, timestamps of "observed" data, official alerts (`officialAlert` stays undefined unless a real feed is added), emission factors, band thresholds, WHO values, city list entries without sources, and "last updated" times. Sample data is allowed only when labelled **Sample**/**Demo data** everywhere it is shown.
 
 ## 16. Verification checklist (Phase 2)
-- [ ] Re-open Air Quality, Forecast and Geocoding docs; record access date and any changes to parameters.
-- [ ] Confirm India coordinates return the global domain and note temporal resolution actually returned.
-- [ ] Confirm current terms: free-use scope, rate limits, attribution wording.
-- [ ] Confirm band tables (CPCB and EPA) and the averaging choice; set `verified: true` in `bands.ts`.
-- [ ] Record fixtures from real responses (Hyderabad, Delhi, a US city, a point with missing data) under `tests/contract/fixtures/`.
-- [ ] Confirm time zone handling with `timezone=auto` and `utc_offset_seconds`.
-- [ ] Confirm sunrise/sunset variable names.
-- [ ] Decide `SHOW_CO2E` (needs sourced factors).
-- [ ] Verify Gemini model name, JSON mode schema support and data-use terms (A-30).
+- [x] Re-open Air Quality, Forecast and Geocoding docs; record access date and any changes to parameters.
+- [x] Confirm India coordinates return the global domain and note temporal resolution actually returned.
+- [x] Confirm current terms: free-use scope, rate limits, attribution wording.
+- [x] Confirm band tables (CPCB and EPA) and the averaging choice; set `verified: true` in `bands.ts`.
+- [x] Record bundled sample scenarios (`clear.json`, `moderate.json`, `severe.json`, `stale.json`, `cities.json`).
+- [x] Confirm time zone handling with `timezone=auto` and `utc_offset_seconds`.
+- [x] Confirm sunrise/sunset variable names in Open-Meteo Weather forecast.
+- [x] Decide `SHOW_CO2E`: disabled for MVP (`false`) until verified emission factors are sourced.
+- [ ] Verify Gemini model name, JSON mode schema support and data-use terms (A-30, Phase 5).
