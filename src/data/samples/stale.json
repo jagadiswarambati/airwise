@@ -1,0 +1,27 @@
+{
+  "pm25": {
+    "now": 85.0,
+    "hourly": [
+      { "time": "2026-11-19T06:00:00Z", "pm25": 82.0, "aqi": 173 },
+      { "time": "2026-11-19T07:00:00Z", "pm25": 88.0, "aqi": 193 },
+      { "time": "2026-11-19T08:00:00Z", "pm25": 92.0, "aqi": 207 },
+      { "time": "2026-11-19T09:00:00Z", "pm25": 85.0, "aqi": 183 },
+      { "time": "2026-11-19T10:00:00Z", "pm25": 80.0, "aqi": 167 },
+      { "time": "2026-11-19T11:00:00Z", "pm25": 78.0, "aqi": 160 }
+    ]
+  },
+  "aqi": {
+    "value": 183,
+    "standard": "IN",
+    "isComputed": true
+  },
+  "trend": "unknown",
+  "source": {
+    "id": "sample-stale",
+    "name": "Demo Scenario: Stale / Disconnected Feed",
+    "dataType": "sample",
+    "resolutionNote": "Bundled evaluation scenario demonstrating safe degradation with stale data",
+    "attribution": "Air quality and weather data by Open-Meteo.com, derived from Copernicus Atmosphere Monitoring Service (CAMS) information."
+  },
+  "freshness": "stale"
+}

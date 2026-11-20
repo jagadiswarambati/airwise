@@ -1,0 +1,49 @@
+{
+  "pm25": {
+    "now": 182.5,
+    "hourly": [
+      { "time": "2026-11-20T00:00:00Z", "pm25": 160.0, "aqi": 331 },
+      { "time": "2026-11-20T01:00:00Z", "pm25": 165.0, "aqi": 335 },
+      { "time": "2026-11-20T02:00:00Z", "pm25": 172.0, "aqi": 340 },
+      { "time": "2026-11-20T03:00:00Z", "pm25": 180.0, "aqi": 346 },
+      { "time": "2026-11-20T04:00:00Z", "pm25": 185.0, "aqi": 350 },
+      { "time": "2026-11-20T05:00:00Z", "pm25": 190.0, "aqi": 354 },
+      { "time": "2026-11-20T06:00:00Z", "pm25": 182.5, "aqi": 348 },
+      { "time": "2026-11-20T07:00:00Z", "pm25": 210.0, "aqi": 369 },
+      { "time": "2026-11-20T08:00:00Z", "pm25": 225.0, "aqi": 381 },
+      { "time": "2026-11-20T09:00:00Z", "pm25": 205.0, "aqi": 365 },
+      { "time": "2026-11-20T10:00:00Z", "pm25": 175.0, "aqi": 342 },
+      { "time": "2026-11-20T11:00:00Z", "pm25": 155.0, "aqi": 327 },
+      { "time": "2026-11-20T12:00:00Z", "pm25": 140.0, "aqi": 315 },
+      { "time": "2026-11-20T13:00:00Z", "pm25": 135.0, "aqi": 312 },
+      { "time": "2026-11-20T14:00:00Z", "pm25": 142.0, "aqi": 317 },
+      { "time": "2026-11-20T15:00:00Z", "pm25": 158.0, "aqi": 329 },
+      { "time": "2026-11-20T16:00:00Z", "pm25": 175.0, "aqi": 342 },
+      { "time": "2026-11-20T17:00:00Z", "pm25": 205.0, "aqi": 365 },
+      { "time": "2026-11-20T18:00:00Z", "pm25": 235.0, "aqi": 388 },
+      { "time": "2026-11-20T19:00:00Z", "pm25": 250.0, "aqi": 400 },
+      { "time": "2026-11-20T20:00:00Z", "pm25": 240.0, "aqi": 392 },
+      { "time": "2026-11-20T21:00:00Z", "pm25": 215.0, "aqi": 373 },
+      { "time": "2026-11-20T22:00:00Z", "pm25": 195.0, "aqi": 358 },
+      { "time": "2026-11-20T23:00:00Z", "pm25": 180.0, "aqi": 346 }
+    ]
+  },
+  "aqi": {
+    "value": 348,
+    "standard": "IN",
+    "isComputed": true
+  },
+  "trend": "rising",
+  "source": {
+    "id": "sample-severe",
+    "name": "Demo Scenario: Severe Winter Smog",
+    "dataType": "sample",
+    "resolutionNote": "Bundled evaluation scenario for severe winter smog conditions",
+    "attribution": "Air quality and weather data by Open-Meteo.com, derived from Copernicus Atmosphere Monitoring Service (CAMS) information."
+  },
+  "freshness": "fresh",
+  "officialAlert": {
+    "active": true,
+    "text": "Severe Pollution Advisory: GRAP Stage III precautions active."
+  }
+}

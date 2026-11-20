@@ -1,0 +1,23 @@
+[
+  { "name": "Hyderabad", "state": "Telangana", "country": "IN", "lat": 17.38, "lon": 78.48, "timezone": "Asia/Kolkata" },
+  { "name": "Delhi", "state": "Delhi", "country": "IN", "lat": 28.61, "lon": 77.21, "timezone": "Asia/Kolkata" },
+  { "name": "Mumbai", "state": "Maharashtra", "country": "IN", "lat": 19.08, "lon": 72.88, "timezone": "Asia/Kolkata" },
+  { "name": "Bengaluru", "state": "Karnataka", "country": "IN", "lat": 12.97, "lon": 77.59, "timezone": "Asia/Kolkata" },
+  { "name": "Kolkata", "state": "West Bengal", "country": "IN", "lat": 22.57, "lon": 88.36, "timezone": "Asia/Kolkata" },
+  { "name": "Chennai", "state": "Tamil Nadu", "country": "IN", "lat": 13.08, "lon": 80.27, "timezone": "Asia/Kolkata" },
+  { "name": "Pune", "state": "Maharashtra", "country": "IN", "lat": 18.52, "lon": 73.86, "timezone": "Asia/Kolkata" },
+  { "name": "Ahmedabad", "state": "Gujarat", "country": "IN", "lat": 23.02, "lon": 72.57, "timezone": "Asia/Kolkata" },
+  { "name": "Lucknow", "state": "Uttar Pradesh", "country": "IN", "lat": 26.85, "lon": 80.95, "timezone": "Asia/Kolkata" },
+  { "name": "Jaipur", "state": "Rajasthan", "country": "IN", "lat": 26.91, "lon": 75.79, "timezone": "Asia/Kolkata" },
+  { "name": "Patna", "state": "Bihar", "country": "IN", "lat": 25.61, "lon": 85.14, "timezone": "Asia/Kolkata" },
+  { "name": "Chandigarh", "state": "Punjab", "country": "IN", "lat": 30.73, "lon": 76.78, "timezone": "Asia/Kolkata" },
+  { "name": "London", "state": "Greater London", "country": "GB", "lat": 51.51, "lon": -0.13, "timezone": "Europe/London" },
+  { "name": "New York", "state": "New York", "country": "US", "lat": 40.71, "lon": -74.01, "timezone": "America/New_York" },
+  { "name": "Tokyo", "state": "Tokyo", "country": "JP", "lat": 35.68, "lon": 139.69, "timezone": "Asia/Tokyo" },
+  { "name": "Singapore", "state": "Singapore", "country": "SG", "lat": 1.35, "lon": 103.82, "timezone": "Asia/Singapore" },
+  { "name": "Dubai", "state": "Dubai", "country": "AE", "lat": 25.20, "lon": 55.27, "timezone": "Asia/Dubai" },
+  { "name": "Paris", "state": "Île-de-France", "country": "FR", "lat": 48.86, "lon": 2.35, "timezone": "Europe/Paris" },
+  { "name": "Sydney", "state": "New South Wales", "country": "AU", "lat": -33.87, "lon": 151.21, "timezone": "Australia/Sydney" },
+  { "name": "Berlin", "state": "Berlin", "country": "DE", "lat": 52.52, "lon": 13.40, "timezone": "Europe/Berlin" }
+]
+
