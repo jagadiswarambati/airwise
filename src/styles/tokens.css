@@ -1,0 +1,145 @@
+/* ==========================================================================
+   AirWise Design Tokens
+   Accessible, WCAG 2.2 AA compliant tokens for light and dark themes.
+   ========================================================================== */
+
+:root {
+  /* Color Palette - Neutrals */
+  --color-bg: #f8fafc;
+  --color-surface: #ffffff;
+  --color-surface-subtle: #f1f5f9;
+  --color-border: #cbd5e1;
+  --color-border-subtle: #e2e8f0;
+  
+  --color-text-main: #0f172a;       /* 14.5:1 on white (WCAG AAA) */
+  --color-text-muted: #475569;      /* 5.8:1 on white (WCAG AA) */
+  --color-text-inverse: #ffffff;
+
+  /* Primary Accent */
+  --color-primary: #0284c7;
+  --color-primary-hover: #0369a1;
+  --color-primary-focus: #38bdf8;
+  --color-primary-text: #ffffff;
+
+  /* Risk Level Color Pairs (Text / Background) meeting WCAG AA >= 4.5:1 */
+  /* Level 0: Clear */
+  --level-0-bg: #ecfdf5;
+  --level-0-border: #a7f3d0;
+  --level-0-text: #065f46;          /* 7.2:1 on #ecfdf5 */
+  --level-0-badge: #10b981;
+
+  /* Level 1: Watch */
+  --level-1-bg: #fefce8;
+  --level-1-border: #fef08a;
+  --level-1-text: #854d0e;          /* 5.3:1 on #fefce8 */
+  --level-1-badge: #eab308;
+
+  /* Level 2: Caution */
+  --level-2-bg: #fff7ed;
+  --level-2-border: #fed7aa;
+  --level-2-text: #9a3412;          /* 5.6:1 on #fff7ed */
+  --level-2-badge: #f97316;
+
+  /* Level 3: Protect */
+  --level-3-bg: #fef2f2;
+  --level-3-border: #fecaca;
+  --level-3-text: #991b1b;          /* 7.1:1 on #fef2f2 */
+  --level-3-badge: #ef4444;
+
+  /* Level 4: Severe */
+  --level-4-bg: #faf5ff;
+  --level-4-border: #e9d5ff;
+  --level-4-text: #581c87;          /* 9.4:1 on #faf5ff */
+  --level-4-badge: #a855f7;
+
+  /* Spacing Scale (4px base) */
+  --space-0-5: 0.125rem; /* 2px */
+  --space-1: 0.25rem;   /* 4px */
+  --space-2: 0.5rem;    /* 8px */
+  --space-3: 0.75rem;   /* 12px */
+  --space-4: 1rem;      /* 16px */
+  --space-5: 1.25rem;   /* 20px */
+  --space-6: 1.5rem;    /* 24px */
+  --space-8: 2rem;      /* 32px */
+  --space-10: 2.5rem;   /* 40px */
+  --space-12: 3rem;     /* 48px */
+
+  /* Typography */
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+
+  --text-xs: 0.75rem;    /* 12px */
+  --text-sm: 0.875rem;   /* 14px */
+  --text-base: 1rem;     /* 16px */
+  --text-lg: 1.125rem;   /* 18px */
+  --text-xl: 1.25rem;    /* 20px */
+  --text-2xl: 1.5rem;    /* 24px */
+  --text-3xl: 1.875rem;  /* 30px */
+
+  --font-normal: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+
+  /* Accessibility & Controls */
+  --target-min: 44px;    /* WCAG touch target minimum */
+  --focus-ring: 2px solid #0284c7;
+  --focus-offset: 2px;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-full: 9999px;
+
+  /* Transitions */
+  --transition-fast: 150ms ease-in-out;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: #090d16;
+    --color-surface: #131b2e;
+    --color-surface-subtle: #1e293b;
+    --color-border: #334155;
+    --color-border-subtle: #1e293b;
+
+    --color-text-main: #f8fafc;
+    --color-text-muted: #94a3b8;
+    --color-text-inverse: #0f172a;
+
+    --color-primary: #38bdf8;
+    --color-primary-hover: #7dd3fc;
+    --color-primary-focus: #bae6fd;
+    --color-primary-text: #082f49;
+
+    /* Dark Mode Risk Pairs */
+    --level-0-bg: #064e3b;
+    --level-0-border: #047857;
+    --level-0-text: #a7f3d0;
+
+    --level-1-bg: #713f12;
+    --level-1-border: #a16207;
+    --level-1-text: #fef08a;
+
+    --level-2-bg: #7c2d12;
+    --level-2-border: #c2410c;
+    --level-2-text: #fed7aa;
+
+    --level-3-bg: #7f1d1d;
+    --level-3-border: #b91c1c;
+    --level-3-text: #fecaca;
+
+    --level-4-bg: #4c1d95;
+    --level-4-border: #6d28d9;
+    --level-4-text: #e9d5ff;
+
+    --focus-ring: 2px solid #38bdf8;
+  }
+}
+
+/* Reduced Motion Override */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --transition-fast: 0.01ms;
+  }
+}
+
