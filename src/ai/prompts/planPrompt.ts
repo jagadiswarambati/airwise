@@ -49,3 +49,4 @@ ${candidatesJson}
   "confidenceReason": "Brief explanation of plan confidence (<= 160 chars)"
 }`;
 }
+

@@ -91,3 +91,4 @@ export function TabBar({ currentTab, onTabChange, isLowCostMode }: TabBarProps) 
     </nav>
   );
 }
+
