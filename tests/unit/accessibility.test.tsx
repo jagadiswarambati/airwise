@@ -1,7 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { renderToString } from 'react-dom/server';
 import { TabBar } from '../../src/ui/components/TabBar';
-import { RiskBadge } from '../../src/ui/components/RiskBadge';
 import { ActionCard } from '../../src/ui/components/ActionCard';
 import { ActionDetailModal } from '../../src/ui/components/ActionDetailModal';
 import { SevereSmogView } from '../../src/ui/components/SevereSmogView';
@@ -99,29 +98,26 @@ describe('Accessibility & WCAG 2.2 AA Contrast Compliance', () => {
     });
 
     it('ensures Severe Smog Mode alert has role="alert"', () => {
+      const snapshot = getSampleScenarioSnapshot('severe');
+      const plan = buildDeterministicPlan(PRIYA_PROFILE, snapshot);
       const html = renderToString(
-        <SevereSmogView
-          effectiveLevel={4}
-          headline="Severe Smog Protocol Activated"
-          topActions={[]}
-          onDismiss={() => {}}
-        />
+        <SevereSmogView snapshot={snapshot} plan={plan} />
       );
 
       expect(html).toContain('role="alert"');
-      expect(html).toContain('Emergency Medical Notice');
+      expect(html).toContain('SEVERE SMOG ALERT');
+      expect(html).toContain('Outdoor exertion is hazardous');
     });
 
-    it('ensures all interactive cards have accessible roles and labels', () => {
+    it('ensures all interactive cards have accessible button types and labels', () => {
       const snapshot = getSampleScenarioSnapshot('moderate');
       const plan = buildDeterministicPlan(PRIYA_PROFILE, snapshot);
       const cand = plan.topActions[0];
 
       const html = renderToString(<ActionCard candidate={cand} onSelect={() => {}} />);
 
-      expect(html).toContain('role="button"');
-      expect(html).toContain('tabindex="0"');
-      expect(html).toContain(`aria-label="View details for ${cand.action.title}"`);
+      expect(html).toContain('type="button"');
+      expect(html).toContain(`aria-label="Action: ${cand.action.title}. Tap for full dual-axis impact details."`);
     });
   });
 });

@@ -124,4 +124,4 @@ Cut from Attempt 1: CO₂e, carpool board, weekly history, Hindi/Telugu, OpenAQ,
 **Gate C (Attempt 3):** tag `attempt-3`.
 
 ## Phase tracker
-- [x] 0 · [x] 1A · [x] 1B · [x] 2 · [x] 3 · [x] 4A · [x] 4B · [x] 5 · [x] 6 · [ ] 7 (Gate A) · [ ] 8 (Gate B) · [ ] 9 (Gate C)
+- [x] 0 · [x] 1A · [x] 1B · [x] 2 · [x] 3 · [x] 4A · [x] 4B · [x] 5 · [x] 6 · [x] 7 (Gate A) · [x] 8 (Gate B) · [ ] 9 (Gate C)

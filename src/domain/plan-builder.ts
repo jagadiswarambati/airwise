@@ -137,14 +137,20 @@ export function buildDeterministicPlan(
         (candidate.action.category === 'mobility' || candidate.action.id === 'PE-02')
       ) {
         matches = true;
-      } else if (slot.id === 'daytime' && (candidate.action.id === 'PE-03' || candidate.action.id === 'MO-05')) {
+      } else if (
+        slot.id === 'daytime' &&
+        (candidate.action.id === 'PE-03' || candidate.action.id === 'MO-05' || candidate.action.id === 'IN-06')
+      ) {
         matches = true;
       } else if (
         slot.id === 'evening' &&
         (candidate.action.id === 'IN-07' || candidate.action.id === 'IN-08' || candidate.action.id === 'IN-10')
       ) {
         matches = true;
-      } else if (slot.id === 'night' && (candidate.action.id === 'IN-03' || candidate.action.id === 'IN-05')) {
+      } else if (
+        slot.id === 'night' &&
+        (candidate.action.id === 'IN-03' || candidate.action.id === 'IN-05' || candidate.action.id === 'IN-06')
+      ) {
         matches = true;
       }
 

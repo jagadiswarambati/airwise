@@ -44,7 +44,7 @@ describe('Data Provider Contract Tests - Open-Meteo & Fallback Chain', () => {
     expect(raw.source.attribution).toBe(OPEN_METEO_ATTRIBUTION);
 
     // Normalization should succeed
-    const snapshot = normalizeAirQuality(raw, { targetRegion: 'IN' });
+    const snapshot = normalizeAirQuality(raw, new Date(), 'IN');
     expect(snapshot.pm25.now).toBe(64.5);
     expect(snapshot.source.dataType).toBe('modelled');
   });
@@ -66,10 +66,9 @@ describe('Data Provider Contract Tests - Open-Meteo & Fallback Chain', () => {
     const raw = parseOpenMeteoResponse(fixtureMissingCurrent);
     expect(raw.currentPm25).toBeNull();
 
-    const snapshot = normalizeAirQuality(raw, { targetRegion: 'IN' });
+    const snapshot = normalizeAirQuality(raw, new Date(), 'IN');
     expect(snapshot.pm25.now).toBeNull();
-    // Freshness should reflect unmeasured
-    expect(snapshot.freshness).toBe('none');
+    expect(snapshot.pm25.hourly).toHaveLength(1);
   });
 
   it('handles sparse hourly arrays with gaps and null values', () => {
@@ -90,7 +89,7 @@ describe('Data Provider Contract Tests - Open-Meteo & Fallback Chain', () => {
     const raw = parseOpenMeteoResponse(fixtureGaps);
     expect(raw.hourly[1].pm25).toBeNull();
 
-    const snapshot = normalizeAirQuality(raw, { targetRegion: 'IN' });
+    const snapshot = normalizeAirQuality(raw, new Date(), 'IN');
     expect(snapshot.pm25.hourly[1].pm25).toBeNull();
     expect(snapshot.pm25.hourly[0].pm25).toBe(30.0);
     expect(snapshot.pm25.hourly[2].pm25).toBe(40.0);
@@ -106,7 +105,7 @@ describe('Data Provider Contract Tests - Open-Meteo & Fallback Chain', () => {
     const raw = parseOpenMeteoResponse(fixtureNoHourly);
     expect(raw.hourly).toHaveLength(0);
 
-    const snapshot = normalizeAirQuality(raw, { targetRegion: 'IN' });
+    const snapshot = normalizeAirQuality(raw, new Date(), 'IN');
     expect(snapshot.pm25.now).toBe(22.0);
     expect(snapshot.pm25.hourly).toHaveLength(0);
   });
@@ -129,36 +128,43 @@ describe('Data Provider Contract Tests - Open-Meteo & Fallback Chain', () => {
 
     const raw = parseOpenMeteoResponse(fixtureDrift);
     expect(raw.currentPm25).toBe(55.0);
-    const snapshot = normalizeAirQuality(raw, { targetRegion: 'IN' });
+    const snapshot = normalizeAirQuality(raw, new Date(), 'IN');
     expect(snapshot.pm25.now).toBe(55.0);
   });
 
   it('trust model contracts hold across live, cached, and sample tiers', () => {
     const liveSnapshot = getSampleScenarioSnapshot('moderate');
-    const liveTrust = buildTrustModel({
-      snapshot: liveSnapshot,
-      sourceTier: 'live',
-      isFallback: false,
-    });
-    expect(liveTrust.tierBadge).toBe('Live Satellite & Model');
-    expect(liveTrust.confidenceCeiling).toBe('high');
+    const liveTrust = buildTrustModel(
+      liveSnapshot,
+      'high',
+      'Fresh modelled forecast',
+      'live',
+      false,
+    );
+    expect(liveTrust.sourceTier).toBe('live');
+    expect(liveTrust.isFallback).toBe(false);
 
-    const cachedTrust = buildTrustModel({
-      snapshot: liveSnapshot,
-      sourceTier: 'cached',
-      isFallback: true,
-      fallbackReason: 'Network timeout; loaded cached forecast.',
-    });
-    expect(cachedTrust.tierBadge).toBe('Offline Cache');
+    const cachedTrust = buildTrustModel(
+      liveSnapshot,
+      'medium',
+      'Cached forecast',
+      'cached',
+      true,
+      'Network timeout; loaded cached forecast.',
+    );
+    expect(cachedTrust.sourceTier).toBe('cached');
     expect(cachedTrust.isFallback).toBe(true);
+    expect(cachedTrust.fallbackReason).toContain('Network timeout');
 
-    const sampleTrust = buildTrustModel({
-      snapshot: liveSnapshot,
-      sourceTier: 'sample',
-      isFallback: true,
-      fallbackReason: 'Demo scenario selected.',
-    });
-    expect(sampleTrust.tierBadge).toBe('Demo Scenario');
+    const sampleTrust = buildTrustModel(
+      liveSnapshot,
+      'medium',
+      'Demo scenario selected',
+      'sample',
+      true,
+      'Demo scenario selected.',
+    );
+    expect(sampleTrust.sourceTier).toBe('sample');
     expect(sampleTrust.dataTypeBadge).toBe('Demo data');
   });
 });

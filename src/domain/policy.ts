@@ -48,9 +48,12 @@ export function evaluatePolicy(
   // Severe Smog Mode (P-01): auto if effective level 4 or active official alert
   const severeMode = effectiveLevel === 4 || Boolean(snapshot.officialAlert?.active);
 
+  // Canonical budget tier
+  const budgetTier = profile.budget;
+
   // Low-Cost Protection Mode (A-13): budget free OR (budget low AND no purifier)
   const lowCostMode =
-    profile.budget === 'free' || (profile.budget === 'low' && !profile.equipment.purifier);
+    budgetTier === 'free' || (budgetTier === 'low' && !profile.equipment.purifier);
 
   const forbiddenSet = new Set<string>();
   const mustIncludeSet = new Set<string>();
@@ -106,12 +109,12 @@ export function evaluatePolicy(
   }
 
   // Rule P-10: Budget gating
-  if (profile.budget === 'free') {
+  if (budgetTier === 'free') {
     // Exclude actions with cost >= low (unless free equivalent doesn't exist)
     forbiddenSet.add('PE-02'); // Respirator purchase
     forbiddenSet.add('IN-04'); // Draught strip purchase (towels are free alternative)
     forbiddenSet.add('MO-02'); // Public transit fare
-  } else if (profile.budget === 'low') {
+  } else if (budgetTier === 'low') {
     // Exclude medium / high cost items
   }
 
@@ -203,11 +206,11 @@ export function evaluatePolicy(
     // 3. Cost Fit (1..3)
     let costFit = 3;
     if (action.cost === 'high') {
-      costFit = profile.budget === 'flexible' ? 2 : 1;
+      costFit = budgetTier === 'flexible' ? 2 : 1;
     } else if (action.cost === 'medium') {
-      costFit = profile.budget === 'flexible' ? 3 : 2;
+      costFit = budgetTier === 'flexible' ? 3 : 2;
     } else if (action.cost === 'low') {
-      costFit = profile.budget === 'free' ? 1 : 3;
+      costFit = budgetTier === 'free' ? 1 : 3;
     } else {
       costFit = 3; // Free is always best fit
     }

@@ -236,16 +236,11 @@ describe('AI Plan Layer - Validator & Safety Suite', () => {
     }
   });
 
-  it('rejects malformed timeline schemas with invalid slot IDs', () => {
+  it('rejects malformed schemas with invalid topAction tuple size or missing version', () => {
     const malformed = {
       ...validOutput,
-      timeline: [
-        {
-          slotId: 'invalid-non-existent-slot',
-          actionIds: ['IN-01'],
-          note: 'Invalid slot test',
-        },
-      ],
+      schemaVersion: 2, // Must be literal 1
+      topActionIds: ['IN-01', 'PE-03'], // Must be exactly 3 items tuple
     };
     const result = validateAIPlanOutput(malformed, sampleInput);
     expect(result.valid).toBe(false);

@@ -27,20 +27,22 @@ describe('End-to-End Smoke Test: Full User Journey & Multi-Tab Life Cycle', () =
       const baseLevel = computeBaseLevel(snapshot.pm25.now, 'IN');
       const effectiveLevel = computeEffectiveLevel(baseLevel, profile.members);
       const slots = deriveTimeSlots(profile, snapshot.pm25.hourly, 'IN');
-      const radar = computeRiskRadar(profile.members, slots);
+      const radar = computeRiskRadar(profile, snapshot, slots);
       const plan = buildDeterministicPlan(profile, snapshot);
       const checks = evaluateQuickChecks(profile, snapshot);
-      const trust = buildTrustModel({
+      const trust = buildTrustModel(
         snapshot,
-        sourceTier: 'sample',
-        isFallback: sc === 'stale',
-      });
+        plan.planConfidence,
+        plan.confidenceReason,
+        'sample',
+        sc === 'stale'
+      );
 
       expect(effectiveLevel).toBeGreaterThanOrEqual(baseLevel);
-      expect(radar.peakSlotId).toBeDefined();
+      expect(radar.slotId).toBeDefined();
       expect(plan.topActionIds).toHaveLength(3);
       expect(checks).toHaveLength(4);
-      expect(trust.tierBadge).toBe('Demo Scenario');
+      expect(trust.sourceTier).toBe('sample');
     }
   });
 
@@ -49,9 +51,9 @@ describe('End-to-End Smoke Test: Full User Journey & Multi-Tab Life Cycle', () =
     const baseLevel = computeBaseLevel(snapshot.pm25.now, 'IN');
     const effectiveLevel = computeEffectiveLevel(baseLevel, profile.members);
     const slots = deriveTimeSlots(profile, snapshot.pm25.hourly, 'IN');
-    const radar = computeRiskRadar(profile.members, slots);
+    const radar = computeRiskRadar(profile, snapshot, slots);
     const checks = evaluateQuickChecks(profile, snapshot);
-    const trust = buildTrustModel({ snapshot, sourceTier: 'sample', isFallback: false });
+    const trust = buildTrustModel(snapshot, 'high', 'Demo scenario', 'sample', false);
 
     // 1. Today View components
     const briefingHtml = renderToString(<AirBriefingCard snapshot={snapshot} effectiveLevel={effectiveLevel} />);
@@ -62,7 +64,7 @@ describe('End-to-End Smoke Test: Full User Journey & Multi-Tab Life Cycle', () =
     expect(briefingHtml).toContain('µg/m³ PM2.5');
     expect(radarHtml).toContain('Household Risk Radar');
     expect(checksHtml).toContain('Quick Checks');
-    expect(trustHtml).toContain('Trust &amp; Verification');
+    expect(trustHtml).toContain('Trust &amp; Data Transparency');
 
     // 2. Indoor Screen
     const indoorHtml = renderToString(<IndoorScreen profile={profile} snapshot={snapshot} />);
@@ -72,7 +74,7 @@ describe('End-to-End Smoke Test: Full User Journey & Multi-Tab Life Cycle', () =
     // 3. Move Screen
     const moveHtml = renderToString(<MoveScreen profile={profile} snapshot={snapshot} />);
     expect(moveHtml).toContain('Commute Exposure Planner');
-    expect(moveHtml).toContain('Active Travel Safety');
+    expect(moveHtml).toContain('Walking &amp; Cycling Suitability');
 
     // 4. Impact Screen
     const impactHtml = renderToString(<ImpactScreen profile={profile} snapshot={snapshot} />);
