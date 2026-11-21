@@ -110,3 +110,4 @@ async function callGeminiJsonMode(prompt: string, apiKey: string): Promise<unkno
 
   return JSON.parse(text);
 }
+
