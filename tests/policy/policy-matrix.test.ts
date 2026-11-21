@@ -294,5 +294,69 @@ describe('Policy Matrix Invariant Suite (P-01 to P-22)', () => {
     console.log(`Policy matrix verified successfully across ${testedCombinations} scenario combinations.`);
     expect(testedCombinations).toBeGreaterThan(500);
   });
+
+  describe('Extreme & Edge Case Invariant Checks', () => {
+    it('handles zero PM2.5 and extreme hazardous PM2.5 (1000 µg/m³) without violation', () => {
+      const boundaryValues = [0, 1, 30, 31, 60, 61, 90, 91, 120, 121, 500, 1000];
+
+      for (const pm25 of boundaryValues) {
+        const snapshot: AirSnapshot = {
+          pm25: {
+            now: pm25,
+            hourly: generateHourlySeries(pm25),
+          },
+          freshness: 'fresh',
+          trend: 'stable',
+          source: {
+            id: 'open-meteo',
+            name: 'Open-Meteo',
+            dataType: 'modelled',
+            attribution: 'Attribution',
+          },
+        };
+
+        const profile: HouseholdProfile = {
+          id: 'test-boundary',
+          createdAt: '2026-11-21T00:00:00Z',
+          updatedAt: '2026-11-21T00:00:00Z',
+          location: { country: 'IN', city: 'Delhi' },
+          housing: { type: 'apartment', floor: 3, windowsSealed: false },
+          homeHeating: 'none',
+          cooking: { fuel: 'lpg', hasExhaust: true },
+          equipment: { purifier: true, windowAC: false, hvac: false },
+          budgetTier: 'medium',
+          members: [
+            { id: 'm1', roleLabel: 'Adult, 30', ageGroup: '18-64', flags: [] },
+            { id: 'm2', roleLabel: 'Child, 6', ageGroup: '5-12', flags: ['asthma'] },
+          ],
+          travel: {
+            modes: ['car', 'transit'],
+            oneWayKm: 10,
+            tripsPerWeek: 5,
+            canShiftTime: true,
+            canWorkRemotely: true,
+            transitAvailable: true,
+          },
+          routine: {
+            wake: '07:00',
+            leave: '08:30',
+            returnHome: '17:30',
+            cooking: '19:00',
+            bed: '22:30',
+          },
+        };
+
+        const plan = buildDeterministicPlan(profile, snapshot);
+        expect(plan.topActionIds).toHaveLength(3);
+        expect(plan.timeline).toHaveLength(6);
+
+        if (pm25 >= 121) {
+          expect(plan.flags.severeMode).toBe(true);
+          expect(plan.topActionIds).toContain('IN-01');
+          expect(plan.topActionIds).toContain('PE-03');
+        }
+      }
+    });
+  });
 });
 
