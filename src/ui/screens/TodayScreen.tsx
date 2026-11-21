@@ -26,6 +26,8 @@ import { MenuModal } from '../components/MenuModal';
 import { TabBar, AppTab } from '../components/TabBar';
 import { IndoorScreen } from './IndoorScreen';
 import { MoveScreen } from './MoveScreen';
+import { ImpactScreen } from './ImpactScreen';
+import { CommunityScreen } from './CommunityScreen';
 
 interface TodayScreenProps {
   profile: HouseholdProfile;
@@ -193,6 +195,14 @@ export const TodayScreen: React.FC<TodayScreenProps> = ({
 
         {currentTab === 'move' && (
           <MoveScreen profile={profile} snapshot={snapshot} />
+        )}
+
+        {currentTab === 'impact' && (
+          <ImpactScreen profile={profile} snapshot={snapshot} />
+        )}
+
+        {currentTab === 'community' && (
+          <CommunityScreen profile={profile} snapshot={snapshot} />
         )}
 
         {currentTab === 'today' && (

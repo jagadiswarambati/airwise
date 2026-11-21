@@ -1,4 +1,4 @@
-export type AppTab = 'today' | 'indoor' | 'move';
+export type AppTab = 'today' | 'indoor' | 'move' | 'impact' | 'community';
 
 interface TabBarProps {
   currentTab: AppTab;
@@ -11,6 +11,8 @@ export function TabBar({ currentTab, onTabChange, isLowCostMode }: TabBarProps) 
     { id: 'today', label: 'Today', icon: '📅' },
     { id: 'indoor', label: 'Indoor', icon: '🏠' },
     { id: 'move', label: 'Move', icon: '🚗' },
+    { id: 'impact', label: 'Impact', icon: '📊' },
+    { id: 'community', label: 'Community', icon: '👥' },
   ];
 
   return (
@@ -48,11 +50,11 @@ export function TabBar({ currentTab, onTabChange, isLowCostMode }: TabBarProps) 
         role="tablist"
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(3, 1fr)',
+          gridTemplateColumns: 'repeat(5, 1fr)',
           backgroundColor: 'var(--color-bg-secondary)',
           padding: '4px',
           borderRadius: 'var(--radius-md)',
-          gap: '4px',
+          gap: '2px',
         }}
       >
         {tabs.map((tab) => {
@@ -66,15 +68,16 @@ export function TabBar({ currentTab, onTabChange, isLowCostMode }: TabBarProps) 
               onClick={() => onTabChange(tab.id)}
               style={{
                 display: 'flex',
+                flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: 'var(--space-2)',
-                padding: 'var(--space-2) var(--space-3)',
+                gap: '2px',
+                padding: '4px 2px',
                 borderRadius: 'var(--radius-sm)',
                 border: 'none',
                 cursor: 'pointer',
                 fontWeight: isActive ? 700 : 500,
-                fontSize: '0.9rem',
+                fontSize: '0.75rem',
                 backgroundColor: isActive ? 'var(--color-bg-surface)' : 'transparent',
                 color: isActive ? 'var(--color-text-primary)' : 'var(--color-text-secondary)',
                 boxShadow: isActive ? 'var(--shadow-sm)' : 'none',
@@ -82,8 +85,8 @@ export function TabBar({ currentTab, onTabChange, isLowCostMode }: TabBarProps) 
                 transition: 'background-color var(--transition-fast)',
               }}
             >
-              <span aria-hidden="true">{tab.icon}</span>
-              <span>{tab.label}</span>
+              <span aria-hidden="true" style={{ fontSize: '1rem' }}>{tab.icon}</span>
+              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tab.label}</span>
             </button>
           );
         })}
@@ -91,4 +94,3 @@ export function TabBar({ currentTab, onTabChange, isLowCostMode }: TabBarProps) 
     </nav>
   );
 }
-
