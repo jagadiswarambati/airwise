@@ -36,3 +36,4 @@ describe('IndoorScreen Component (SSR)', () => {
     expect(html).toContain('Damp-wipe surfaces');
   });
 });
+

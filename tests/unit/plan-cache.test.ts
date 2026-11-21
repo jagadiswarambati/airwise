@@ -67,3 +67,4 @@ describe('AI Plan Cache (Decision A-29)', () => {
     expect(getCachedPlan(key)).toBeNull();
   });
 });
+
