@@ -1,6 +1,7 @@
 import { AIPlanInput, AIPlanOutput, AIPlanInputSchema } from '../src/ai/schema';
 import { validateAIPlanOutput } from '../src/ai/validator';
-import { buildPlanPrompt } from '../src/ai/prompts/planPrompt';
+import { buildPlanPrompt, CandidateSummary } from '../src/ai/prompts/planPrompt';
+import { ACTION_CATALOG } from '../src/domain/catalog/actions';
 import { createErrorResponse, ApiResponse, ApiErrorBody } from './_lib/errors';
 import { getSecurityHeaders } from './_lib/headers';
 import { validateCorsOrigin } from './_lib/cors';
@@ -14,6 +15,8 @@ export interface PlanApiResponse {
   message?: string;
   error?: unknown;
 }
+
+const CATALOG_ID_SET = new Set(ACTION_CATALOG.map((a) => a.id));
 
 /**
  * Pure core plan handler.
@@ -66,7 +69,7 @@ export async function handlePlanCore(
     });
   }
 
-  // 6. JSON & Schema parse
+  // 6. JSON parse
   let parsedJson: unknown;
   try {
     parsedJson = JSON.parse(rawBody);
@@ -74,6 +77,7 @@ export async function handlePlanCore(
     return createErrorResponse(400, 'ValidationError', 'Invalid JSON body format');
   }
 
+  // 7. Schema validation
   const parseResult = AIPlanInputSchema.safeParse(parsedJson);
   if (!parseResult.success) {
     const issue = parseResult.error.issues[0];
@@ -84,8 +88,56 @@ export async function handlePlanCore(
     );
   }
 
-  // 7. Execute plan request
-  const planResult = await handlePlanRequest(parseResult.data);
+  const input = parseResult.data;
+
+  // 8. Server-side Catalog verification
+  // Verify all IDs exist in catalog
+  for (const id of input.approvedCandidateIds) {
+    if (!CATALOG_ID_SET.has(id)) {
+      return createErrorResponse(400, 'ValidationError', `Action ID '${id}' in approvedCandidateIds does not exist in catalog`);
+    }
+  }
+  for (const id of input.mustIncludeIds) {
+    if (!CATALOG_ID_SET.has(id)) {
+      return createErrorResponse(400, 'ValidationError', `Action ID '${id}' in mustIncludeIds does not exist in catalog`);
+    }
+  }
+  for (const id of input.forbiddenActionIds) {
+    if (!CATALOG_ID_SET.has(id)) {
+      return createErrorResponse(400, 'ValidationError', `Action ID '${id}' in forbiddenActionIds does not exist in catalog`);
+    }
+  }
+
+  // Verify approved and forbidden are disjoint
+  const approvedSet = new Set(input.approvedCandidateIds);
+  for (const id of input.forbiddenActionIds) {
+    if (approvedSet.has(id)) {
+      return createErrorResponse(400, 'ValidationError', `Action ID '${id}' cannot be in both approvedCandidateIds and forbiddenActionIds`);
+    }
+  }
+
+  // Verify mustInclude is a subset of approved
+  for (const id of input.mustIncludeIds) {
+    if (!approvedSet.has(id)) {
+      return createErrorResponse(400, 'ValidationError', `Must-include action ID '${id}' must be in approvedCandidateIds`);
+    }
+  }
+
+  // 9. Build candidate summaries from catalog on server
+  const candidateSummaries: CandidateSummary[] = input.approvedCandidateIds.map((id) => {
+    const action = ACTION_CATALOG.find((a) => a.id === id)!;
+    return {
+      id: action.id,
+      title: action.title,
+      category: action.category,
+      costTier: action.cost,
+      exposureImpact: `${action.impactSpec.exposure.direction} (${action.impactSpec.exposure.label})`,
+      emissionsImpact: `${action.impactSpec.emissions.direction} (${action.impactSpec.emissions.label})`,
+    };
+  });
+
+  // 10. Execute plan request
+  const planResult = await handlePlanRequest(input, candidateSummaries);
   return {
     status: 200,
     headers: getSecurityHeaders({
@@ -102,7 +154,10 @@ export async function handlePlanCore(
  * Enforces server-side Gemini invocation, zero client secret exposure,
  * strict schema validation, one retry on error, and fallback.
  */
-export async function handlePlanRequest(input: AIPlanInput): Promise<PlanApiResponse> {
+export async function handlePlanRequest(
+  input: AIPlanInput,
+  candidateSummaries: CandidateSummary[],
+): Promise<PlanApiResponse> {
   const provider = process.env.LLM_PROVIDER || 'none';
   const apiKey = process.env.GEMINI_API_KEY;
 
@@ -114,7 +169,7 @@ export async function handlePlanRequest(input: AIPlanInput): Promise<PlanApiResp
     };
   }
 
-  const prompt = buildPlanPrompt(input);
+  const prompt = buildPlanPrompt(input, candidateSummaries);
 
   try {
     const rawResult = await callGeminiJsonMode(prompt, apiKey);
@@ -150,10 +205,11 @@ Please fix this violation and generate valid strict JSON meeting all rules.`;
       message: 'AI output failed safety validation twice; falling back to deterministic plan',
     };
   } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Unknown error';
     return {
       success: false,
       fallback: true,
-      error: err instanceof Error ? err.message : 'Unknown error',
+      error: message,
       message: 'Failed to contact LLM service; falling back to deterministic plan',
     };
   }
@@ -164,7 +220,7 @@ Please fix this violation and generate valid strict JSON meeting all rules.`;
  * Key is sent in request header x-goog-api-key, never in the URL query.
  */
 async function callGeminiJsonMode(prompt: string, apiKey: string): Promise<unknown> {
-  const model = process.env.GEMINI_MODEL || 'gemini-1.5-flash';
+  const model = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
 
   const res = await fetch(url, {
@@ -182,6 +238,7 @@ async function callGeminiJsonMode(prompt: string, apiKey: string): Promise<unkno
       generationConfig: {
         responseMimeType: 'application/json',
         temperature: 0.2,
+        maxOutputTokens: 1024,
       },
     }),
   });

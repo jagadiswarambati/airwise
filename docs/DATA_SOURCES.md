@@ -101,4 +101,4 @@ Coordinates, PM2.5 values, timestamps of "observed" data, official alerts (`offi
 - [x] Confirm time zone handling with `timezone=auto` and `utc_offset_seconds`.
 - [x] Confirm sunrise/sunset variable names in Open-Meteo Weather forecast (`daily.sunrise`, `daily.sunset`).
 - [x] Decide `SHOW_CO2E`: disabled for MVP (`false`) until verified emission factors are sourced.
-- [ ] Verify Gemini model name, JSON mode schema support and data-use terms (A-30, Phase 5).
+- [x] Verify Gemini model name (`gemini-2.5-flash` with fallback `gemini-1.5-flash`), JSON mode schema support via `responseMimeType: "application/json"`, header key passing (`x-goog-api-key`), and data minimization terms (A-30, Phase 5). Verified date: 2026-11-22.

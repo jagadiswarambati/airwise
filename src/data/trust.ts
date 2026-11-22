@@ -23,6 +23,7 @@ export function buildTrustModel(
   sourceTier: 'live' | 'cached' | 'sample',
   isFallback: boolean,
   fallbackReason?: string,
+  planSource?: string,
 ): TrustModel {
   let dataTypeBadge: TrustModel['dataTypeBadge'] = 'Modelled';
   if (snapshot.source.dataType === 'sample' || sourceTier === 'sample') {
@@ -61,11 +62,10 @@ export function buildTrustModel(
     sourceTier,
     isFallback,
     fallbackReason,
-    planSource: 'Standard deterministic plan (rule-based)',
+    planSource: planSource || 'Standard deterministic plan (rule-based)',
     planConfidence,
     confidenceReason,
     uncertaintyDisclaimer:
       'AirWise provides environmental health risk guidance, not medical diagnosis or clinical treatment.',
   };
 }
-

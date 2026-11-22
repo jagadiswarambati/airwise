@@ -3,9 +3,9 @@ import {
   HouseholdProfile,
   Plan,
   TimeSlot,
-  RiskLevel,
 } from '../domain/types';
 import { PolicyEvaluationResult } from '../domain/policy';
+import { computeRiskRadar, findMostVulnerableMember } from '../domain/radar';
 import { AIPlanInput } from './schema';
 import { validateAIPlanOutput } from './validator';
 import { buildPlanCacheKey, getCachedPlan, setCachedPlan } from './plan-cache';
@@ -15,69 +15,19 @@ export interface PlanPersonalizationResult {
   plan: Plan;
   isAIPersonalized: boolean;
   statusMessage?: string;
-}
-
-/**
- * Builds the set of allowable numbers derived strictly from engine facts.
- */
-function deriveAllowlistedNumbers(
-  snapshot: AirSnapshot,
-  profile: HouseholdProfile,
-  effectiveLevel: RiskLevel
-): string[] {
-  const nums = new Set<string>();
-
-  // Standard constants (PM2.5, N95, FFP2, Risk levels, age bands)
-  ['0', '1', '2', '3', '4', '5', '12', '17', '18', '64', '65', '95', '2.5'].forEach((n) => nums.add(n));
-
-  // Snapshot PM2.5 and AQI values
-  if (snapshot.pm25.now !== null) {
-    nums.add(Math.round(snapshot.pm25.now).toString());
-  }
-
-  for (const s of snapshot.pm25.hourly.slice(0, 24)) {
-    if (s.pm25 !== null) {
-      nums.add(Math.round(s.pm25).toString());
-    }
-    if (s.aqi !== undefined) {
-      nums.add(Math.round(s.aqi).toString());
-    }
-  }
-
-  // Routine clock times (e.g. "06", "00", "07", "30", "17", "22")
-  const times = [
-    profile.routine.wake,
-    profile.routine.leave,
-    profile.routine.returnHome,
-    ...profile.routine.cooking,
-    profile.routine.bed,
-  ];
-
-  for (const t of times) {
-    const parts = t.split(':');
-    parts.forEach((p) => nums.add(p));
-    nums.add(parts.join(''));
-  }
-
-  // Commute distance / trips
-  nums.add(Math.round(profile.travel.oneWayKm).toString());
-  nums.add(profile.travel.tripsPerWeek.toString());
-
-  // Assessment level
-  nums.add(effectiveLevel.toString());
-
-  return Array.from(nums);
+  fallback?: boolean;
 }
 
 /**
  * Prepares the minimal non-identifying AIPlanInput payload.
+ * Strips all coordinates, location names, member names, exact ages, and free text.
  */
 export function prepareAIPlanInput(
   deterministicPlan: Plan,
   snapshot: AirSnapshot,
   profile: HouseholdProfile,
   slots: TimeSlot[],
-  policyResult: PolicyEvaluationResult
+  policyResult: PolicyEvaluationResult,
 ): AIPlanInput {
   // Determine abstract sensitivity category without medical specifics
   let sensitiveCategory: 'respiratory' | 'cardiovascular' | 'pregnancy' | 'general' | 'none' = 'none';
@@ -91,32 +41,39 @@ export function prepareAIPlanInput(
   else if (hasPregnancy) sensitiveCategory = 'pregnancy';
   else if (hasOther) sensitiveCategory = 'general';
 
-  const candidateSummaries = policyResult.approvedCandidates.map((c) => ({
-    id: c.action.id,
-    title: c.action.title,
-    category: c.action.category,
-    costTier: c.action.cost,
-    exposureImpact: `${c.impact.exposure.direction} (${c.impact.exposure.label})`,
-    emissionsImpact: `${c.impact.emissions.direction} (${c.impact.emissions.label})`,
-  }));
+  // Compute real risk radar to identify member age band and peak exposure slot
+  const radar = computeRiskRadar(profile, snapshot, slots);
+  const vulnerableMember = findMostVulnerableMember(profile.members);
 
   const slotRisks = slots.map((s) => ({ slotId: s.id, level: s.forecastLevel }));
 
-  // Radar summary
-  const mostVulnerable = profile.members[0];
-  const peakSlot = slots[0];
+  const rawTimes = [
+    profile.routine.wake,
+    profile.routine.leave,
+    profile.routine.returnHome,
+    ...profile.routine.cooking,
+    profile.routine.bed,
+  ];
+  const routineTimes = Array.from(new Set(rawTimes.filter((t) => /^([01]\d|2[0-3]):[0-5]\d$/.test(t))));
+
+  const numericFacts = {
+    pm25Now: snapshot.pm25.now !== null ? Math.round(snapshot.pm25.now * 10) / 10 : null,
+    slotMeanPm25Values: slots.map((s) => ({
+      slotId: s.id,
+      pm25: s.forecastMeanPm25,
+    })),
+    routineTimes,
+  };
 
   return {
     effectiveLevel: policyResult.effectiveLevel,
     trend: snapshot.trend,
     slotRisks,
     radar: {
-      vulnerableRoleLabel: mostVulnerable?.roleLabel || 'Household Member',
-      peakSlotId: peakSlot?.id || 'daytime',
-      peakWindowReason: 'High exposure activity window',
+      memberBand: vulnerableMember.ageGroup,
+      peakSlotId: radar.slotId,
     },
     approvedCandidateIds: policyResult.approvedCandidates.map((c) => c.action.id),
-    candidateSummaries,
     mustIncludeIds: policyResult.mustIncludeActionIds,
     forbiddenActionIds: policyResult.forbiddenActionIds,
     budgetTier: profile.budget,
@@ -132,89 +89,95 @@ export function prepareAIPlanInput(
       homeHeating: profile.homeHeating,
     },
     confidenceCeiling: deterministicPlan.planConfidence,
-    allowlistedNumbers: deriveAllowlistedNumbers(snapshot, profile, policyResult.effectiveLevel),
+    numericFacts,
   };
 }
 
 /**
  * Requests an AI plan overlay from the API, falling back safely to deterministic plan on error.
+ * Client is the safety authority (ADR-006): response is validated locally before applying overlay.
  */
 export async function getPersonalizedPlan(
   deterministicPlan: Plan,
   snapshot: AirSnapshot,
   profile: HouseholdProfile,
   slots: TimeSlot[],
-  policyResult: PolicyEvaluationResult
+  policyResult: PolicyEvaluationResult,
+  signal?: AbortSignal,
 ): Promise<PlanPersonalizationResult> {
-  const cacheKey = buildPlanCacheKey(profile, snapshot);
-  const cached = getCachedPlan(cacheKey);
+  const input = prepareAIPlanInput(deterministicPlan, snapshot, profile, slots, policyResult);
+  const cacheKey = buildPlanCacheKey(input, snapshot);
 
+  // Check client-side memory cache first
+  const cached = getCachedPlan(cacheKey);
   if (cached) {
-    return {
-      plan: applyAIOverlay(deterministicPlan, cached),
-      isAIPersonalized: true,
-      statusMessage: 'Cached personalized plan active',
-    };
+    const validCached = validateAIPlanOutput(cached, input);
+    if (validCached.valid) {
+      return {
+        plan: applyAIOverlay(deterministicPlan, validCached.output),
+        isAIPersonalized: true,
+        statusMessage: 'Loaded personalized plan from cache',
+      };
+    }
   }
 
-  const input = prepareAIPlanInput(deterministicPlan, snapshot, profile, slots, policyResult);
-
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout budget
-
   try {
-    const response = await fetch('/api/plan', {
+    const res = await fetch('/api/plan', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(input),
-      signal: controller.signal,
+      signal,
     });
 
-    clearTimeout(timeoutId);
-
-    if (!response.ok) {
+    if (!res.ok) {
       return {
         plan: deterministicPlan,
         isAIPersonalized: false,
-        statusMessage: 'Standard plan active (API response not ok)',
+        fallback: true,
+        statusMessage: `Plan API returned HTTP ${res.status}; using deterministic plan`,
       };
     }
 
-    const data = await response.json();
-
+    const data = await res.json();
     if (!data.success || !data.plan) {
       return {
         plan: deterministicPlan,
         isAIPersonalized: false,
-        statusMessage: 'Standard plan active (Server fallback)',
+        fallback: true,
+        statusMessage: data.message || 'AI overlay fell back to standard plan',
       };
     }
 
-    // Client-side defence in depth validation
+    // Client-side safety validation (safety authority ADR-006)
     const validation = validateAIPlanOutput(data.plan, input);
     if (!validation.valid) {
       return {
         plan: deterministicPlan,
         isAIPersonalized: false,
-        statusMessage: `Standard plan active (Client safety check: ${validation.error.code})`,
+        fallback: true,
+        statusMessage: `Client rejected AI plan: ${validation.error.message}`,
       };
     }
 
+    // Cache valid response
     setCachedPlan(cacheKey, validation.output);
 
     return {
       plan: applyAIOverlay(deterministicPlan, validation.output),
       isAIPersonalized: true,
-      statusMessage: 'AI-personalized plan active',
+      statusMessage: 'AI personalization applied successfully',
     };
-  } catch (_err) {
-    clearTimeout(timeoutId);
+  } catch (err: unknown) {
+    const isAbort = err instanceof Error && err.name === 'AbortError';
     return {
       plan: deterministicPlan,
       isAIPersonalized: false,
-      statusMessage: 'Standard plan active (Network or timeout)',
+      fallback: true,
+      statusMessage: isAbort
+        ? 'AI personalization request timed out (8s limit); using standard plan'
+        : 'Failed to contact plan service; using standard plan',
     };
   }
 }

@@ -14,7 +14,7 @@ export const AIPlanOutputSchema = z.object({
       slotId: z.string(),
       actionIds: z.array(z.string()),
       note: z.string().max(160),
-    })
+    }).strict()
   ),
   explanations: z.record(z.string(), z.string().max(200)),
   assumptions: z.array(z.string().max(140)),
@@ -27,6 +27,7 @@ export type AIPlanOutput = z.infer<typeof AIPlanOutputSchema>;
 /**
  * Minimal structured payload sent to the LLM.
  * Strictly non-identifying: no coordinates, no names, no free text.
+ * Candidate summaries and allowable numbers are derived on the server.
  */
 export interface AIPlanInput {
   effectiveLevel: RiskLevel;
@@ -36,19 +37,10 @@ export interface AIPlanInput {
     level: RiskLevel;
   }>;
   radar: {
-    vulnerableRoleLabel: string;
+    memberBand: AgeGroup | 'mixed';
     peakSlotId: string;
-    peakWindowReason: string;
   };
   approvedCandidateIds: string[];
-  candidateSummaries: Array<{
-    id: string;
-    title: string;
-    category: string;
-    costTier: string;
-    exposureImpact: string;
-    emissionsImpact: string;
-  }>;
   mustIncludeIds: string[];
   forbiddenActionIds: string[];
   budgetTier: BudgetTier;
@@ -64,7 +56,14 @@ export interface AIPlanInput {
     homeHeating: 'none' | 'electric' | 'combustion';
   };
   confidenceCeiling: Confidence;
-  allowlistedNumbers: string[];
+  numericFacts: {
+    pm25Now: number | null;
+    slotMeanPm25Values: Array<{
+      slotId: string;
+      pm25: number | null;
+    }>;
+    routineTimes: string[];
+  };
 }
 
 export const AIPlanInputSchema = z.object({
@@ -74,24 +73,13 @@ export const AIPlanInputSchema = z.object({
     z.object({
       slotId: z.string(),
       level: z.union([z.literal(0), z.literal(1), z.literal(2), z.literal(3), z.literal(4)]),
-    })
+    }).strict()
   ),
   radar: z.object({
-    vulnerableRoleLabel: z.string(),
+    memberBand: z.enum(['u5', '5-12', '13-17', '18-64', '65+', 'mixed']),
     peakSlotId: z.string(),
-    peakWindowReason: z.string(),
-  }),
+  }).strict(),
   approvedCandidateIds: z.array(z.string()),
-  candidateSummaries: z.array(
-    z.object({
-      id: z.string(),
-      title: z.string(),
-      category: z.string(),
-      costTier: z.string(),
-      exposureImpact: z.string(),
-      emissionsImpact: z.string(),
-    })
-  ),
   mustIncludeIds: z.array(z.string()),
   forbiddenActionIds: z.array(z.string()),
   budgetTier: z.enum(['free', 'low', 'flexible']),
@@ -103,9 +91,18 @@ export const AIPlanInputSchema = z.object({
       windowAC: z.boolean(),
       hvac: z.boolean(),
       kitchenExhaust: z.boolean(),
-    }),
+    }).strict(),
     homeHeating: z.enum(['none', 'electric', 'combustion']),
-  }),
+  }).strict(),
   confidenceCeiling: z.enum(['high', 'medium', 'low']),
-  allowlistedNumbers: z.array(z.string()),
+  numericFacts: z.object({
+    pm25Now: z.number().nullable(),
+    slotMeanPm25Values: z.array(
+      z.object({
+        slotId: z.string(),
+        pm25: z.number().nullable(),
+      }).strict()
+    ),
+    routineTimes: z.array(z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/)),
+  }).strict(),
 }).strict();

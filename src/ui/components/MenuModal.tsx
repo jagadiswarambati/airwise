@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { HouseholdProfile } from '../../domain/types';
 import { exportProfileJson, importProfileJson } from '../../state/profileStore';
 import { ScenarioType } from '../../data/fallback-chain';
+import { useSettings } from '../../state/settingsStore';
 
 interface MenuModalProps {
   isOpen: boolean;
@@ -25,6 +26,26 @@ export const MenuModal: React.FC<MenuModalProps> = ({
   onSelectScenario,
 }) => {
   const [importError, setImportError] = useState<string | null>(null);
+  const [settings, updateSettings] = useSettings();
+  const [isLlmAvailable, setIsLlmAvailable] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    let isMounted = true;
+    fetch('/api/health')
+      .then((r) => r.json())
+      .then((data) => {
+        if (isMounted && data && typeof data.llmEnabled === 'boolean') {
+          setIsLlmAvailable(data.llmEnabled);
+        }
+      })
+      .catch(() => {
+        if (isMounted) setIsLlmAvailable(false);
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -96,6 +117,48 @@ export const MenuModal: React.FC<MenuModalProps> = ({
             >
               Load Priya's Household Preset
             </button>
+          </div>
+
+          {/* AI Personalization Settings Toggle */}
+          <div
+            style={{
+              backgroundColor: 'var(--color-surface-subtle)',
+              padding: '12px',
+              borderRadius: '8px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '6px',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <label
+                htmlFor="ai-toggle"
+                style={{
+                  fontWeight: 600,
+                  fontSize: '0.9rem',
+                  cursor: isLlmAvailable ? 'pointer' : 'not-allowed',
+                  opacity: isLlmAvailable ? 1 : 0.6,
+                }}
+              >
+                Personalise plan with AI
+              </label>
+              <input
+                id="ai-toggle"
+                type="checkbox"
+                checked={settings.aiEnabled && isLlmAvailable}
+                disabled={!isLlmAvailable}
+                onChange={(e) => updateSettings({ aiEnabled: e.target.checked })}
+                style={{ width: '1.2rem', height: '1.2rem', cursor: isLlmAvailable ? 'pointer' : 'not-allowed' }}
+              />
+            </div>
+            <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', margin: 0, lineHeight: 1.35 }}>
+              Age bands, equipment, routine times; no location, names, or health records are sent.
+            </p>
+            {!isLlmAvailable && (
+              <span style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', fontStyle: 'italic' }}>
+                (AI service disabled on this deployment)
+              </span>
+            )}
           </div>
 
           {/* Scenario Switching */}
@@ -193,4 +256,3 @@ export const MenuModal: React.FC<MenuModalProps> = ({
     </div>
   );
 };
-

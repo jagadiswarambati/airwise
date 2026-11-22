@@ -39,7 +39,7 @@ describe('AI Plan Cache (Decision A-29)', () => {
     const key2 = buildPlanCacheKey(PRIYA_PROFILE, snapshot1);
 
     expect(key1).toBe(key2);
-    expect(key1).toContain('v1.0.0');
+    expect(key1).toContain('v1.1.0');
 
     // Different snapshot produces different key
     const snapshot2 = getSampleScenarioSnapshot('severe');
@@ -67,4 +67,3 @@ describe('AI Plan Cache (Decision A-29)', () => {
     expect(getCachedPlan(key)).toBeNull();
   });
 });
-

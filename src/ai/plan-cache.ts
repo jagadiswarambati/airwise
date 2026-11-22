@@ -1,5 +1,5 @@
 import { HouseholdProfile, AirSnapshot } from '../domain/types';
-import { AIPlanOutput } from './schema';
+import { AIPlanInput, AIPlanOutput } from './schema';
 import { PROMPT_VERSION } from './prompts/planPrompt';
 
 const planMemoryCache = new Map<string, { plan: AIPlanOutput; expiresAt: number }>();
@@ -29,7 +29,7 @@ function hashProfile(profile: HouseholdProfile): string {
   return simpleStringHash(JSON.stringify(normalized));
 }
 
-function simpleStringHash(str: string): string {
+export function simpleStringHash(str: string): string {
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
     const char = str.charCodeAt(i);
@@ -41,17 +41,26 @@ function simpleStringHash(str: string): string {
 
 /**
  * Derives a cache key incorporating:
- * - Profile structural hash
+ * - AI plan input structural hash (or profile hash for backward compatibility)
  * - Current hour bucket (YYYY-MM-DD-HH)
  * - Snapshot data signature (PM2.5 reading + freshness)
  * - Prompt version
  */
-export function buildPlanCacheKey(profile: HouseholdProfile, snapshot: AirSnapshot): string {
-  const profileHash = hashProfile(profile);
-  const hourBucket = new Date().toISOString().slice(0, 13); // "2026-11-20T21"
+export function buildPlanCacheKey(
+  inputOrProfile: AIPlanInput | HouseholdProfile,
+  snapshot: AirSnapshot,
+): string {
+  let payloadHash: string;
+  if ('approvedCandidateIds' in inputOrProfile) {
+    payloadHash = simpleStringHash(JSON.stringify(inputOrProfile));
+  } else {
+    payloadHash = hashProfile(inputOrProfile);
+  }
+
+  const hourBucket = new Date().toISOString().slice(0, 13); // e.g. "2026-11-22T10"
   const pm25Value = snapshot.pm25.now !== null ? Math.round(snapshot.pm25.now) : 'null';
   const dataSig = `${pm25Value}_${snapshot.freshness}`;
-  return `${profileHash}_${hourBucket}_${dataSig}_v${PROMPT_VERSION}`;
+  return `${payloadHash}_${hourBucket}_${dataSig}_v${PROMPT_VERSION}`;
 }
 
 export function getCachedPlan(key: string): AIPlanOutput | null {

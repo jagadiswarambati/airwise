@@ -15,37 +15,10 @@ describe('AI Plan Layer - Validator & Safety Suite', () => {
       { slotId: 'evening', level: 3 },
     ],
     radar: {
-      vulnerableRoleLabel: 'Child, 5–12',
+      memberBand: '5-12',
       peakSlotId: 'evening',
-      peakWindowReason: 'Evening peak stagnation',
     },
     approvedCandidateIds: ['IN-01', 'PE-03', 'PE-02', 'IN-02', 'MO-06', 'CM-01'],
-    candidateSummaries: [
-      {
-        id: 'IN-01',
-        title: 'Keep windows closed',
-        category: 'indoor',
-        costTier: 'free',
-        exposureImpact: 'reduces (Estimated)',
-        emissionsImpact: 'neutral (Estimated)',
-      },
-      {
-        id: 'PE-03',
-        title: 'Shift active play indoors',
-        category: 'personal',
-        costTier: 'free',
-        exposureImpact: 'reduces (Estimated)',
-        emissionsImpact: 'neutral (Estimated)',
-      },
-      {
-        id: 'PE-02',
-        title: 'Wear well-fitted respirator',
-        category: 'personal',
-        costTier: 'low',
-        exposureImpact: 'reduces (Estimated)',
-        emissionsImpact: 'neutral (Estimated)',
-      },
-    ],
     mustIncludeIds: ['IN-01', 'PE-03'],
     forbiddenActionIds: ['MO-07', 'IN-10'],
     budgetTier: 'low',
@@ -56,7 +29,14 @@ describe('AI Plan Layer - Validator & Safety Suite', () => {
       homeHeating: 'none',
     },
     confidenceCeiling: 'medium',
-    allowlistedNumbers: ['0', '1', '2', '3', '4', '5', '12', '95', '2.5', '07', '30', '17', '19', '85', '110'],
+    numericFacts: {
+      pm25Now: 85,
+      slotMeanPm25Values: [
+        { slotId: 'commute-out', pm25: 110 },
+        { slotId: 'evening', pm25: 95 },
+      ],
+      routineTimes: ['07:30', '17:00', '19:00', '22:00'],
+    },
   };
 
   const validOutput: AIPlanOutput = {
@@ -67,7 +47,7 @@ describe('AI Plan Layer - Validator & Safety Suite', () => {
       {
         slotId: 'commute-out',
         actionIds: ['PE-02'],
-        note: 'Wear respirator for the 07 30 school trip.',
+        note: 'Wear respirator for the 07:30 school trip.',
       },
       {
         slotId: 'evening',
@@ -79,7 +59,7 @@ describe('AI Plan Layer - Validator & Safety Suite', () => {
       'IN-01': 'Prevents heavy outdoor PM 2.5 particulate matter from entering the living room.',
       'PE-03': 'Protects developing lungs from strenuous breathing during peak stagnation.',
     },
-    assumptions: ['Household has low-cost N 95 or suitable masks available.'],
+    assumptions: ['Household has low-cost N95 or suitable masks available.'],
     planConfidence: 'medium',
     confidenceReason: 'Verified model forecast and routine timing alignment.',
   };
@@ -213,7 +193,7 @@ describe('AI Plan Layer - Validator & Safety Suite', () => {
   it('rejects hallucinated unlisted numbers in timeline notes and assumptions', () => {
     const badNotes = [
       'Reduces indoor particle levels by 88% overall.',
-      'Guarantees 500 meters of clean buffer zone.',
+      'Provides 500 meters of clean buffer zone.',
       'Saves 42 vehicle kilometers this afternoon.',
     ];
 

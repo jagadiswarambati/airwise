@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   ActionCandidate,
   AirSnapshot,
@@ -7,12 +7,15 @@ import {
 } from '../../domain/types';
 import { computeBaseLevel, computeEffectiveLevel } from '../../domain/levels';
 import { deriveTimeSlots, computeRiskRadar } from '../../domain/radar';
+import { evaluatePolicy } from '../../domain/policy';
 import { buildDeterministicPlan } from '../../domain/plan-builder';
 import { evaluateQuickChecks } from '../../domain/quickchecks';
 import { getAirSnapshot } from '../../data/fallback-chain';
 import { buildTrustModel, TrustModel } from '../../data/trust';
 import { useScenario } from '../../state/scenarioStore';
 import { useManualSevereMode } from '../../state/severeModeStore';
+import { useSettings } from '../../state/settingsStore';
+import { usePersonalizedPlan } from '../hooks/usePersonalizedPlan';
 
 import { Header } from '../components/Header';
 import { AirBriefingCard } from '../components/AirBriefingCard';
@@ -44,6 +47,7 @@ export const TodayScreen: React.FC<TodayScreenProps> = ({
 }) => {
   const { scenario, setScenario } = useScenario();
   const { isManualSevereMode, toggleSevereMode } = useManualSevereMode();
+  const [settings] = useSettings();
 
   const [currentTab, setCurrentTab] = useState<AppTab>('today');
   const [snapshot, setSnapshot] = useState<AirSnapshot | null>(null);
@@ -56,6 +60,10 @@ export const TodayScreen: React.FC<TodayScreenProps> = ({
   const [selectedAction, setSelectedAction] = useState<ActionCandidate | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
   const [dismissSevereView, setDismissSevereView] = useState<boolean>(false);
+
+  // Accessible live-region polite announcement on AI plan swap-in
+  const [announcement, setAnnouncement] = useState<string>('');
+  const prevAiPersonalizedRef = useRef<boolean>(false);
 
   // Load Air Snapshot
   const loadAir = useCallback(async () => {
@@ -82,6 +90,34 @@ export const TodayScreen: React.FC<TodayScreenProps> = ({
     setDismissSevereView(false);
   }, [loadAir]);
 
+  // Domain Calculations
+  const targetRegion = profile.location.country === 'IN' ? 'IN' : 'US';
+  const baseLevel = snapshot ? computeBaseLevel(snapshot.pm25.now, targetRegion) : 0;
+  const effectiveLevel = snapshot ? computeEffectiveLevel(baseLevel, profile.members) : 0;
+  const slots = snapshot ? deriveTimeSlots(profile, snapshot.pm25.hourly, targetRegion) : [];
+  const radar = snapshot ? computeRiskRadar(profile, snapshot, slots) : null;
+  const policyResult = snapshot ? evaluatePolicy(profile, snapshot, slots, false, targetRegion) : null;
+  const deterministicPlan: Plan | null = snapshot
+    ? buildDeterministicPlan(profile, snapshot, { targetRegion })
+    : null;
+
+  // Asynchronous AI Plan Overlay Swap-in
+  const { plan: activePlan, isAiPersonalized } = usePersonalizedPlan(
+    deterministicPlan || ({} as Plan),
+    snapshot,
+    profile,
+    slots,
+    policyResult,
+    settings.aiEnabled,
+  );
+
+  useEffect(() => {
+    if (isAiPersonalized && !prevAiPersonalizedRef.current) {
+      setAnnouncement('Plan updated with personalised order');
+    }
+    prevAiPersonalizedRef.current = isAiPersonalized;
+  }, [isAiPersonalized]);
+
   if (loading && !snapshot) {
     return (
       <div className="app-container" style={{ padding: '2rem', textAlign: 'center' }}>
@@ -102,17 +138,9 @@ export const TodayScreen: React.FC<TodayScreenProps> = ({
     );
   }
 
-  if (!snapshot) return null;
+  if (!snapshot || !radar || !deterministicPlan) return null;
 
-  // Domain Calculations
-  const targetRegion = profile.location.country === 'IN' ? 'IN' : 'US';
-  const baseLevel = computeBaseLevel(snapshot.pm25.now, targetRegion);
-  const effectiveLevel = computeEffectiveLevel(baseLevel, profile.members);
-  const slots = deriveTimeSlots(profile, snapshot.pm25.hourly, targetRegion);
-  const radar = computeRiskRadar(profile, snapshot, slots);
-  const plan: Plan = buildDeterministicPlan(profile, snapshot, {
-    targetRegion,
-  });
+  const plan = activePlan.headline ? activePlan : deterministicPlan;
   const quickChecks = evaluateQuickChecks(profile, snapshot, targetRegion);
 
   const trust: TrustModel = buildTrustModel(
@@ -122,6 +150,9 @@ export const TodayScreen: React.FC<TodayScreenProps> = ({
     sourceTier,
     isFallback,
     fallbackReason,
+    plan.source === 'ai'
+      ? '✨ AI-personalised plan (constrained Gemini overlay)'
+      : 'Standard deterministic plan (rule-based)',
   );
 
   // Severe Smog Mode Active Trigger (P-01 or manual override)
@@ -153,6 +184,11 @@ export const TodayScreen: React.FC<TodayScreenProps> = ({
 
   return (
     <div className="app-container">
+      {/* Politely announced live region on plan swap-in without moving focus or scrolling */}
+      <div role="status" aria-live="polite" className="sr-only">
+        {announcement}
+      </div>
+
       <Header
         currentScenario={scenario}
         onSelectScenario={setScenario}
