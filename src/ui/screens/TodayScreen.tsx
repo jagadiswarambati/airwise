@@ -94,7 +94,7 @@ export const TodayScreen: React.FC<TodayScreenProps> = ({
   const targetRegion = profile.location.country === 'IN' ? 'IN' : 'US';
   const baseLevel = snapshot ? computeBaseLevel(snapshot.pm25.now, targetRegion) : 0;
   const effectiveLevel = snapshot ? computeEffectiveLevel(baseLevel, profile.members) : 0;
-  const slots = snapshot ? deriveTimeSlots(profile, snapshot.pm25.hourly, targetRegion) : [];
+  const slots = snapshot ? deriveTimeSlots(profile, snapshot.pm25.hourly, targetRegion, snapshot.utcOffsetSeconds) : [];
   const radar = snapshot ? computeRiskRadar(profile, snapshot, slots) : null;
   const policyResult = snapshot ? evaluatePolicy(profile, snapshot, slots, false, targetRegion) : null;
   const deterministicPlan: Plan | null = snapshot
@@ -206,10 +206,20 @@ export const TodayScreen: React.FC<TodayScreenProps> = ({
         />
 
         {/* Offline / Fallback Notice */}
-        {isFallback && fallbackReason && (
+        {isFallback && (
           <div className="banner banner-offline" role="status">
             <span>ℹ️</span>
-            <div>{fallbackReason}</div>
+            <div>
+              <div>{fallbackReason || "We couldn't reach the air data service. Using cautious defaults."}</div>
+              <button
+                type="button"
+                className="btn-secondary"
+                style={{ marginTop: '6px', fontSize: '0.8rem' }}
+                onClick={() => setScenario('moderate')}
+              >
+                Use demo data
+              </button>
+            </div>
           </div>
         )}
 

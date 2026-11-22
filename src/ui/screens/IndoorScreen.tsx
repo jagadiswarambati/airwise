@@ -18,9 +18,9 @@ export function IndoorScreen({ profile, snapshot }: IndoorScreenProps) {
   const targetRegion = profile.location.country === 'IN' ? 'IN' : 'US';
   const baseLevel = computeBaseLevel(snapshot.pm25.now, targetRegion);
   const effectiveLevel = computeEffectiveLevel(baseLevel, profile.members);
-  const slots = deriveTimeSlots(profile, snapshot.pm25.hourly, targetRegion);
+  const slots = deriveTimeSlots(profile, snapshot.pm25.hourly, targetRegion, snapshot.utcOffsetSeconds);
 
-  const ventResult = decideVentilation({ snapshot, effectiveLevel, slots });
+  const ventResult = decideVentilation({ snapshot, effectiveLevel, slots, targetRegion });
   const policyResult = evaluatePolicy(profile, snapshot, slots, false, targetRegion);
 
   const indoorCandidates = policyResult.approvedCandidates.filter(

@@ -1,4 +1,5 @@
 import { AirSnapshot, Location } from '../domain/types';
+import { getNowInLocation, parseLocalHour } from '../domain/time';
 import { airCache } from './cache';
 import { fetchApiAir } from './providers/apiAir';
 
@@ -19,9 +20,17 @@ export interface AirDataResult {
 
 /**
  * Regenerates sample scenario timestamps relative to current time
- * (except 'stale' which preserves fixed 24h age per Decision A-05 / A-06).
+ * with explicit location-time arithmetic so hourly slots align identically
+ * regardless of runtime or browser timezone.
+ *
+ * Per Decision A-05 / A-06:
+ * - 'clear', 'moderate', 'severe' align with today's date in location.
+ * - 'stale' preserves a fixed age >= 24h old (28h prior to now).
  */
-export function getSampleScenarioSnapshot(scenario: 'clear' | 'moderate' | 'severe' | 'stale'): AirSnapshot {
+export function getSampleScenarioSnapshot(
+  scenario: 'clear' | 'moderate' | 'severe' | 'stale',
+  now: Date = new Date(),
+): AirSnapshot {
   let template: AirSnapshot;
   switch (scenario) {
     case 'clear':
@@ -38,34 +47,60 @@ export function getSampleScenarioSnapshot(scenario: 'clear' | 'moderate' | 'seve
       break;
   }
 
-  const now = new Date();
-  const fetchedAt =
-    scenario === 'stale'
-      ? new Date(now.getTime() - 24 * 3600 * 1000).toISOString()
-      : now.toISOString();
+  const offset = template.utcOffsetSeconds ?? 19800; // Default IST (+5:30)
 
-  // Adjust hourly series times to align with today
+  if (scenario === 'stale') {
+    const staleEpoch = now.getTime() - 28 * 3600 * 1000;
+    const staleLoc = getNowInLocation(new Date(staleEpoch), offset);
+    const fetchedAt = new Date(staleEpoch).toISOString();
+
+    const hourly = template.pm25.hourly.map((point) => {
+      const origH = parseLocalHour(point.time, offset);
+      const hh = origH.toString().padStart(2, '0');
+      return {
+        ...point,
+        time: `${staleLoc.dateStr}T${hh}:00:00`,
+      };
+    });
+
+    return {
+      ...template,
+      observedAt: fetchedAt,
+      fetchedAt,
+      utcOffsetSeconds: offset,
+      timezone: template.timezone || 'Asia/Kolkata',
+      daylight: {
+        sunrise: `${staleLoc.dateStr}T06:00:00`,
+        sunset: `${staleLoc.dateStr}T18:00:00`,
+      },
+      pm25: {
+        ...template.pm25,
+        hourly,
+      },
+    };
+  }
+
+  const loc = getNowInLocation(now, offset);
+  const fetchedAt = now.toISOString();
+
   const hourly = template.pm25.hourly.map((point, index) => {
-    const pointTime = new Date(now);
-    pointTime.setHours(index % 24, 0, 0, 0);
+    const hh = (index % 24).toString().padStart(2, '0');
     return {
       ...point,
-      time: pointTime.toISOString(),
+      time: `${loc.dateStr}T${hh}:00:00`,
     };
   });
-
-  const daylight = template.daylight
-    ? {
-        sunrise: new Date(now).toISOString().slice(0, 10) + 'T06:00:00.000Z',
-        sunset: new Date(now).toISOString().slice(0, 10) + 'T18:00:00.000Z',
-      }
-    : undefined;
 
   return {
     ...template,
     observedAt: fetchedAt,
     fetchedAt,
-    daylight,
+    utcOffsetSeconds: offset,
+    timezone: template.timezone || 'Asia/Kolkata',
+    daylight: {
+      sunrise: `${loc.dateStr}T06:00:00`,
+      sunset: `${loc.dateStr}T18:00:00`,
+    },
     pm25: {
       ...template.pm25,
       hourly,
@@ -74,8 +109,16 @@ export function getSampleScenarioSnapshot(scenario: 'clear' | 'moderate' | 'seve
 }
 
 /**
- * Fallback Chain:
- * Primary Live Provider -> Cache -> Bundled Sample Scenarios
+ * Fallback Chain (Decision A-32):
+ * Live Primary Provider -> Cached Reading (fresh/aging/stale) -> Honest Offline Fallback (freshness: 'none')
+ *
+ * Rules:
+ * - Explicit demo scenarios ('clear', 'moderate', 'severe', 'stale') are returned directly without network calls.
+ * - In live mode, cached data is used if not expired.
+ * - If live fetch fails, the last known cached reading is returned with recomputed freshness.
+ * - If live and cache both fail, an honest fallback snapshot with freshness 'none' and pm25.now: null
+ *   is returned so Rule P-04 (cautious Level 2 defaults) applies.
+ * - NEVER silently substitute sample data for live failures.
  */
 export async function getAirSnapshot(options: {
   location: Location;
@@ -95,7 +138,7 @@ export async function getAirSnapshot(options: {
   }
 
   // 2. Check Client Cache first unless forceRefresh is true
-  if (!forceRefresh) {
+  if (!forceRefresh && !airCache.isExpired(location.lat, location.lon)) {
     const cachedSnapshot = airCache.get(location.lat, location.lon);
     if (cachedSnapshot) {
       return {
@@ -122,25 +165,45 @@ export async function getAirSnapshot(options: {
   } catch (error: unknown) {
     const errorMsg = error instanceof Error ? error.message : 'Network error';
 
-    // 4. Try Expired or Stale Cache if available
-    const staleCache = airCache.get(location.lat, location.lon);
-    if (staleCache) {
+    // 4. Try Expired or Stale Cache if available (Decision A-06 & A-32)
+    const cachedSnapshot = airCache.get(location.lat, location.lon);
+    if (cachedSnapshot) {
       return {
-        snapshot: staleCache,
+        snapshot: cachedSnapshot,
         sourceTier: 'cached',
         isFallback: true,
         fallbackReason: `Live air data fetch failed (${errorMsg}). Displaying previously cached reading.`,
       };
     }
 
-    // 5. Final Resort: Bundled Moderate Sample Scenario
-    const fallbackSample = getSampleScenarioSnapshot('moderate');
-    return {
-      snapshot: fallbackSample,
-      sourceTier: 'sample',
+    // 5. Honest Offline Fallback (Decision A-32):
+    // When live and cache both fail, return freshness 'none' with pm25.now: null.
+    // NEVER substitute a sample automatically!
+    const fallbackReason = "We couldn't reach the air data service. Using cautious defaults.";
+    const fallbackSnapshot: AirSnapshot = {
+      pm25: {
+        now: null,
+        hourly: [],
+      },
+      trend: 'unknown',
+      observedAt: new Date().toISOString(),
+      fetchedAt: new Date().toISOString(),
+      source: {
+        id: 'fallback-none',
+        name: 'Service Unavailable',
+        dataType: 'modelled',
+        resolutionNote: 'Offline fallback baseline when live and cached data are unavailable.',
+      },
+      freshness: 'none',
       isFallback: true,
-      fallbackReason: `Live provider and cache unavailable (${errorMsg}). Displaying demo sample data.`,
+      fallbackReason,
+    };
+
+    return {
+      snapshot: fallbackSnapshot,
+      sourceTier: 'live',
+      isFallback: true,
+      fallbackReason,
     };
   }
 }
-

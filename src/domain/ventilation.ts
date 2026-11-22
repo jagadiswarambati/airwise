@@ -4,6 +4,8 @@ import {
   TimeSlot,
   VentilationDecision,
 } from './types';
+import { getLevel1Threshold } from './config/bands';
+import { isMinuteInSlot, parseLocalHour, parseTimeToMinutes } from './time';
 
 export interface VentilationEngineInputs {
   snapshot: AirSnapshot;
@@ -13,6 +15,7 @@ export interface VentilationEngineInputs {
     hasActiveCooking?: boolean;
     hasIndoorSmoke?: boolean;
   };
+  targetRegion?: 'IN' | 'US';
 }
 
 /**
@@ -29,7 +32,7 @@ export interface VentilationEngineInputs {
  * Never claims that opening windows is universally safe or unsafe.
  */
 export function decideVentilation(inputs: VentilationEngineInputs): VentilationDecision {
-  const { snapshot, effectiveLevel, slots } = inputs;
+  const { snapshot, effectiveLevel, slots, targetRegion = 'IN' } = inputs;
   const { freshness } = snapshot;
 
   // Stale or missing data safety override (P-03 / P-04)
@@ -77,27 +80,31 @@ export function decideVentilation(inputs: VentilationEngineInputs): VentilationD
     if (point.pm25 !== null && !isNaN(point.pm25)) {
       if (point.pm25 < minHourPm25) {
         minHourPm25 = point.pm25;
-        try {
-          bestHour = new Date(point.time).getHours();
-        } catch (_e) {
-          // ignore date parse errors
-        }
+        bestHour = parseLocalHour(point.time, snapshot.utcOffsetSeconds);
       }
     }
   }
 
-  // Check if any slot has forecast level <= 1
-  const cleanSlot = slots.find((s) => s.forecastLevel <= 1);
+  const threshold = getLevel1Threshold(targetRegion);
 
-  if (cleanSlot && minHourPm25 <= 60 && bestHour !== undefined) {
-    return {
-      verdict: 'brief',
-      atHour: bestHour,
-      reasonCode: 'BRIEF_WINDOW_QUALIFIED',
-      explanation: `Air is in Caution range, but a cleaner window is forecasted around ${bestHour}:00 (${cleanSlot.label}). A brief 15–20 minute ventilation window is recommended to refresh indoor air.`,
-      uncertainty:
-        'Brief ventilation window relies on atmospheric dispersion forecast; close windows immediately if outdoor haze or burning odors increase.',
-    };
+  if (bestHour !== undefined && minHourPm25 <= threshold) {
+    const bestMinute = bestHour * 60;
+    const containingSlot = slots.find((s) => {
+      const startM = parseTimeToMinutes(s.startTime);
+      const endM = parseTimeToMinutes(s.endTime);
+      return isMinuteInSlot(bestMinute, startM, endM);
+    });
+
+    if (containingSlot && containingSlot.forecastLevel <= 1) {
+      return {
+        verdict: 'brief',
+        atHour: bestHour,
+        reasonCode: 'BRIEF_WINDOW_QUALIFIED',
+        explanation: `Air is in Caution range, but a cleaner window is forecasted around ${bestHour}:00 (${containingSlot.label}). A brief 15–20 minute ventilation window is recommended to refresh indoor air.`,
+        uncertainty:
+          'Brief ventilation window relies on atmospheric dispersion forecast; close windows immediately if outdoor haze or burning odors increase.',
+      };
+    }
   }
 
   // No qualifying clean window found

@@ -76,6 +76,7 @@ export function evaluatePolicy(
     hasSensitive,
     snapshot.daylight,
     currentTime ?? snapshot.observedAt ?? snapshot.fetchedAt,
+    snapshot.utcOffsetSeconds,
   );
   mobilityPolicy.forbiddenActionIds.forEach((id) => forbiddenSet.add(id));
 

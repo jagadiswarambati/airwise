@@ -82,3 +82,15 @@ export function getBandBreakpointInfo(level: RiskLevel, region: 'IN' | 'US' = 'I
   return found || profile.bands[profile.bands.length - 1];
 }
 
+/**
+ * Returns the upper threshold (inclusive) for Level 1 (Watch).
+ * Air at or below this concentration qualifies for ventilation windows and outdoor active travel.
+ * Returns 60.0 µg/m³ for India (CPCB Satisfactory) and 35.4 µg/m³ for US (EPA Moderate).
+ */
+export function getLevel1Threshold(region: 'IN' | 'US' = 'IN'): number {
+  const profile = getBandProfile(region);
+  const band1 = profile.bands.find((b) => b.level === 1);
+  return band1 ? band1.max : 60.0;
+}
+
+

@@ -1,5 +1,6 @@
 import { Daylight, DataFreshness, HouseholdProfile, RiskLevel, TimeSlot } from './types';
 import { COMMUTE_DIFF_MIN_PERCENT, COMMUTE_DIFF_MIN_UGM3 } from './config/thresholds';
+import { getNowInLocation, parseLocalMinuteOfDay } from './time';
 
 export interface MobilityPolicyResult {
   actionIds: string[];
@@ -12,58 +13,32 @@ export interface MobilityPolicyResult {
 /**
  * Checks whether the specified time is in daylight given sunrise and sunset times.
  * If daylight is undefined, returns false (Rule P-08, Decision A-22).
+ * Uses location-local time parsing to avoid browser timezone drift.
  */
 export function isDaylightHour(
   daylight?: Daylight,
   currentTime?: Date | string,
+  utcOffsetSeconds?: number,
 ): boolean {
-  if (!daylight?.sunrise || !daylight?.sunset) {
+  if (!daylight?.sunrise || !daylight?.sunset || !currentTime) {
     return false;
   }
 
-  if (!currentTime) {
+  const riseMinutes = parseLocalMinuteOfDay(daylight.sunrise, utcOffsetSeconds);
+  const setMinutes = parseLocalMinuteOfDay(daylight.sunset, utcOffsetSeconds);
+
+  let curMinutes: number;
+  if (typeof currentTime === 'string') {
+    curMinutes = parseLocalMinuteOfDay(currentTime, utcOffsetSeconds);
+  } else {
+    curMinutes = getNowInLocation(currentTime, utcOffsetSeconds ?? 0).minuteOfDay;
+  }
+
+  if (riseMinutes === 0 && setMinutes === 0) {
     return false;
   }
 
-  const curDate = typeof currentTime === 'string' ? new Date(currentTime) : currentTime;
-  if (isNaN(curDate.getTime())) {
-    return false;
-  }
-
-  // Parse sunrise and sunset
-  const riseDate = new Date(daylight.sunrise);
-  const setDate = new Date(daylight.sunset);
-
-  if (!isNaN(riseDate.getTime()) && !isNaN(setDate.getTime())) {
-    if (daylight.sunrise.includes('T') && daylight.sunset.includes('T')) {
-      const curMs = curDate.getTime();
-      return curMs >= riseDate.getTime() && curMs <= setDate.getTime();
-    }
-  }
-
-  // Fallback to clock minute comparison
-  let riseMinutes: number | null = null;
-  let setMinutes: number | null = null;
-
-  if (daylight.sunrise.includes(':')) {
-    const parts = daylight.sunrise.split('T').pop()?.split(':') || [];
-    if (parts.length >= 2) {
-      riseMinutes = parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10);
-    }
-  }
-  if (daylight.sunset.includes(':')) {
-    const parts = daylight.sunset.split('T').pop()?.split(':') || [];
-    if (parts.length >= 2) {
-      setMinutes = parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10);
-    }
-  }
-
-  if (riseMinutes !== null && setMinutes !== null) {
-    const curMinutes = curDate.getHours() * 60 + curDate.getMinutes();
-    return curMinutes >= riseMinutes && curMinutes <= setMinutes;
-  }
-
-  return false;
+  return curMinutes >= riseMinutes && curMinutes <= setMinutes;
 }
 
 /**
@@ -88,6 +63,7 @@ export function evaluateMobilityPolicy(
   hasSensitiveMembers: boolean,
   daylight?: Daylight,
   currentTime?: Date | string,
+  utcOffsetSeconds?: number,
 ): MobilityPolicyResult {
   const actionIds: string[] = [];
   const forbiddenActionIds: string[] = [];
@@ -103,7 +79,7 @@ export function evaluateMobilityPolicy(
   actionIds.push('MO-04');
 
   // 2. Walking / Cycling (MO-07 per Rule P-08 and Decision A-22)
-  const isDaylight = isDaylightHour(daylight, currentTime);
+  const isDaylight = isDaylightHour(daylight, currentTime, utcOffsetSeconds);
   if (effectiveLevel <= 1 && (freshness === 'fresh' || freshness === 'aging') && isDaylight) {
     if (travelModes.includes('walk') || travelModes.includes('cycle') || profile.travel.oneWayKm <= 3) {
       actionIds.push('MO-07');

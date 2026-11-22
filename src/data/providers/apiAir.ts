@@ -55,6 +55,8 @@ export function parseApiAirResponse(
     hourly: json.hourly,
     observedAt: json.observedAt || fetchedAt,
     fetchedAt: json.fetchedAt || fetchedAt,
+    utcOffsetSeconds: json.utcOffsetSeconds,
+    timezone: json.timezone,
     source: {
       id: json.source?.id || 'open-meteo',
       name: json.source?.name || 'Open-Meteo (CAMS & Forecast)',

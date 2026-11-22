@@ -367,7 +367,7 @@ Budgets: initial JS ≤ 150 KB gzip; Lighthouse Performance ≥ 90 and Accessibi
 
 | Failure | Behaviour |
 |---|---|
-| Primary air provider fails | Backup provider → last cached reading (flagged stale) → bundled sample (flagged *Sample*). |
+| Primary air provider fails | Last cached reading (recomputed freshness: aging/stale) → honest offline fallback (freshness 'none', cautious Level 2 defaults, "Use demo data" action). Never silently substitute sample data. |
 | Weather fails | Plan proceeds without inversion hint; noted in Trust Panel. |
 | LLM times out/invalid/blocked | One retry, then deterministic plan with *Standard plan* badge. |
 | Geolocation denied/unavailable | Manual city search, offline city list. |

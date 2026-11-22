@@ -9,6 +9,7 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "test:tz": "node scripts/run-tz-tests.mjs",
     "test:policy": "vitest run tests/policy",
     "format": "prettier --write .",
     "format:check": "prettier --check .",

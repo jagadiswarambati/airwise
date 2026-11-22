@@ -151,3 +151,6 @@ Status values: **Accepted**, **Deferred**, **To Verify**. Where a decision chang
 | A-28 | The "Try Priya's household" preset sets profile (`budget: low`) **and** scenario `severe`. |
 | A-29 | Plan cache key uses a hash of the plan-input payload (levels, candidates, descriptors), never the raw profile or location. |
 | A-30 | Gemini data-use terms and current model name must be verified before enabling the overlay in the deployed demo. |
+| A-31 | Confidence computation: exposure = min(evidence, freshness, dataType); emissions = min(evidence, inputTier); plan ceiling = min(freshness, dataType); stale/none => low. |
+| A-32 | Fallback chain: live -> cached -> none. Cache read returns the last real reading even when past TTL, with freshness recomputed from fetchedAt (aging or stale). If live and cache both fail, return freshness 'none' with pm25.now: null (so P-04 applies: cautious level 2, ventilation and walking suppressed) and offer an explicit 'Use demo data' action in the UI. Sample scenarios are used ONLY when the user explicitly selects a demo scenario. Never silently substitute sample data for live. |
+

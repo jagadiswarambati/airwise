@@ -40,13 +40,14 @@ export function buildDeterministicPlan(
   const communityMode = options?.communityMode || false;
   const generatedAt = options?.generatedAt || new Date().toISOString();
 
-  const slots = deriveTimeSlots(profile, snapshot.pm25.hourly, targetRegion);
+  const slots = deriveTimeSlots(profile, snapshot.pm25.hourly, targetRegion, snapshot.utcOffsetSeconds);
   const policyResult = evaluatePolicy(
     profile,
     snapshot,
     slots,
     communityMode,
     targetRegion,
+    generatedAt,
   );
 
   const { effectiveLevel, approvedCandidates, mustIncludeActionIds, flags } = policyResult;

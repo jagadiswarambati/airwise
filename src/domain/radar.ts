@@ -13,6 +13,7 @@ import {
   MODE_EXPOSURE_FACTORS,
   SLOT_OUTDOOR_FACTORS,
 } from './config/radar-weights';
+import { isMinuteInSlot, parseLocalMinuteOfDay } from './time';
 
 /**
  * Parses "HH:MM" string into minutes from midnight (0..1439)
@@ -23,12 +24,14 @@ export function parseTimeToMinutes(timeStr: string): number {
 }
 
 /**
- * Derives 6 standard daily time slots based on household routine and hourly forecast
+ * Derives 6 standard daily time slots based on household routine and hourly forecast.
+ * Uses location-local time parsing to guarantee timezone invariance.
  */
 export function deriveTimeSlots(
   profile: HouseholdProfile,
   hourlySeries: HourlyPoint[],
   targetRegion: 'IN' | 'US' = 'IN',
+  utcOffsetSeconds?: number,
 ): TimeSlot[] {
   const { wake, leave, returnHome, bed } = profile.routine;
 
@@ -104,15 +107,8 @@ export function deriveTimeSlots(
     // Collect PM2.5 hourly points that fall within this slot's time window
     const pointsInSlot = hourlySeries.filter((p) => {
       if (!p.time) return false;
-      const pointDate = new Date(p.time);
-      const pointMinute = pointDate.getHours() * 60 + pointDate.getMinutes();
-
-      if (def.startM <= def.endM) {
-        return pointMinute >= def.startM && pointMinute < def.endM;
-      } else {
-        // Crosses midnight (e.g. night slot)
-        return pointMinute >= def.startM || pointMinute < def.endM;
-      }
+      const pointMinute = parseLocalMinuteOfDay(p.time, utcOffsetSeconds);
+      return isMinuteInSlot(pointMinute, def.startM, def.endM);
     });
 
     const validPm25 = pointsInSlot

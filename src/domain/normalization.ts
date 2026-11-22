@@ -34,6 +34,8 @@ export interface RawAirDataInput {
     active: boolean;
     text?: string;
   };
+  utcOffsetSeconds?: number;
+  timezone?: string;
 }
 
 /**
@@ -135,9 +137,10 @@ export function normalizeAirQuality(
     input.fetchedAt,
     normalizedHourly,
     currentTime,
+    input.utcOffsetSeconds,
   );
 
-  const trend: Trend = calculateTrend(normalizedHourly, currentTime);
+  const trend: Trend = calculateTrend(normalizedHourly, currentTime, input.utcOffsetSeconds);
 
   const sourceMetadata: DataSourceMetadata = {
     id: input.source.id,
@@ -159,6 +162,8 @@ export function normalizeAirQuality(
     source: sourceMetadata,
     freshness,
     officialAlert: input.officialAlert,
+    utcOffsetSeconds: input.utcOffsetSeconds,
+    timezone: input.timezone,
   };
 }
 

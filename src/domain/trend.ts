@@ -1,12 +1,15 @@
 import { HourlyPoint, Trend } from './types';
 import { TREND_CHANGE_MIN_PERCENT, TREND_CHANGE_MIN_UGM3 } from './config/thresholds';
+import { parseLocalTimeToUtcEpoch } from './time';
 
 /**
  * Calculates air quality trend (rising, steady, falling, unknown) from hourly PM2.5 series.
+ * Supports explicit utcOffsetSeconds to ensure timezone invariance.
  */
 export function calculateTrend(
   hourlySeries: HourlyPoint[],
   referenceTime?: Date,
+  utcOffsetSeconds?: number,
 ): Trend {
   const validPoints = hourlySeries.filter(
     (p): p is HourlyPoint & { pm25: number } => p.pm25 !== null && !isNaN(p.pm25),
@@ -20,7 +23,10 @@ export function calculateTrend(
   let pointsToAnalyze = validPoints;
   if (referenceTime) {
     const refMs = referenceTime.getTime();
-    const pastPoints = validPoints.filter((p) => new Date(p.time).getTime() <= refMs);
+    const pastPoints = validPoints.filter((p) => {
+      const epoch = parseLocalTimeToUtcEpoch(p.time, utcOffsetSeconds ?? 0);
+      return epoch <= refMs;
+    });
     if (pastPoints.length >= 2) {
       pointsToAnalyze = pastPoints.slice(-6);
     } else {

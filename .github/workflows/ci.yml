@@ -31,6 +31,9 @@ jobs:
       - name: Run unit & policy tests
         run: npm test
 
+      - name: Timezone invariance tests
+        run: npm run test:tz
+
       - name: Build project
         run: npm run build
 

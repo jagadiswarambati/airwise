@@ -17,6 +17,7 @@ export function determineFreshness(
   fetchedAt: string | Date | null | undefined,
   hourlySeries: HourlyPoint[] = [],
   currentTime: Date = new Date(),
+  _utcOffsetSeconds?: number,
 ): DataFreshness {
   if (!fetchedAt) {
     return 'none';

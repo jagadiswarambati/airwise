@@ -2,12 +2,12 @@
   "pm25": {
     "now": 85.0,
     "hourly": [
-      { "time": "2026-11-19T06:00:00Z", "pm25": 82.0, "aqi": 173 },
-      { "time": "2026-11-19T07:00:00Z", "pm25": 88.0, "aqi": 193 },
-      { "time": "2026-11-19T08:00:00Z", "pm25": 92.0, "aqi": 207 },
-      { "time": "2026-11-19T09:00:00Z", "pm25": 85.0, "aqi": 183 },
-      { "time": "2026-11-19T10:00:00Z", "pm25": 80.0, "aqi": 167 },
-      { "time": "2026-11-19T11:00:00Z", "pm25": 78.0, "aqi": 160 }
+      { "time": "2026-11-19T06:00:00", "pm25": 82.0, "aqi": 173 },
+      { "time": "2026-11-19T07:00:00", "pm25": 88.0, "aqi": 193 },
+      { "time": "2026-11-19T08:00:00", "pm25": 92.0, "aqi": 207 },
+      { "time": "2026-11-19T09:00:00", "pm25": 85.0, "aqi": 183 },
+      { "time": "2026-11-19T10:00:00", "pm25": 80.0, "aqi": 167 },
+      { "time": "2026-11-19T11:00:00", "pm25": 78.0, "aqi": 160 }
     ]
   },
   "aqi": {
@@ -16,6 +16,8 @@
     "isComputed": true
   },
   "trend": "unknown",
+  "utcOffsetSeconds": 19800,
+  "timezone": "Asia/Kolkata",
   "source": {
     "id": "sample-stale",
     "name": "Demo Scenario: Stale / Disconnected Feed",
@@ -24,8 +26,8 @@
     "attribution": "Air quality and weather data by Open-Meteo, derived from Copernicus Atmosphere Monitoring Service (CAMS) information."
   },
   "daylight": {
-    "sunrise": "2026-11-20T06:00:00Z",
-    "sunset": "2026-11-20T18:00:00Z"
+    "sunrise": "2026-11-20T06:00:00",
+    "sunset": "2026-11-20T18:00:00"
   },
   "freshness": "stale"
 }

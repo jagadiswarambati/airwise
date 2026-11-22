@@ -179,6 +179,10 @@ export const AirSnapshotSchema = z.object({
     .optional(),
   daylight: DaylightSchema.optional(),
   weather: WeatherSnapshotSchema.optional(),
+  utcOffsetSeconds: z.number().optional(),
+  timezone: z.string().optional(),
+  isFallback: z.boolean().optional(),
+  fallbackReason: z.string().optional(),
 });
 export type AirSnapshot = z.infer<typeof AirSnapshotSchema>;
 

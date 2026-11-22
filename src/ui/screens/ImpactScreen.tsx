@@ -19,7 +19,7 @@ export const ImpactScreen: React.FC<ImpactScreenProps> = ({ profile, snapshot })
   const targetRegion = profile.location.country === 'IN' ? 'IN' : 'US';
   const baseLevel = computeBaseLevel(snapshot.pm25.now, targetRegion);
   const effectiveLevel = computeEffectiveLevel(baseLevel, profile.members);
-  const slots = deriveTimeSlots(profile, snapshot.pm25.hourly, targetRegion);
+  const slots = deriveTimeSlots(profile, snapshot.pm25.hourly, targetRegion, snapshot.utcOffsetSeconds);
 
   // Evaluate policy with community mode enabled so all applicable actions are represented
   const policyResult = evaluatePolicy(profile, snapshot, slots, true, targetRegion);

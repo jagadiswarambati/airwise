@@ -64,11 +64,12 @@ export function checkOpenWindow(
   snapshot: AirSnapshot,
   effectiveLevel: RiskLevel,
 ): QuickCheckResult {
-  const slots = deriveTimeSlots(profile, snapshot.pm25.hourly);
+  const slots = deriveTimeSlots(profile, snapshot.pm25.hourly, 'IN', snapshot.utcOffsetSeconds);
   const decision = decideVentilation({
     snapshot,
     effectiveLevel,
     slots,
+    targetRegion: 'IN',
   });
 
   if (decision.verdict === 'open') {

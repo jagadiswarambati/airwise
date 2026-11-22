@@ -75,7 +75,7 @@ The deterministic plan renders first. The AI result swaps in when and if it vali
 | Module | Responsibility |
 |---|---|
 | `providers/openMeteoAir.ts`, `openMeteoWeather.ts`, `geocode.ts` | Thin adapters behind interfaces; Zod-parse responses. |
-| `fallback-chain.ts` | Primary → backup → cache → sample, producing a Trust record. |
+| `fallback-chain.ts` | Primary (live) → cached reading (aging/stale) → honest offline fallback (none), never silently substituting sample data (Decision A-32). |
 | `cache.ts` | TTL cache (client) with explicit timestamps. |
 | `samples/` | `clear.json`, `moderate.json`, `severe.json`, `stale.json`, and a tiny city list. |
 | `trust.ts` | Builds the Trust Panel model (source, data type, freshness, fallback, notes). |

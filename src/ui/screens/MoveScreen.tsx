@@ -18,7 +18,7 @@ export function MoveScreen({ profile, snapshot }: MoveScreenProps) {
   const targetRegion = profile.location.country === 'IN' ? 'IN' : 'US';
   const baseLevel = computeBaseLevel(snapshot.pm25.now, targetRegion);
   const effectiveLevel = computeEffectiveLevel(baseLevel, profile.members);
-  const slots = deriveTimeSlots(profile, snapshot.pm25.hourly, targetRegion);
+  const slots = deriveTimeSlots(profile, snapshot.pm25.hourly, targetRegion, snapshot.utcOffsetSeconds);
 
   const mobilityPolicy = evaluateMobilityPolicy(
     profile,
@@ -27,7 +27,8 @@ export function MoveScreen({ profile, snapshot }: MoveScreenProps) {
     slots,
     hasSensitiveMembers(profile.members),
     snapshot.daylight,
-    snapshot.observedAt
+    snapshot.observedAt,
+    snapshot.utcOffsetSeconds,
   );
 
   const policyResult = evaluatePolicy(profile, snapshot, slots, false, targetRegion);
