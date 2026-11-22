@@ -39,7 +39,11 @@
     "name": "Demo Scenario: Clear Air",
     "dataType": "sample",
     "resolutionNote": "Bundled evaluation scenario for clear air conditions",
-    "attribution": "Air quality and weather data by Open-Meteo.com, derived from Copernicus Atmosphere Monitoring Service (CAMS) information."
+    "attribution": "Air quality and weather data by Open-Meteo, derived from Copernicus Atmosphere Monitoring Service (CAMS) information."
+  },
+  "daylight": {
+    "sunrise": "2026-11-20T06:00:00Z",
+    "sunset": "2026-11-20T18:00:00Z"
   },
   "freshness": "fresh"
 }

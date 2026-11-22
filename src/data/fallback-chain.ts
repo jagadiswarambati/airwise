@@ -1,6 +1,6 @@
 import { AirSnapshot, Location } from '../domain/types';
 import { airCache } from './cache';
-import { fetchOpenMeteoAir } from './providers/openMeteoAir';
+import { fetchApiAir } from './providers/apiAir';
 
 // Bundled scenario imports
 import clearScenario from './samples/clear.json';
@@ -54,10 +54,18 @@ export function getSampleScenarioSnapshot(scenario: 'clear' | 'moderate' | 'seve
     };
   });
 
+  const daylight = template.daylight
+    ? {
+        sunrise: new Date(now).toISOString().slice(0, 10) + 'T06:00:00.000Z',
+        sunset: new Date(now).toISOString().slice(0, 10) + 'T18:00:00.000Z',
+      }
+    : undefined;
+
   return {
     ...template,
     observedAt: fetchedAt,
     fetchedAt,
+    daylight,
     pm25: {
       ...template.pm25,
       hourly,
@@ -98,9 +106,9 @@ export async function getAirSnapshot(options: {
     }
   }
 
-  // 3. Attempt Live Primary Fetch (Open-Meteo)
+  // 3. Attempt Live Primary Fetch (/api/air)
   try {
-    const liveSnapshot = await fetchOpenMeteoAir(location.lat, location.lon, {
+    const liveSnapshot = await fetchApiAir(location.lat, location.lon, {
       country: location.country,
       timeoutMs: 5000,
     });

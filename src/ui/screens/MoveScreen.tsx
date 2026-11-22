@@ -25,7 +25,9 @@ export function MoveScreen({ profile, snapshot }: MoveScreenProps) {
     effectiveLevel,
     snapshot.freshness,
     slots,
-    hasSensitiveMembers(profile.members)
+    hasSensitiveMembers(profile.members),
+    snapshot.daylight,
+    snapshot.observedAt
   );
 
   const policyResult = evaluatePolicy(profile, snapshot, slots, false, targetRegion);

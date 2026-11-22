@@ -1,4 +1,4 @@
-import { DataFreshness, HouseholdProfile, RiskLevel, TimeSlot } from './types';
+import { Daylight, DataFreshness, HouseholdProfile, RiskLevel, TimeSlot } from './types';
 import { COMMUTE_DIFF_MIN_PERCENT, COMMUTE_DIFF_MIN_UGM3 } from './config/thresholds';
 
 export interface MobilityPolicyResult {
@@ -7,6 +7,63 @@ export interface MobilityPolicyResult {
   commuteShiftFeasible: boolean;
   forecastDifferenceUgm3?: number;
   explanations: Record<string, string>;
+}
+
+/**
+ * Checks whether the specified time is in daylight given sunrise and sunset times.
+ * If daylight is undefined, returns false (Rule P-08, Decision A-22).
+ */
+export function isDaylightHour(
+  daylight?: Daylight,
+  currentTime?: Date | string,
+): boolean {
+  if (!daylight?.sunrise || !daylight?.sunset) {
+    return false;
+  }
+
+  if (!currentTime) {
+    return false;
+  }
+
+  const curDate = typeof currentTime === 'string' ? new Date(currentTime) : currentTime;
+  if (isNaN(curDate.getTime())) {
+    return false;
+  }
+
+  // Parse sunrise and sunset
+  const riseDate = new Date(daylight.sunrise);
+  const setDate = new Date(daylight.sunset);
+
+  if (!isNaN(riseDate.getTime()) && !isNaN(setDate.getTime())) {
+    if (daylight.sunrise.includes('T') && daylight.sunset.includes('T')) {
+      const curMs = curDate.getTime();
+      return curMs >= riseDate.getTime() && curMs <= setDate.getTime();
+    }
+  }
+
+  // Fallback to clock minute comparison
+  let riseMinutes: number | null = null;
+  let setMinutes: number | null = null;
+
+  if (daylight.sunrise.includes(':')) {
+    const parts = daylight.sunrise.split('T').pop()?.split(':') || [];
+    if (parts.length >= 2) {
+      riseMinutes = parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10);
+    }
+  }
+  if (daylight.sunset.includes(':')) {
+    const parts = daylight.sunset.split('T').pop()?.split(':') || [];
+    if (parts.length >= 2) {
+      setMinutes = parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10);
+    }
+  }
+
+  if (riseMinutes !== null && setMinutes !== null) {
+    const curMinutes = curDate.getHours() * 60 + curDate.getMinutes();
+    return curMinutes >= riseMinutes && curMinutes <= setMinutes;
+  }
+
+  return false;
 }
 
 /**
@@ -29,6 +86,8 @@ export function evaluateMobilityPolicy(
   freshness: DataFreshness,
   slots: TimeSlot[],
   hasSensitiveMembers: boolean,
+  daylight?: Daylight,
+  currentTime?: Date | string,
 ): MobilityPolicyResult {
   const actionIds: string[] = [];
   const forbiddenActionIds: string[] = [];
@@ -43,15 +102,21 @@ export function evaluateMobilityPolicy(
   // 1. Trip Combining (MO-04: Always feasible)
   actionIds.push('MO-04');
 
-  // 2. Walking / Cycling (MO-07 per Rule P-08)
-  if (effectiveLevel <= 1 && (freshness === 'fresh' || freshness === 'aging')) {
+  // 2. Walking / Cycling (MO-07 per Rule P-08 and Decision A-22)
+  const isDaylight = isDaylightHour(daylight, currentTime);
+  if (effectiveLevel <= 1 && (freshness === 'fresh' || freshness === 'aging') && isDaylight) {
     if (travelModes.includes('walk') || travelModes.includes('cycle') || profile.travel.oneWayKm <= 3) {
       actionIds.push('MO-07');
     }
   } else {
     forbiddenActionIds.push('MO-07');
-    explanations['MO-07'] =
-      'Walking or cycling for transit is not suitable today due to elevated particulate levels and increased exertion exposure.';
+    if (effectiveLevel >= 2 || (freshness !== 'fresh' && freshness !== 'aging')) {
+      explanations['MO-07'] =
+        'Walking or cycling for transit is not suitable today due to elevated particulate levels and increased exertion exposure.';
+    } else {
+      explanations['MO-07'] =
+        'Walking or cycling for transit is suppressed because daylight conditions cannot be confirmed or travel is outside daylight hours.';
+    }
   }
 
   // 3. Commute Shift (MO-01 per Rule P-16)

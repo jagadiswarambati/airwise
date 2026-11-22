@@ -47,7 +47,7 @@ export function buildTrustModel(
 
   const attribution =
     snapshot.source.attribution ||
-    'Air quality and weather data by Open-Meteo.com, derived from Copernicus Atmosphere Monitoring Service (CAMS) information.';
+    'Air quality and weather data by Open-Meteo, derived from Copernicus Atmosphere Monitoring Service (CAMS) information.';
 
   return {
     sourceName: snapshot.source.name,

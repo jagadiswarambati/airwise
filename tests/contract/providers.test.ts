@@ -1,36 +1,52 @@
 import { describe, it, expect } from 'vitest';
 import {
-  parseOpenMeteoResponse,
-  OpenMeteoAirResponse,
+  parseApiAirResponse,
+  ApiAirResponse,
   OPEN_METEO_ATTRIBUTION,
-} from '../../src/data/providers/openMeteoAir';
+} from '../../src/data/providers/apiAir';
 import { normalizeAirQuality } from '../../src/domain/normalization';
 import { buildTrustModel } from '../../src/data/trust';
 import { getSampleScenarioSnapshot } from '../../src/data/fallback-chain';
 
-describe('Data Provider Contract Tests - Open-Meteo & Fallback Chain', () => {
-  const validFixture: OpenMeteoAirResponse = {
-    latitude: 28.61,
-    longitude: 77.23,
-    timezone: 'Asia/Kolkata',
-    current: {
-      time: '2026-11-21T10:00:00Z',
-      pm2_5: 64.5,
-    },
-    hourly: {
-      time: [
-        '2026-11-21T00:00:00Z',
-        '2026-11-21T01:00:00Z',
-        '2026-11-21T02:00:00Z',
+describe('Data Provider Contract Tests - /api/air & Fallback Chain', () => {
+  const validFixture: ApiAirResponse = {
+    currentPm25: 64.5,
+    hourly: [
+      { time: '2026-11-21T00:00:00Z', pm25: 42.1, aqi: 118 },
+      { time: '2026-11-21T01:00:00Z', pm25: 55.3, aqi: 151 },
+      { time: '2026-11-21T02:00:00Z', pm25: 68.9, aqi: 158 },
+    ],
+    weather: {
+      temperature2m: 24.5,
+      windSpeed10m: 12.0,
+      relativeHumidity2m: 55,
+      hourly: [
+        { time: '2026-11-21T00:00:00Z', temperature2m: 22.0, windSpeed10m: 10.0, relativeHumidity2m: 60 },
       ],
-      pm2_5: [42.1, 55.3, 68.9],
-      us_aqi: [118, 151, 158],
-      european_aqi: [3, 4, 4],
+      daylight: {
+        sunrise: '2026-11-21T06:30:00Z',
+        sunset: '2026-11-21T17:45:00Z',
+      },
+    },
+    daylight: {
+      sunrise: '2026-11-21T06:30:00Z',
+      sunset: '2026-11-21T17:45:00Z',
+    },
+    timezone: 'Asia/Kolkata',
+    utcOffsetSeconds: 19800,
+    observedAt: '2026-11-21T10:00:00Z',
+    fetchedAt: '2026-11-21T10:00:00Z',
+    source: {
+      id: 'open-meteo',
+      name: 'Open-Meteo (CAMS & Forecast)',
+      dataType: 'modelled',
+      resolutionNote: 'Modelled CAMS atmospheric forecast (~25 km spatial resolution).',
+      attribution: OPEN_METEO_ATTRIBUTION,
     },
   };
 
-  it('parses valid Open-Meteo response into domain RawAirDataInput', () => {
-    const raw = parseOpenMeteoResponse(validFixture, '2026-11-21T10:05:00Z');
+  it('parses valid /api/air response into domain RawAirDataInput', () => {
+    const raw = parseApiAirResponse(validFixture, '2026-11-21T10:05:00Z');
 
     expect(raw.currentPm25).toBe(64.5);
     expect(raw.hourly).toHaveLength(3);
@@ -50,20 +66,23 @@ describe('Data Provider Contract Tests - Open-Meteo & Fallback Chain', () => {
   });
 
   it('handles null or missing current pm2_5 gracefully', () => {
-    const fixtureMissingCurrent: OpenMeteoAirResponse = {
-      latitude: 28.61,
-      longitude: 77.23,
-      current: {
-        time: '2026-11-21T10:00:00Z',
-        pm2_5: null,
-      },
-      hourly: {
-        time: ['2026-11-21T00:00:00Z'],
-        pm2_5: [50],
+    const fixtureMissingCurrent: ApiAirResponse = {
+      currentPm25: null,
+      hourly: [{ time: '2026-11-21T00:00:00Z', pm25: 50, aqi: 130 }],
+      timezone: 'UTC',
+      utcOffsetSeconds: 0,
+      observedAt: '2026-11-21T10:00:00Z',
+      fetchedAt: '2026-11-21T10:00:00Z',
+      source: {
+        id: 'open-meteo',
+        name: 'Open-Meteo',
+        dataType: 'modelled',
+        resolutionNote: 'note',
+        attribution: OPEN_METEO_ATTRIBUTION,
       },
     };
 
-    const raw = parseOpenMeteoResponse(fixtureMissingCurrent);
+    const raw = parseApiAirResponse(fixtureMissingCurrent);
     expect(raw.currentPm25).toBeNull();
 
     const snapshot = normalizeAirQuality(raw, new Date(), 'IN');
@@ -72,21 +91,27 @@ describe('Data Provider Contract Tests - Open-Meteo & Fallback Chain', () => {
   });
 
   it('handles sparse hourly arrays with gaps and null values', () => {
-    const fixtureGaps: OpenMeteoAirResponse = {
-      latitude: 28.61,
-      longitude: 77.23,
-      current: { time: '2026-11-21T10:00:00Z', pm2_5: 35.0 },
-      hourly: {
-        time: [
-          '2026-11-21T00:00:00Z',
-          '2026-11-21T01:00:00Z',
-          '2026-11-21T02:00:00Z',
-        ],
-        pm2_5: [30.0, null, 40.0],
+    const fixtureGaps: ApiAirResponse = {
+      currentPm25: 35.0,
+      hourly: [
+        { time: '2026-11-21T00:00:00Z', pm25: 30.0, aqi: 80 },
+        { time: '2026-11-21T01:00:00Z', pm25: null, aqi: null },
+        { time: '2026-11-21T02:00:00Z', pm25: 40.0, aqi: 100 },
+      ],
+      timezone: 'UTC',
+      utcOffsetSeconds: 0,
+      observedAt: '2026-11-21T10:00:00Z',
+      fetchedAt: '2026-11-21T10:00:00Z',
+      source: {
+        id: 'open-meteo',
+        name: 'Open-Meteo',
+        dataType: 'modelled',
+        resolutionNote: 'note',
+        attribution: OPEN_METEO_ATTRIBUTION,
       },
     };
 
-    const raw = parseOpenMeteoResponse(fixtureGaps);
+    const raw = parseApiAirResponse(fixtureGaps);
     expect(raw.hourly[1].pm25).toBeNull();
 
     const snapshot = normalizeAirQuality(raw, new Date(), 'IN');
@@ -96,13 +121,23 @@ describe('Data Provider Contract Tests - Open-Meteo & Fallback Chain', () => {
   });
 
   it('handles empty or missing hourly block without throwing', () => {
-    const fixtureNoHourly: OpenMeteoAirResponse = {
-      latitude: 28.61,
-      longitude: 77.23,
-      current: { time: '2026-11-21T10:00:00Z', pm2_5: 22.0 },
+    const fixtureNoHourly: ApiAirResponse = {
+      currentPm25: 22.0,
+      hourly: [],
+      timezone: 'UTC',
+      utcOffsetSeconds: 0,
+      observedAt: '2026-11-21T10:00:00Z',
+      fetchedAt: '2026-11-21T10:00:00Z',
+      source: {
+        id: 'open-meteo',
+        name: 'Open-Meteo',
+        dataType: 'modelled',
+        resolutionNote: 'note',
+        attribution: OPEN_METEO_ATTRIBUTION,
+      },
     };
 
-    const raw = parseOpenMeteoResponse(fixtureNoHourly);
+    const raw = parseApiAirResponse(fixtureNoHourly);
     expect(raw.hourly).toHaveLength(0);
 
     const snapshot = normalizeAirQuality(raw, new Date(), 'IN');
@@ -112,21 +147,24 @@ describe('Data Provider Contract Tests - Open-Meteo & Fallback Chain', () => {
 
   it('handles schema drift with extra unexpected fields gracefully', () => {
     const fixtureDrift = {
-      latitude: 28.61,
-      longitude: 77.23,
+      currentPm25: 55.0,
+      hourly: [{ time: '2026-11-21T00:00:00Z', pm25: 55.0 }],
+      timezone: 'Asia/Kolkata',
+      utcOffsetSeconds: 19800,
+      observedAt: '2026-11-21T10:00:00Z',
+      fetchedAt: '2026-11-21T10:00:00Z',
       extraField: 'unknown_vendor_data',
       experimentalMetrics: { co: 1.2, no2: 45 },
-      current: {
-        time: '2026-11-21T10:00:00Z',
-        pm2_5: 55.0,
+      source: {
+        id: 'open-meteo',
+        name: 'Open-Meteo',
+        dataType: 'modelled',
+        resolutionNote: 'note',
+        attribution: OPEN_METEO_ATTRIBUTION,
       },
-      hourly: {
-        time: ['2026-11-21T00:00:00Z'],
-        pm2_5: [55.0],
-      },
-    } as unknown as OpenMeteoAirResponse;
+    } as unknown as ApiAirResponse;
 
-    const raw = parseOpenMeteoResponse(fixtureDrift);
+    const raw = parseApiAirResponse(fixtureDrift);
     expect(raw.currentPm25).toBe(55.0);
     const snapshot = normalizeAirQuality(raw, new Date(), 'IN');
     expect(snapshot.pm25.now).toBe(55.0);

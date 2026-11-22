@@ -166,7 +166,15 @@ describe('Deterministic Pipeline Integration Suite (Part 1)', () => {
         oneWayKm: 1,
       },
     };
-    const mobClear = evaluateMobilityPolicy(walkingProfile, 1, clearSnap.freshness, clearSlots, true);
+    const mobClear = evaluateMobilityPolicy(
+      walkingProfile,
+      1,
+      clearSnap.freshness,
+      clearSlots,
+      true,
+      clearSnap.daylight,
+      new Date(clearSnap.observedAt).toISOString().slice(0, 10) + 'T12:00:00.000Z'
+    );
     expect(mobClear.actionIds).toContain('MO-07');
 
     const severeSnap = getSampleScenarioSnapshot('severe');

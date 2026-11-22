@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { parseOpenMeteoResponse, OpenMeteoAirResponse } from '../../src/data/providers/openMeteoAir';
+import { parseApiAirResponse, ApiAirResponse } from '../../src/data/providers/apiAir';
 import { airCache } from '../../src/data/cache';
 import { getAirSnapshot, getSampleScenarioSnapshot } from '../../src/data/fallback-chain';
 import { buildTrustModel } from '../../src/data/trust';
@@ -17,23 +17,28 @@ describe('Data Providers & Fallback Chain', () => {
     airCache.clear();
   });
 
-  describe('Open-Meteo Parser', () => {
+  describe('/api/air Client Parser', () => {
     it('parses valid API response into domain RawAirDataInput', () => {
-      const mockApiData: OpenMeteoAirResponse = {
-        latitude: 17.38,
-        longitude: 78.48,
-        current: {
-          time: '2026-11-20T10:00:00Z',
-          pm2_5: 42.5,
-        },
-        hourly: {
-          time: ['2026-11-20T09:00:00Z', '2026-11-20T10:00:00Z'],
-          pm2_5: [38.0, 42.5],
-          us_aqi: [105, 118],
+      const mockApiData: ApiAirResponse = {
+        currentPm25: 42.5,
+        hourly: [
+          { time: '2026-11-20T09:00:00Z', pm25: 38.0, aqi: 105 },
+          { time: '2026-11-20T10:00:00Z', pm25: 42.5, aqi: 118 },
+        ],
+        timezone: 'Asia/Kolkata',
+        utcOffsetSeconds: 19800,
+        observedAt: '2026-11-20T10:00:00Z',
+        fetchedAt: '2026-11-20T10:00:00Z',
+        source: {
+          id: 'open-meteo',
+          name: 'Open-Meteo (CAMS & Forecast)',
+          dataType: 'modelled',
+          resolutionNote: 'Modelled CAMS forecast',
+          attribution: 'Open-Meteo',
         },
       };
 
-      const parsed = parseOpenMeteoResponse(mockApiData, '2026-11-20T10:00:00Z');
+      const parsed = parseApiAirResponse(mockApiData, '2026-11-20T10:00:00Z');
 
       expect(parsed.currentPm25).toBe(42.5);
       expect(parsed.hourly).toHaveLength(2);
@@ -101,7 +106,7 @@ describe('Data Providers & Fallback Chain', () => {
       expect(trust.dataTypeBadge).toBe('Demo data');
       expect(trust.freshnessBadge).toBe('Fresh');
       expect(trust.planConfidence).toBe('medium');
-      expect(trust.attribution).toContain('Open-Meteo.com');
+      expect(trust.attribution).toContain('Open-Meteo');
       expect(trust.attribution).toContain('Copernicus Atmosphere Monitoring Service');
       expect(trust.uncertaintyDisclaimer).toContain('not medical diagnosis');
     });

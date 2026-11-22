@@ -137,6 +137,29 @@ export type DataSourceMetadata = z.infer<typeof DataSourceMetadataSchema>;
 export const TrendSchema = z.enum(['rising', 'steady', 'falling', 'unknown']);
 export type Trend = z.infer<typeof TrendSchema>;
 
+export const DaylightSchema = z.object({
+  sunrise: z.string(),
+  sunset: z.string(),
+});
+export type Daylight = z.infer<typeof DaylightSchema>;
+
+export const WeatherHourlyPointSchema = z.object({
+  time: z.string(),
+  temperature2m: z.number().nullable().optional(),
+  windSpeed10m: z.number().nullable().optional(),
+  relativeHumidity2m: z.number().nullable().optional(),
+});
+export type WeatherHourlyPoint = z.infer<typeof WeatherHourlyPointSchema>;
+
+export const WeatherSnapshotSchema = z.object({
+  temperature2m: z.number().nullable().optional(),
+  windSpeed10m: z.number().nullable().optional(),
+  relativeHumidity2m: z.number().nullable().optional(),
+  hourly: z.array(WeatherHourlyPointSchema).optional(),
+  daylight: DaylightSchema.optional(),
+});
+export type WeatherSnapshot = z.infer<typeof WeatherSnapshotSchema>;
+
 export const AirSnapshotSchema = z.object({
   pm25: z.object({
     now: z.number().nullable(),
@@ -154,6 +177,8 @@ export const AirSnapshotSchema = z.object({
       text: z.string().optional(),
     })
     .optional(),
+  daylight: DaylightSchema.optional(),
+  weather: WeatherSnapshotSchema.optional(),
 });
 export type AirSnapshot = z.infer<typeof AirSnapshotSchema>;
 

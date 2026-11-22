@@ -18,10 +18,34 @@ describe('Mobility Policy Engine (Rules P-08, P-16, P-17, P-18, A-25)', () => {
     expect(result.explanations['MO-07']).toContain('not suitable today');
   });
 
-  it('P-08: permits walking/cycling (MO-07) when air is Clear/Watch and data is fresh', () => {
+  it('P-08 / A-22: suppresses walking/cycling (MO-07) when daylight is undefined', () => {
     const snapshot = createSnapshot(25); // Clear
     const slots = deriveTimeSlots(HEALTHY_ADULT_PROFILE, snapshot.pm25.hourly);
-    const result = evaluateMobilityPolicy(HEALTHY_ADULT_PROFILE, 0, 'fresh', slots, false);
+    const result = evaluateMobilityPolicy(HEALTHY_ADULT_PROFILE, 0, 'fresh', slots, false, undefined);
+
+    expect(result.forbiddenActionIds).toContain('MO-07');
+    expect(result.actionIds).not.toContain('MO-07');
+    expect(result.explanations['MO-07']).toContain('daylight conditions cannot be confirmed');
+  });
+
+  it('P-08 / A-22: suppresses walking/cycling (MO-07) when outside daylight hours', () => {
+    const snapshot = createSnapshot(25); // Clear
+    const slots = deriveTimeSlots(HEALTHY_ADULT_PROFILE, snapshot.pm25.hourly);
+    const daylight = { sunrise: '2026-11-20T06:00:00Z', sunset: '2026-11-20T18:00:00Z' };
+    const nightTime = '2026-11-20T21:30:00Z'; // 9:30 PM
+    const result = evaluateMobilityPolicy(HEALTHY_ADULT_PROFILE, 0, 'fresh', slots, false, daylight, nightTime);
+
+    expect(result.forbiddenActionIds).toContain('MO-07');
+    expect(result.actionIds).not.toContain('MO-07');
+    expect(result.explanations['MO-07']).toContain('outside daylight hours');
+  });
+
+  it('P-08 / A-22: permits walking/cycling (MO-07) when air is Clear/Watch, data is fresh, and during daylight hours', () => {
+    const snapshot = createSnapshot(25); // Clear
+    const slots = deriveTimeSlots(HEALTHY_ADULT_PROFILE, snapshot.pm25.hourly);
+    const daylight = { sunrise: '2026-11-20T06:00:00Z', sunset: '2026-11-20T18:00:00Z' };
+    const dayTime = '2026-11-20T11:00:00Z'; // 11:00 AM
+    const result = evaluateMobilityPolicy(HEALTHY_ADULT_PROFILE, 0, 'fresh', slots, false, daylight, dayTime);
 
     expect(result.actionIds).toContain('MO-07');
     expect(result.forbiddenActionIds).not.toContain('MO-07');

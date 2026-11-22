@@ -1,6 +1,11 @@
-import { AIPlanInput, AIPlanOutput } from '../src/ai/schema';
+import { AIPlanInput, AIPlanOutput, AIPlanInputSchema } from '../src/ai/schema';
 import { validateAIPlanOutput } from '../src/ai/validator';
 import { buildPlanPrompt } from '../src/ai/prompts/planPrompt';
+import { createErrorResponse, ApiResponse, ApiErrorBody } from './_lib/errors';
+import { getSecurityHeaders } from './_lib/headers';
+import { validateCorsOrigin } from './_lib/cors';
+import { checkRateLimit, getClientIp } from './_lib/rateLimit';
+import { validatePayloadSize } from './_lib/validate';
 
 export interface PlanApiResponse {
   success: boolean;
@@ -8,6 +13,88 @@ export interface PlanApiResponse {
   fallback?: boolean;
   message?: string;
   error?: unknown;
+}
+
+/**
+ * Pure core plan handler.
+ */
+export async function handlePlanCore(
+  rawBody: string,
+  headers: Record<string, string | string[] | undefined> = {},
+  method: string = 'POST',
+  bodyBytes?: number,
+): Promise<ApiResponse<PlanApiResponse | ApiErrorBody>> {
+  // 1. Method check
+  if (method !== 'POST') {
+    return createErrorResponse(405, 'MethodNotAllowed', 'Only POST method is supported on /api/plan', {
+      Allow: 'POST',
+    });
+  }
+
+  // 2. CORS check
+  const origin = typeof headers['origin'] === 'string' ? headers['origin'] : undefined;
+  const host = typeof headers['host'] === 'string' ? headers['host'] : undefined;
+  const cors = validateCorsOrigin(origin, host);
+  if (!cors.allowed) {
+    return createErrorResponse(403, 'Forbidden', 'Cross-origin request not permitted');
+  }
+
+  // 3. Content-Type check (415 Unsupported Media Type)
+  const contentType = typeof headers['content-type'] === 'string' ? headers['content-type'] : '';
+  if (!contentType.toLowerCase().includes('application/json')) {
+    return createErrorResponse(
+      415,
+      'UnsupportedMediaType',
+      'Content-Type must be application/json',
+    );
+  }
+
+  // 4. Payload size check (8 KB cap)
+  const actualBytes = bodyBytes ?? Buffer.byteLength(rawBody, 'utf-8');
+  const contentLength = typeof headers['content-length'] === 'string' ? headers['content-length'] : undefined;
+  const sizeValidation = validatePayloadSize(contentLength, actualBytes, 8192);
+  if (!sizeValidation.valid) {
+    return sizeValidation.response;
+  }
+
+  // 5. Rate limit check (6 req/min, burst 2)
+  const ip = getClientIp(headers);
+  const rateLimit = checkRateLimit(ip, 'plan');
+  if (!rateLimit.allowed) {
+    return createErrorResponse(429, 'RateLimited', 'Too many requests. Please try again later.', {
+      'Retry-After': String(rateLimit.retryAfterSeconds || 30),
+    });
+  }
+
+  // 6. JSON & Schema parse
+  let parsedJson: unknown;
+  try {
+    parsedJson = JSON.parse(rawBody);
+  } catch {
+    return createErrorResponse(400, 'ValidationError', 'Invalid JSON body format');
+  }
+
+  const parseResult = AIPlanInputSchema.safeParse(parsedJson);
+  if (!parseResult.success) {
+    const issue = parseResult.error.issues[0];
+    return createErrorResponse(
+      400,
+      'ValidationError',
+      `Plan input validation failed: ${issue?.path.join('.') || 'input'} - ${issue?.message || 'Invalid format'}`,
+    );
+  }
+
+  // 7. Execute plan request
+  const planResult = await handlePlanRequest(parseResult.data);
+  return {
+    status: 200,
+    headers: getSecurityHeaders({
+      'Content-Type': 'application/json',
+      'Cache-Control': 'no-store, max-age=0',
+      ...cors.headers,
+    }),
+    body: planResult,
+  };
 }
 
 /**
@@ -74,16 +161,17 @@ Please fix this violation and generate valid strict JSON meeting all rules.`;
 
 /**
  * Calls Google Gemini REST endpoint requesting JSON mode.
- * Uses native fetch (Node 18+).
+ * Key is sent in request header x-goog-api-key, never in the URL query.
  */
 async function callGeminiJsonMode(prompt: string, apiKey: string): Promise<unknown> {
   const model = process.env.GEMINI_MODEL || 'gemini-1.5-flash';
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
 
   const res = await fetch(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      'x-goog-api-key': apiKey,
     },
     body: JSON.stringify({
       contents: [
@@ -111,3 +199,19 @@ async function callGeminiJsonMode(prompt: string, apiKey: string): Promise<unkno
   return JSON.parse(text);
 }
 
+/**
+ * Vercel Serverless Function entry point.
+ */
+export default async function handler(request: Request): Promise<Response> {
+  const headers: Record<string, string> = {};
+  request.headers.forEach((value, key) => {
+    headers[key.toLowerCase()] = value;
+  });
+
+  const rawBody = await request.text();
+  const res = await handlePlanCore(rawBody, headers, request.method);
+  return new Response(JSON.stringify(res.body), {
+    status: res.status,
+    headers: res.headers,
+  });
+}

@@ -37,6 +37,7 @@ export function evaluatePolicy(
   slots: TimeSlot[],
   communityMode: boolean = false,
   targetRegion: 'IN' | 'US' = 'IN',
+  currentTime?: Date | string,
 ): PolicyEvaluationResult {
   const baseLevel = computeBaseLevel(snapshot.pm25.now, targetRegion);
   const effectiveLevel = computeEffectiveLevel(baseLevel, profile.members);
@@ -73,6 +74,8 @@ export function evaluatePolicy(
     snapshot.freshness,
     slots,
     hasSensitive,
+    snapshot.daylight,
+    currentTime ?? snapshot.observedAt ?? snapshot.fetchedAt,
   );
   mobilityPolicy.forbiddenActionIds.forEach((id) => forbiddenSet.add(id));
 
