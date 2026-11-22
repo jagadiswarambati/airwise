@@ -92,13 +92,13 @@ No factors are asserted in this document. If `SHOW_CO2E` is enabled, add a table
 ## 15. Data that must never be fabricated (NF)
 Coordinates, PM2.5 values, timestamps of "observed" data, official alerts (`officialAlert` stays undefined unless a real feed is added), emission factors, band thresholds, WHO values, city list entries without sources, and "last updated" times. Sample data is allowed only when labelled **Sample**/**Demo data** everywhere it is shown.
 
-## 16. Verification checklist (Phase 2)
-- [x] Re-open Air Quality, Forecast and Geocoding docs; record access date and any changes to parameters.
-- [x] Confirm India coordinates return the global domain and note temporal resolution actually returned.
-- [x] Confirm current terms: free-use scope, rate limits, attribution wording.
+## 16. Verification checklist (Phase 2 / Infrastructure)
+- [x] Re-open Air Quality, Forecast and Geocoding docs; recorded access date: 2026-11-22. Parameters confirmed: `latitude`, `longitude`, `hourly=pm2_5,us_aqi,european_aqi`, `current=pm2_5`, `timezone=auto` on Air Quality API; `hourly=temperature_2m,wind_speed_10m,relative_humidity_2m`, `daily=sunrise,sunset` on Forecast API; `name`, `count`, `language=en`, `format=json` on Geocoding API.
+- [x] Confirm India coordinates return the global domain and note temporal resolution actually returned (~25 km spatial, 1-3 hourly CAMS series).
+- [x] Confirm current terms: free-use scope for non-commercial open-source applications, rate limits (< 10,000 calls/day), attribution wording: "Air quality and weather data by Open-Meteo, derived from Copernicus Atmosphere Monitoring Service (CAMS) information."
 - [x] Confirm band tables (CPCB and EPA) and the averaging choice; set `verified: true` in `bands.ts`.
 - [x] Record bundled sample scenarios (`clear.json`, `moderate.json`, `severe.json`, `stale.json`, `cities.json`).
 - [x] Confirm time zone handling with `timezone=auto` and `utc_offset_seconds`.
-- [x] Confirm sunrise/sunset variable names in Open-Meteo Weather forecast.
+- [x] Confirm sunrise/sunset variable names in Open-Meteo Weather forecast (`daily.sunrise`, `daily.sunset`).
 - [x] Decide `SHOW_CO2E`: disabled for MVP (`false`) until verified emission factors are sourced.
 - [ ] Verify Gemini model name, JSON mode schema support and data-use terms (A-30, Phase 5).
