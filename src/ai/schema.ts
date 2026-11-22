@@ -66,3 +66,46 @@ export interface AIPlanInput {
   confidenceCeiling: Confidence;
   allowlistedNumbers: string[];
 }
+
+export const AIPlanInputSchema = z.object({
+  effectiveLevel: z.union([z.literal(0), z.literal(1), z.literal(2), z.literal(3), z.literal(4)]),
+  trend: z.enum(['unknown', 'rising', 'steady', 'falling']),
+  slotRisks: z.array(
+    z.object({
+      slotId: z.string(),
+      level: z.union([z.literal(0), z.literal(1), z.literal(2), z.literal(3), z.literal(4)]),
+    })
+  ),
+  radar: z.object({
+    vulnerableRoleLabel: z.string(),
+    peakSlotId: z.string(),
+    peakWindowReason: z.string(),
+  }),
+  approvedCandidateIds: z.array(z.string()),
+  candidateSummaries: z.array(
+    z.object({
+      id: z.string(),
+      title: z.string(),
+      category: z.string(),
+      costTier: z.string(),
+      exposureImpact: z.string(),
+      emissionsImpact: z.string(),
+    })
+  ),
+  mustIncludeIds: z.array(z.string()),
+  forbiddenActionIds: z.array(z.string()),
+  budgetTier: z.enum(['free', 'low', 'flexible']),
+  householdDescriptors: z.object({
+    sensitiveCategory: z.enum(['respiratory', 'cardiovascular', 'pregnancy', 'general', 'none']),
+    ageGroups: z.array(z.enum(['u5', '5-12', '13-17', '18-64', '65+'])),
+    equipment: z.object({
+      purifier: z.boolean(),
+      windowAC: z.boolean(),
+      hvac: z.boolean(),
+      kitchenExhaust: z.boolean(),
+    }),
+    homeHeating: z.enum(['none', 'electric', 'combustion']),
+  }),
+  confidenceCeiling: z.enum(['high', 'medium', 'low']),
+  allowlistedNumbers: z.array(z.string()),
+}).strict();
