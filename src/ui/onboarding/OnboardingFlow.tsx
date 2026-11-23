@@ -271,6 +271,22 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
             <button type="button" className="btn-primary" onClick={() => setStep(2)}>
               Next: Household Members →
             </button>
+
+            <p className="aw-onboarding-privacy-notice">
+              Your details stay on this device. By continuing, you agree to our{' '}
+              <a href="#/terms" className="aw-inline-link">
+                Terms of Use
+              </a>{' '}
+              and have read our{' '}
+              <a href="#/privacy" className="aw-inline-link">
+                Privacy Policy
+              </a>
+              . Learn more{' '}
+              <a href="#/about" className="aw-inline-link">
+                About AirWise
+              </a>
+              .
+            </p>
           </div>
         )}
 

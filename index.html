@@ -2,9 +2,37 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AirWise — Clean-Air Decision Assistant</title>
+    <title>AirWise - Clean-air advice for your household</title>
+    <meta
+      name="description"
+      content="Clean-air advice tailored to your household routine and health sensitivities. Deterministic rules, dual-axis impact, and honest transparency."
+    />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f8fafc" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#090d16" />
+    <link rel="canonical" href="https://airwise-five.vercel.app/" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <!-- Open Graph Metadata -->
+    <meta property="og:title" content="AirWise - Clean-air advice for your household" />
+    <meta
+      property="og:description"
+      content="Clean-air advice tailored to your household routine and health sensitivities. Deterministic rules, dual-axis impact, and honest transparency."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://airwise-five.vercel.app/" />
+    <meta property="og:image" content="https://airwise-five.vercel.app/og.png" />
+    <meta property="og:site_name" content="AirWise" />
+
+    <!-- Twitter Card Metadata -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="AirWise - Clean-air advice for your household" />
+    <meta
+      name="twitter:description"
+      content="Clean-air advice tailored to your household routine and health sensitivities. Deterministic rules, dual-axis impact, and honest transparency."
+    />
+    <meta name="twitter:image" content="https://airwise-five.vercel.app/og.png" />
+
     <link
       rel="preload"
       href="/src/assets/fonts/AtkinsonHyperlegibleNext-Variable.woff2"
@@ -14,8 +42,16 @@
     />
   </head>
   <body>
+    <noscript>
+      <div style="padding: 2rem; font-family: sans-serif; text-align: center; max-width: 600px; margin: 0 auto;">
+        <h2>JavaScript Required</h2>
+        <p>
+          AirWise requires JavaScript to evaluate air quality data and provide clean-air
+          recommendations for your household. Please enable JavaScript in your browser settings to continue.
+        </p>
+      </div>
+    </noscript>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
-

@@ -1,8 +1,13 @@
+import React from 'react';
 import { describe, it, expect } from 'vitest';
+import { renderToString } from 'react-dom/server';
 import { ACTION_CATALOG } from '../../src/domain/catalog/actions';
 import { ACTION_TEMPLATES } from '../../src/domain/templates';
 import { GREEN_MEADOWS_SOCIETY, generateShareableBriefing } from '../../src/data/community';
 import { getSampleScenarioSnapshot } from '../../src/data/fallback-chain';
+import { AboutScreen } from '../../src/ui/screens/AboutScreen';
+import { PrivacyScreen } from '../../src/ui/screens/PrivacyScreen';
+import { TermsScreen } from '../../src/ui/screens/TermsScreen';
 
 describe('Content Lint & Safety Audit', () => {
   it('ensures all catalog actions have complete dual-axis impact specifications', () => {
@@ -47,6 +52,14 @@ describe('Content Lint & Safety Audit', () => {
       expect(template.shortWhy, `Template ${id}`).not.toMatch(/\bMeasured\b/);
       expect(template.fullDescription, `Template ${id}`).not.toMatch(/\bMeasured\b/);
     }
+
+    // Public pages copy check
+    const aboutHtml = renderToString(React.createElement(AboutScreen));
+    const privacyHtml = renderToString(React.createElement(PrivacyScreen));
+    const termsHtml = renderToString(React.createElement(TermsScreen));
+    expect(aboutHtml).not.toMatch(/\bMeasured\b/);
+    expect(privacyHtml).not.toMatch(/\bMeasured\b/);
+    expect(termsHtml).not.toMatch(/\bMeasured\b/);
   });
 
   it('ensures all action templates have complete copy and boundary disclosures', () => {
@@ -103,6 +116,9 @@ describe('Content Lint & Safety Audit', () => {
       JSON.stringify(ACTION_TEMPLATES),
       JSON.stringify(GREEN_MEADOWS_SOCIETY),
       generateShareableBriefing(getSampleScenarioSnapshot('moderate'), 2),
+      renderToString(React.createElement(AboutScreen)),
+      renderToString(React.createElement(PrivacyScreen)),
+      renderToString(React.createElement(TermsScreen)),
     ];
 
     for (const text of textCorpus) {

@@ -48,8 +48,66 @@ export function App() {
     setIsEditing(false);
   };
 
-  // Onboarding View (Semantic <header> sits OUTSIDE <main id="main">)
-  if (!profile || isEditing) {
+  const isPublicRoute = route === 'about' || route === 'privacy' || route === 'terms';
+
+  // Public visitor view for first-time users without a profile
+  if (!profile) {
+    if (isPublicRoute) {
+      return (
+        <AppShell
+          currentRoute={route}
+          onNavigate={navigate}
+          currentScenario={scenario}
+          onSelectScenario={setScenario}
+          onOpenMenu={() => setIsMenuOpen(true)}
+        >
+          {route === 'about' && (
+            <ErrorBoundary fallbackMessage="Unable to load about page">
+              <Suspense fallback={<Skeleton count={2} variant="card" />}>
+                <AboutScreen
+                  onStartOnboarding={() => {
+                    setIsEditing(true);
+                    navigate('today');
+                  }}
+                  onLoadPriya={() => {
+                    handleLoadPriyaPreset();
+                    navigate('today');
+                  }}
+                />
+              </Suspense>
+            </ErrorBoundary>
+          )}
+
+          {route === 'privacy' && (
+            <ErrorBoundary fallbackMessage="Unable to load privacy policy">
+              <Suspense fallback={<Skeleton count={2} variant="card" />}>
+                <PrivacyScreen />
+              </Suspense>
+            </ErrorBoundary>
+          )}
+
+          {route === 'terms' && (
+            <ErrorBoundary fallbackMessage="Unable to load terms of use">
+              <Suspense fallback={<Skeleton count={2} variant="card" />}>
+                <TermsScreen />
+              </Suspense>
+            </ErrorBoundary>
+          )}
+
+          <MenuModal
+            isOpen={isMenuOpen}
+            onClose={() => setIsMenuOpen(false)}
+            profile={null}
+            onLoadPriya={handleLoadPriyaPreset}
+            onEditProfile={() => setIsEditing(true)}
+            onDeleteProfile={remove}
+            isManualSevere={isManualSevereMode}
+            onToggleSevere={toggleSevereMode}
+          />
+        </AppShell>
+      );
+    }
+
     return (
       <div className="aw-shell">
         <SkipLink />
@@ -61,15 +119,42 @@ export function App() {
               </div>
               <span className="aw-brand-title">AirWise Onboarding</span>
             </div>
-            {profile && (
-              <button
-                type="button"
-                className="aw-btn aw-btn-secondary"
-                onClick={() => setIsEditing(false)}
-              >
-                Cancel
-              </button>
-            )}
+          </div>
+        </header>
+
+        <main id="main" className="aw-main" tabIndex={-1}>
+          <div className="aw-container aw-main-container">
+            <OnboardingFlow
+              initialProfile={null}
+              onComplete={handleOnboardingComplete}
+              onLoadPriya={handleLoadPriyaPreset}
+            />
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  // Editing existing profile
+  if (isEditing) {
+    return (
+      <div className="aw-shell">
+        <SkipLink />
+        <header className="aw-header">
+          <div className="aw-container aw-header-inner">
+            <div className="aw-brand">
+              <div className="aw-brand-icon">
+                <Icon name="wind" size={24} aria-hidden="true" />
+              </div>
+              <span className="aw-brand-title">AirWise Onboarding</span>
+            </div>
+            <button
+              type="button"
+              className="aw-btn aw-btn-secondary"
+              onClick={() => setIsEditing(false)}
+            >
+              Cancel
+            </button>
           </div>
         </header>
 
@@ -163,7 +248,16 @@ export function App() {
       {route === 'about' && (
         <ErrorBoundary fallbackMessage="Unable to load about page">
           <Suspense fallback={<Skeleton count={2} variant="card" />}>
-            <AboutScreen />
+            <AboutScreen
+              onStartOnboarding={() => {
+                setIsEditing(true);
+                navigate('today');
+              }}
+              onLoadPriya={() => {
+                handleLoadPriyaPreset();
+                navigate('today');
+              }}
+            />
           </Suspense>
         </ErrorBoundary>
       )}
