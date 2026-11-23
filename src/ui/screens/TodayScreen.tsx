@@ -5,11 +5,7 @@ import {
   HouseholdProfile,
   Plan,
 } from '../../domain/types';
-import { computeBaseLevel, computeEffectiveLevel } from '../../domain/levels';
-import { deriveTimeSlots, computeRiskRadar } from '../../domain/radar';
-import { evaluatePolicy } from '../../domain/policy';
-import { buildDeterministicPlan } from '../../domain/plan-builder';
-import { evaluateQuickChecks } from '../../domain/quickchecks';
+import { useDailyPlan } from '../hooks/useDailyPlan';
 import { getAirSnapshot } from '../../data/fallback-chain';
 import { buildTrustModel, TrustModel } from '../../data/trust';
 import { useScenario } from '../../state/scenarioStore';
@@ -90,16 +86,17 @@ export const TodayScreen: React.FC<TodayScreenProps> = ({
     setDismissSevereView(false);
   }, [loadAir]);
 
-  // Domain Calculations
+  // Domain Calculations via unified useDailyPlan hook (single source of truth)
   const targetRegion = profile.location.country === 'IN' ? 'IN' : 'US';
-  const baseLevel = snapshot ? computeBaseLevel(snapshot.pm25.now, targetRegion) : 0;
-  const effectiveLevel = snapshot ? computeEffectiveLevel(baseLevel, profile.members) : 0;
-  const slots = snapshot ? deriveTimeSlots(profile, snapshot.pm25.hourly, targetRegion, snapshot.utcOffsetSeconds) : [];
-  const radar = snapshot ? computeRiskRadar(profile, snapshot, slots) : null;
-  const policyResult = snapshot ? evaluatePolicy(profile, snapshot, slots, false, targetRegion) : null;
-  const deterministicPlan: Plan | null = snapshot
-    ? buildDeterministicPlan(profile, snapshot, { targetRegion })
-    : null;
+  const {
+    baseLevel: _baseLevel,
+    effectiveLevel,
+    slots,
+    radar,
+    policyResult,
+    plan: deterministicPlan,
+    quickChecks,
+  } = useDailyPlan(profile, snapshot, targetRegion, false);
 
   // Asynchronous AI Plan Overlay Swap-in
   const { plan: activePlan, isAiPersonalized } = usePersonalizedPlan(
@@ -141,7 +138,6 @@ export const TodayScreen: React.FC<TodayScreenProps> = ({
   if (!snapshot || !radar || !deterministicPlan) return null;
 
   const plan = activePlan.headline ? activePlan : deterministicPlan;
-  const quickChecks = evaluateQuickChecks(profile, snapshot, targetRegion);
 
   const trust: TrustModel = buildTrustModel(
     snapshot,

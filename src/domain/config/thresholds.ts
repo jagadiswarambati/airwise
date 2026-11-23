@@ -16,8 +16,10 @@ export const COMMUTE_DIFF_MIN_UGM3 = 5;
 export const COMMUTE_DIFF_MIN_PERCENT = 0.15;
 
 /**
- * Default carpooling vehicle occupancy assumption (occupants per vehicle)
+ * E1 avoidance default constants (IMPACT_METHODOLOGY.md §5)
  */
+export const DEFAULT_CARPOOL_DAYS = 2;
+export const DEFAULT_REMOTE_DAYS = 1;
 export const DEFAULT_CARPOOL_OCCUPANCY = 2;
 
 /**
@@ -30,4 +32,3 @@ export const DEFAULT_FALLBACK_RISK_LEVEL: RiskLevel = 2;
  */
 export const TREND_CHANGE_MIN_PERCENT = 0.1; // 10%
 export const TREND_CHANGE_MIN_UGM3 = 5; // 5 µg/m³
-

@@ -9,24 +9,24 @@ import { Member } from '../../src/domain/types';
 
 describe('Risk Levels & Vulnerability Engine (Rule P-02)', () => {
   const healthyAdults: Member[] = [
-    { id: '1', roleLabel: 'Adult, 30', ageGroup: '18-64', flags: [] },
-    { id: '2', roleLabel: 'Adult, 32', ageGroup: '18-64', flags: [] },
+    { id: '1', roleLabel: 'Adult 18-64', ageGroup: '18-64', flags: [] },
+    { id: '2', roleLabel: 'Adult 18-64', ageGroup: '18-64', flags: [] },
   ];
 
   const sensitiveChild: Member[] = [
-    { id: '1', roleLabel: 'Adult, 35', ageGroup: '18-64', flags: [] },
-    { id: '2', roleLabel: 'Child, 6', ageGroup: '5-12', flags: [] },
+    { id: '1', roleLabel: 'Adult 18-64', ageGroup: '18-64', flags: [] },
+    { id: '2', roleLabel: 'Child 5-12', ageGroup: '5-12', flags: [] },
   ];
 
   const sensitiveFlaggedAdult: Member[] = [
-    { id: '1', roleLabel: 'Adult, 40', ageGroup: '18-64', flags: ['asthma_copd'] },
+    { id: '1', roleLabel: 'Adult 18-64', ageGroup: '18-64', flags: ['asthma_copd'] },
   ];
 
-  const elderlyMember: Member[] = [
-    { id: '1', roleLabel: 'Senior, 70', ageGroup: '65+', flags: [] },
-  ];
+  const elderlyMember: Member[] = [{ id: '1', roleLabel: 'Adult 65+', ageGroup: '65+', flags: [] }];
 
-  const infantMember: Member[] = [{ id: '1', roleLabel: 'Infant, 1', ageGroup: 'u5', flags: [] }];
+  const infantMember: Member[] = [
+    { id: '1', roleLabel: 'Infant under 5', ageGroup: 'u5', flags: [] },
+  ];
 
   it('detects sensitive members across age groups and health flags', () => {
     expect(hasSensitiveMembers(healthyAdults)).toBe(false);

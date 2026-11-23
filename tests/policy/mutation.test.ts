@@ -18,8 +18,8 @@ describe('Policy Matrix Mutation Checks (Oracle Sensitivity)', () => {
       schemaVersion: 1,
       location: { label: 'Delhi', lat: 28.6, lon: 77.2, country: 'IN' },
       members: [
-        { id: 'm1', roleLabel: 'Adult, 35', ageGroup: '18-64', flags: [] },
-        { id: 'm2', roleLabel: 'Child, 6', ageGroup: '5-12', flags: ['asthma_copd'] },
+        { id: 'm1', roleLabel: 'Adult 18-64', ageGroup: '18-64', flags: [] },
+        { id: 'm2', roleLabel: 'Child 5-12', ageGroup: '5-12', flags: ['asthma_copd'] },
       ],
       housing: { tenure: 'rent', type: 'apartment' },
       cooking: { fuel: 'lpg', hasExhaust: false },

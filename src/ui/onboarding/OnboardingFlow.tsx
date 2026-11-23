@@ -10,6 +10,7 @@ import {
   Member,
   Mode,
   Tenure,
+  roleLabelFor,
 } from '../../domain/types';
 import citiesData from '../../data/samples/cities.json';
 
@@ -35,7 +36,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
   // Step 2: Household Members
   const [members, setMembers] = useState<Member[]>(
     initialProfile?.members || [
-      { id: '1', roleLabel: 'Adult, 34', ageGroup: '18-64', flags: [] },
+      { id: '1', roleLabel: 'Adult 18-64', ageGroup: '18-64', flags: [] },
     ],
   );
 
@@ -92,7 +93,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
     const newId = (members.length + 1).toString();
     setMembers((prev) => [
       ...prev,
-      { id: newId, roleLabel: `Adult ${prev.length + 1}`, ageGroup: '18-64', flags: [] },
+      { id: newId, roleLabel: roleLabelFor({ ageGroup: '18-64' }), ageGroup: '18-64', flags: [] },
     ]);
   };
 
@@ -107,14 +108,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
         if (m.id !== id) return m;
         const updated = { ...m, ...updates };
         if (updates.ageGroup) {
-          updated.roleLabel =
-            updates.ageGroup === 'u5'
-              ? 'Infant (under 5)'
-              : updates.ageGroup === '5-12'
-                ? 'Child (5–12)'
-                : updates.ageGroup === '65+'
-                  ? 'Senior (65+)'
-                  : 'Adult';
+          updated.roleLabel = roleLabelFor({ ageGroup: updates.ageGroup });
         }
         return updated;
       }),

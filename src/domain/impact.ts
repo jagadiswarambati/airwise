@@ -7,53 +7,83 @@ import {
   ImpactLabel,
   ImpactStatement,
 } from './types';
-import { calculateConfidence } from './confidence';
-import { DEFAULT_CARPOOL_OCCUPANCY } from './config/thresholds';
+import { calculateExposureConfidence, calculateEmissionsConfidence } from './confidence';
+import {
+  DEFAULT_CARPOOL_DAYS,
+  DEFAULT_REMOTE_DAYS,
+  DEFAULT_CARPOOL_OCCUPANCY,
+} from './config/thresholds';
 
 export interface ImpactCalculationOptions {
   commuteForecastDiffUgm3?: number;
 }
 
 /**
- * Formula E1: Avoided vehicle-kilometers (vkm)
- * - Carpooling: vkm = oneWayKm * 2 * tripsPerWeek * (1 - 1/occupancy)
- * - Remote work / trip elimination: vkm = oneWayKm * 2 * tripsAvoided
+ * Formula E1: Avoided vehicle-kilometers (vkm) per week (IMPACT_METHODOLOGY.md §5)
+ *
+ * Rules:
+ * - Numeric only for skipped or carpooled motor trips (MO-03, CM-02, MO-05).
+ * - Combined trips (MO-04), engine off (MO-06), walking (MO-07) are qualitative only (Recommended).
+ * - Inputs validated: 0 < oneWayKm <= 100; integer tripsPerWeek (0-14); motorised mode only.
+ * - Skipped/remote trip: vkm = oneWayKm * 2 * tripsAvoided
+ * - Carpool: vkm = oneWayKm * 2 * tripsAvoided * (1 - 1/occupancy)
+ * - Returns undefined if inputs invalid, non-motorised, or tripsAvoided = 0.
  */
 export function calculateAvoidedVkm(
   actionId: string,
   profile: HouseholdProfile,
+  customOccupancy: number = DEFAULT_CARPOOL_OCCUPANCY,
 ): number | undefined {
-  const { oneWayKm, tripsPerWeek } = profile.travel;
-  if (!oneWayKm || oneWayKm <= 0) {
+  const { oneWayKm, tripsPerWeek, modes, canWorkRemotely } = profile.travel;
+
+  // Validate inputs
+  if (typeof oneWayKm !== 'number' || oneWayKm <= 0 || oneWayKm > 100) {
+    return undefined;
+  }
+  if (
+    typeof tripsPerWeek !== 'number' ||
+    !Number.isInteger(tripsPerWeek) ||
+    tripsPerWeek < 0 ||
+    tripsPerWeek > 14
+  ) {
+    return undefined;
+  }
+  if (tripsPerWeek === 0) {
     return undefined;
   }
 
+  // Must be motorised mode
+  const isMotorised = modes.some(
+    (m) => m === 'car' || m === 'two_wheeler' || (m as string) === 'auto_rickshaw',
+  );
+  if (!isMotorised) {
+    return undefined;
+  }
+
+  // Validate occupancy
+  const occupancy =
+    Number.isInteger(customOccupancy) && customOccupancy >= 2 && customOccupancy <= 5
+      ? customOccupancy
+      : DEFAULT_CARPOOL_OCCUPANCY;
+
   if (actionId === 'MO-03' || actionId === 'CM-02') {
-    // Carpool: assumes 2 trips per week shared with default occupancy of 2
-    const sharedTrips = Math.min(tripsPerWeek, 2);
-    if (sharedTrips <= 0) return undefined;
-    const vkm = oneWayKm * 2 * sharedTrips * (1 - 1 / DEFAULT_CARPOOL_OCCUPANCY);
+    // Carpool: defaults to DEFAULT_CARPOOL_DAYS (2) days/week
+    const tripsAvoided = Math.min(tripsPerWeek, DEFAULT_CARPOOL_DAYS);
+    if (tripsAvoided <= 0) return undefined;
+    const vkm = oneWayKm * 2 * tripsAvoided * (1 - 1 / occupancy);
     return Math.round(vkm * 10) / 10;
   }
 
   if (actionId === 'MO-05') {
-    // Remote work 1 day per week: eliminates 1 round trip
-    const vkm = oneWayKm * 2 * 1;
+    // Remote work on high pollution day: defaults to DEFAULT_REMOTE_DAYS (1) day/week
+    if (!canWorkRemotely) return undefined;
+    const tripsAvoided = Math.min(tripsPerWeek, DEFAULT_REMOTE_DAYS);
+    if (tripsAvoided <= 0) return undefined;
+    const vkm = oneWayKm * 2 * tripsAvoided;
     return Math.round(vkm * 10) / 10;
   }
 
-  if (actionId === 'MO-04') {
-    // Combining errands: saves approx. 1 short round trip per week
-    const vkm = Math.min(oneWayKm * 2, 10);
-    return Math.round(vkm * 10) / 10;
-  }
-
-  if (actionId === 'MO-07') {
-    // Walking short trips: replaces approx. 2 km round trip per week
-    const vkm = 2.0;
-    return Math.round(vkm * 10) / 10;
-  }
-
+  // MO-04, MO-06, MO-07 are strictly qualitative per IMPACT_METHODOLOGY §5
   return undefined;
 }
 
@@ -63,7 +93,7 @@ export function calculateAvoidedVkm(
  * - Exposure and emissions scored independently.
  * - Exposure reduction never implies emission reduction (and vice versa).
  * - Label must be 'Measured', 'Estimated', or 'Recommended'.
- * - Confidence follows min(evidence, freshness, dataType).
+ * - Confidence: exposure = min(evidence, freshness, dataType); emissions = min(evidence, inputTier) (A-31).
  */
 export function buildImpactStatement(
   action: Action,
@@ -74,18 +104,20 @@ export function buildImpactStatement(
   const { impactSpec } = action;
   const { freshness, source } = snapshot;
 
-  const exposureConfidence: Confidence = calculateConfidence(
+  const exposureConfidence: Confidence = calculateExposureConfidence(
     impactSpec.exposure.evidence,
     freshness,
     source.dataType,
-    true, // exposure-dependent
   );
 
-  const emissionsConfidence: Confidence = calculateConfidence(
+  const hasValidInputs =
+    profile.travel.oneWayKm > 0 &&
+    profile.travel.oneWayKm <= 100 &&
+    profile.travel.tripsPerWeek > 0;
+
+  const emissionsConfidence: Confidence = calculateEmissionsConfidence(
     impactSpec.emissions.evidence,
-    freshness,
-    source.dataType,
-    false, // emissions action is level-independent (Rule P-15)
+    hasValidInputs ? 'self-reported' : 'missing',
   );
 
   let exposureMagnitude: string | undefined = undefined;
@@ -100,12 +132,14 @@ export function buildImpactStatement(
   let emissionsValue: { vkm: number } | undefined = undefined;
   let emissionsLabel: ImpactLabel = impactSpec.emissions.label;
 
-  // Formula E1: Avoided vehicle-km
+  // Formula E1: Avoided vehicle-km (Estimated only when numeric formula applies)
   if (impactSpec.emissions.hasFormula === 'E1') {
     const vkm = calculateAvoidedVkm(action.id, profile);
     if (vkm !== undefined && vkm > 0) {
       emissionsValue = { vkm };
       emissionsLabel = 'Estimated';
+    } else {
+      emissionsLabel = 'Recommended';
     }
   }
 
@@ -118,29 +152,28 @@ export function buildImpactStatement(
   } else if (exposureDirection === 'reduces') {
     explanation = 'Protects your household air; does not reduce outdoor environmental emissions.';
   } else if (emissionsDirection === 'reduces') {
-    explanation = 'Lowers community emissions; exposure reduction depends on ambient conditions.';
+    explanation = 'Reduces outdoor emissions; does not automatically clean indoor air.';
   } else {
-    explanation = 'Provides protective personal health and indoor air support.';
+    explanation = 'Targeted preventive action based on household guidance.';
   }
 
   return {
     exposure: {
       direction: exposureDirection,
-      magnitude: exposureMagnitude,
       label: exposureLabel,
       confidence: exposureConfidence,
+      magnitude: exposureMagnitude,
       note: impactSpec.exposure.noteTemplate,
     },
     emissions: {
       direction: emissionsDirection,
-      value: emissionsValue,
       label: emissionsLabel,
       confidence: emissionsConfidence,
+      value: emissionsValue,
       note: impactSpec.emissions.noteTemplate,
     },
-    assumptions: [...impactSpec.assumptions],
+    assumptions: impactSpec.assumptions,
     doesNotChange: impactSpec.doesNotChange,
     explanation,
   };
 }
-

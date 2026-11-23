@@ -9,9 +9,9 @@ export const PRIYA_PROFILE: HouseholdProfile = {
   schemaVersion: 1,
   location: { label: 'Hyderabad, India', lat: 17.38, lon: 78.48, country: 'IN' },
   members: [
-    { id: 'm1', roleLabel: 'Adult, 34', ageGroup: '18-64', flags: [] },
-    { id: 'm2', roleLabel: 'Child, 7', ageGroup: '5-12', flags: ['asthma_copd'] },
-    { id: 'm3', roleLabel: 'Adult, 68', ageGroup: '65+', flags: [] },
+    { id: 'm1', roleLabel: 'Adult 18-64', ageGroup: '18-64', flags: [] },
+    { id: 'm2', roleLabel: 'Child 5-12', ageGroup: '5-12', flags: ['asthma_copd'] },
+    { id: 'm3', roleLabel: 'Adult 65+', ageGroup: '65+', flags: [] },
   ],
   housing: { tenure: 'rent', type: 'apartment' },
   cooking: { fuel: 'lpg', hasExhaust: false },
@@ -42,7 +42,7 @@ export const PRIYA_PROFILE: HouseholdProfile = {
 export const HEALTHY_ADULT_PROFILE: HouseholdProfile = {
   schemaVersion: 1,
   location: { label: 'Delhi, India', lat: 28.61, lon: 77.21, country: 'IN' },
-  members: [{ id: 'm1', roleLabel: 'Adult, 28', ageGroup: '18-64', flags: [] }],
+  members: [{ id: 'm1', roleLabel: 'Adult 18-64', ageGroup: '18-64', flags: [] }],
   housing: { tenure: 'rent', type: 'apartment' },
   cooking: { fuel: 'electric', hasExhaust: true },
   homeHeating: 'electric',
@@ -73,8 +73,8 @@ export const COMBUSTION_HEATING_PROFILE: HouseholdProfile = {
   schemaVersion: 1,
   location: { label: 'Rural North India', lat: 29.5, lon: 76.8, country: 'IN' },
   members: [
-    { id: 'm1', roleLabel: 'Adult, 40', ageGroup: '18-64', flags: [] },
-    { id: 'm2', roleLabel: 'Infant, 2', ageGroup: 'u5', flags: [] },
+    { id: 'm1', roleLabel: 'Adult 18-64', ageGroup: '18-64', flags: [] },
+    { id: 'm2', roleLabel: 'Infant under 5', ageGroup: 'u5', flags: [] },
   ],
   housing: { tenure: 'own', type: 'house' },
   cooking: { fuel: 'biomass', hasExhaust: false },

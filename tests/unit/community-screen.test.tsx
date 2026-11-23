@@ -22,8 +22,7 @@ describe('CommunityScreen Component (SSR)', () => {
 
     expect(html).toContain('Society Briefing');
     expect(html).toContain('52 µg/m³');
-    expect(html).toContain('Level');
-    expect(html).toContain('2');
+    expect(html).toContain('Caution level');
   });
 
   it('renders shareable plain-text briefing box with copy button', () => {
@@ -32,7 +31,7 @@ describe('CommunityScreen Component (SSR)', () => {
     expect(html).toContain('WhatsApp / Notice Board Format');
     expect(html).toContain('Copy Briefing');
     expect(html).toContain('Green Meadows Apartments — Daily Clean-Air Briefing');
-    expect(html).toContain('No open burning of leaves');
+    expect(html).toContain('Pledge not to burn leaves, garden waste or rubbish');
     expect(html).toContain('[Shared via AirWise — Demo data: Green Meadows Apartments]');
   });
 
@@ -40,11 +39,11 @@ describe('CommunityScreen Component (SSR)', () => {
     const html = renderToString(<CommunityScreen profile={PRIYA_PROFILE} snapshot={snapshot} />);
 
     expect(html).toContain('Action CM-01 · Clean Air Pledge');
-    expect(html).toContain('Zero Open Burning Pledge');
+    expect(html).toContain('No-Burning Pledge');
     expect(html).toContain('84');
     expect(html).toContain('120');
     expect(html).toContain('Pledged');
-    expect(html).toContain('Sign No-Burning Pledge');
+    expect(html).toContain('Pledge not to burn leaves, garden waste or rubbish');
   });
 
   it('renders Carpool Coordination concept (CM-02) with commuter stats', () => {
@@ -54,7 +53,7 @@ describe('CommunityScreen Component (SSR)', () => {
     expect(html).toContain('Building Carpool Coordination');
     expect(html).toContain('18');
     expect(html).toContain('Commuters');
-    expect(html).toContain('~180+');
+    expect(html).toContain('~432');
   });
 
   it('renders Vulnerable Resident Buddy-Check census (CM-03) with aggregate counts', () => {

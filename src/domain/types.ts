@@ -12,11 +12,30 @@ export type Flag = z.infer<typeof FlagSchema>;
 
 export const MemberSchema = z.object({
   id: z.string().min(1),
-  roleLabel: z.string().min(1), // e.g. "Child, 5–12", "Adult 65+", "Adult 18–64"
+  roleLabel: z.string().min(1), // Standard derived age-band label e.g. "Child 5-12", "Adult 65+"
   ageGroup: AgeGroupSchema,
   flags: z.array(FlagSchema),
 });
 export type Member = z.infer<typeof MemberSchema>;
+
+/**
+ * Derives standard privacy-preserving age-band role label for a household member (Decision A-36).
+ * Never exposes exact ages, names, or occupations.
+ */
+export function roleLabelFor(member: { ageGroup: AgeGroup }): string {
+  switch (member.ageGroup) {
+    case 'u5':
+      return 'Infant under 5';
+    case '5-12':
+      return 'Child 5-12';
+    case '13-17':
+      return 'Teen 13-17';
+    case '18-64':
+      return 'Adult 18-64';
+    case '65+':
+      return 'Adult 65+';
+  }
+}
 
 export const HousingTypeSchema = z.enum(['apartment', 'house']);
 export type HousingType = z.infer<typeof HousingTypeSchema>;

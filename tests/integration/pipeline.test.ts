@@ -119,7 +119,7 @@ describe('Deterministic Pipeline Integration Suite (Part 1)', () => {
     const minimalProfile: HouseholdProfile = {
       schemaVersion: 1,
       location: { label: 'Delhi, India', lat: 28.61, lon: 77.21, country: 'IN' },
-      members: [{ id: 'm1', roleLabel: 'Adult, 30', ageGroup: '18-64', flags: [] }],
+      members: [{ id: 'm1', roleLabel: 'Adult 18-64', ageGroup: '18-64', flags: [] }],
       housing: { tenure: 'rent', type: 'apartment' },
       cooking: { fuel: 'lpg', hasExhaust: false },
       homeHeating: 'none',

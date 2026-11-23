@@ -22,10 +22,11 @@ describe('ImpactScreen Component (SSR)', () => {
 
     expect(html).toContain('Weekly Household Defensible Tally');
     expect(html).toContain('vehicle-km avoided / week (Estimated)');
-    // Priya has 12 km one-way, canWorkRemotely: true (MO-05: 24 vkm), carpool (MO-03: 24 vkm), errands (MO-04: 10 vkm)
+    // Priya has 12 km one-way, canWorkRemotely: true (MO-05: 24 vkm), carpool (MO-03: 24 vkm)
     expect(html).toContain('Remote work 1 day/week');
     expect(html).toContain('Carpooling 2 days/week');
-    expect(html).toContain('Combining errands');
+    // MO-04 (combining errands) is strictly qualitative and omitted from weekly tally
+    expect(html).not.toContain('Combining errands');
     expect(html).toContain('Documented Assumptions:');
   });
 

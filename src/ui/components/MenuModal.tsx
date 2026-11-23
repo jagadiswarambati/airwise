@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { HouseholdProfile } from '../../domain/types';
 import { exportProfileJson, importProfileJson } from '../../state/profileStore';
+import { clearAllLocalData } from '../../state/lifecycle';
 import { ScenarioType } from '../../data/fallback-chain';
 import { useSettings } from '../../state/settingsStore';
 
@@ -82,8 +83,13 @@ export const MenuModal: React.FC<MenuModalProps> = ({
     reader.readAsText(file);
   };
 
-  const confirmDelete = () => {
-    if (window.confirm('Delete all stored household data? This action cannot be undone.')) {
+  const confirmDelete = async () => {
+    if (
+      window.confirm(
+        'Delete all stored data? This will remove all profiles, settings, cached air quality data, and local caches from this browser. No copy exists on any server.',
+      )
+    ) {
+      await clearAllLocalData();
       onDeleteProfile();
       onClose();
     }
@@ -227,8 +233,11 @@ export const MenuModal: React.FC<MenuModalProps> = ({
                   }}
                   onClick={confirmDelete}
                 >
-                  Delete All Stored Data
+                  Delete all data
                 </button>
+                <div style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', textAlign: 'center' }}>
+                  Stored in this browser only. No server-side copy exists.
+                </div>
               </>
             )}
           </div>

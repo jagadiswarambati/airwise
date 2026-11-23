@@ -1,9 +1,7 @@
 import { useState } from 'react';
 import { HouseholdProfile, AirSnapshot, ActionCandidate } from '../../domain/types';
-import { computeBaseLevel, computeEffectiveLevel } from '../../domain/levels';
-import { deriveTimeSlots } from '../../domain/radar';
 import { decideVentilation } from '../../domain/ventilation';
-import { evaluatePolicy } from '../../domain/policy';
+import { useDailyPlan } from '../hooks/useDailyPlan';
 import { ActionCard } from '../components/ActionCard';
 import { ActionDetailModal } from '../components/ActionDetailModal';
 
@@ -16,16 +14,11 @@ export function IndoorScreen({ profile, snapshot }: IndoorScreenProps) {
   const [selectedAction, setSelectedAction] = useState<ActionCandidate | null>(null);
 
   const targetRegion = profile.location.country === 'IN' ? 'IN' : 'US';
-  const baseLevel = computeBaseLevel(snapshot.pm25.now, targetRegion);
-  const effectiveLevel = computeEffectiveLevel(baseLevel, profile.members);
-  const slots = deriveTimeSlots(profile, snapshot.pm25.hourly, targetRegion, snapshot.utcOffsetSeconds);
+  const { effectiveLevel, slots, policyResult } = useDailyPlan(profile, snapshot, targetRegion, false);
 
   const ventResult = decideVentilation({ snapshot, effectiveLevel, slots, targetRegion });
-  const policyResult = evaluatePolicy(profile, snapshot, slots, false, targetRegion);
-
-  const indoorCandidates = policyResult.approvedCandidates.filter(
-    (c) => c.action.category === 'indoor'
-  );
+  const indoorCandidates =
+    policyResult?.approvedCandidates.filter((c: ActionCandidate) => c.action.category === 'indoor') || [];
 
   const isCombustionRisk =
     profile.homeHeating === 'combustion' ||
@@ -140,11 +133,11 @@ export function IndoorScreen({ profile, snapshot }: IndoorScreenProps) {
           Household Indoor Recommendations
         </h2>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
-          {indoorCandidates.map((cand) => (
+          {indoorCandidates.map((cand: ActionCandidate) => (
             <ActionCard
               key={cand.action.id}
               candidate={cand}
-              onSelect={(c) => setSelectedAction(c)}
+              onSelect={(c: ActionCandidate) => setSelectedAction(c)}
             />
           ))}
         </div>

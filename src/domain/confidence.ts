@@ -13,20 +13,14 @@ const VALUES_TO_CONFIDENCE: Record<number, Confidence> = {
 };
 
 /**
- * Confidence rule:
- * confidence = min(evidenceTier, dataFreshnessTier, dataTypeTier)
- *
- * Freshness: fresh = high, aging = medium, stale/none = low
- * Data type: observed = high, modelled = medium, sample = medium (labelled demo data)
- * Evidence: high = high, medium = medium, low = low
- *
- * If data is stale or none, exposure-dependent confidence is capped at 'low' (Rule P-03).
+ * Exposure confidence calculation (IMPACT_METHODOLOGY.md §4):
+ * confidence = min(evidenceTier, freshnessTier, dataTypeTier)
+ * If data is stale or none, capped at 'low' (Rule P-03, P-04).
  */
-export function calculateConfidence(
+export function calculateExposureConfidence(
   evidence: ActionEvidence,
   freshness: DataFreshness,
   dataType: DataType,
-  isExposureDependent: boolean = true,
 ): Confidence {
   const evidenceScore = CONFIDENCE_VALUES[evidence];
 
@@ -37,19 +31,50 @@ export function calculateConfidence(
     freshnessScore = 1;
   }
 
-  let dataTypeScore = 2; // modelled = medium, sample = medium
+  let dataTypeScore = 2; // modelled = medium, sample = medium (A-05)
   if (dataType === 'observed') {
     dataTypeScore = 3;
   }
 
   let minScore = Math.min(evidenceScore, freshnessScore, dataTypeScore);
-
-  // Rule P-03 / P-04: Stale or missing data caps exposure-dependent actions to low confidence
-  if (isExposureDependent && (freshness === 'stale' || freshness === 'none')) {
+  if (freshness === 'stale' || freshness === 'none') {
     minScore = Math.min(minScore, 1);
   }
 
   return VALUES_TO_CONFIDENCE[minScore] || 'low';
+}
+
+/**
+ * Emissions confidence calculation (Decision A-31, IMPACT_METHODOLOGY.md §4):
+ * confidence = min(evidenceTier, inputTier)
+ * Air-data freshness does not apply because no air data is used for emissions.
+ * Self-reported profile distances cap this at medium (score 2).
+ */
+export function calculateEmissionsConfidence(
+  evidence: ActionEvidence,
+  inputTier: 'self-reported' | 'missing' = 'self-reported',
+): Confidence {
+  const evidenceScore = CONFIDENCE_VALUES[evidence];
+  const inputScore = inputTier === 'self-reported' ? 2 : 1;
+  const minScore = Math.min(evidenceScore, inputScore);
+
+  return VALUES_TO_CONFIDENCE[minScore] || 'low';
+}
+
+/**
+ * Dual-axis confidence dispatcher.
+ */
+export function calculateConfidence(
+  evidence: ActionEvidence,
+  freshness: DataFreshness,
+  dataType: DataType,
+  isExposureDependent: boolean = true,
+  inputTier: 'self-reported' | 'missing' = 'self-reported',
+): Confidence {
+  if (isExposureDependent) {
+    return calculateExposureConfidence(evidence, freshness, dataType);
+  }
+  return calculateEmissionsConfidence(evidence, inputTier);
 }
 
 export function getConfidenceExplanation(
@@ -71,4 +96,3 @@ export function getConfidenceExplanation(
   }
   return `Confidence is ${confidence} based on observed station data.`;
 }
-

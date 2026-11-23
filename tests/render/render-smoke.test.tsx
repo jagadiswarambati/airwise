@@ -89,7 +89,7 @@ describe('Render Smoke Test: Full User Journey & Multi-Tab Life Cycle', () => {
     const communityHtml = renderToString(<CommunityScreen profile={profile} snapshot={snapshot} />);
     expect(communityHtml).toContain('Residential Community Mode');
     expect(communityHtml).toContain('Demo data');
-    expect(communityHtml).toContain('Zero Open Burning Pledge');
+    expect(communityHtml).toContain('No-Burning Pledge');
     expect(communityHtml).toContain('Building Carpool Coordination');
     expect(communityHtml).toContain('Vulnerable Resident Buddy Check');
   });

@@ -1,19 +1,21 @@
 import { useState, useEffect } from 'react';
-import { HouseholdProfile, HouseholdProfileSchema } from '../domain/types';
+import { HouseholdProfile, HouseholdProfileSchema, roleLabelFor } from '../domain/types';
+import { STORAGE_KEY_PROFILE } from './keys';
+import { getSettings, setSettings, AirWiseSettings } from './settingsStore';
 
-export const PROFILE_STORAGE_KEY = 'airwise_household_profile_v1';
+export const PROFILE_STORAGE_KEY = STORAGE_KEY_PROFILE;
 
 /**
  * Priya's household preset:
- * Working parent, child (7) with asthma, elder (68), rented 2BHK, window AC,
- * no purifier, LPG with no exhaust, low budget tier.
+ * Working parent, child with asthma, elder, rented 2BHK, window AC,
+ * no purifier, LPG with no exhaust, low budget tier (Decision A-36 standard role labels).
  */
 export const PRIYA_PRESET: HouseholdProfile = {
   schemaVersion: 1,
   location: { label: 'Hyderabad, India', lat: 17.38, lon: 78.48, country: 'IN' },
   members: [
-    { id: 'm1', roleLabel: 'Adult, 34', ageGroup: '18-64', flags: [] },
-    { id: 'm2', roleLabel: 'Child, 7', ageGroup: '5-12', flags: ['asthma_copd'] },
+    { id: 'm1', roleLabel: 'Adult 18-64', ageGroup: '18-64', flags: [] },
+    { id: 'm2', roleLabel: 'Child 5-12', ageGroup: '5-12', flags: ['asthma_copd'] },
     { id: 'm3', roleLabel: 'Adult 65+', ageGroup: '65+', flags: [] },
   ],
   housing: { tenure: 'rent', type: 'apartment' },
@@ -60,8 +62,16 @@ export function getProfile(): HouseholdProfile | null {
     const parsed = JSON.parse(raw);
     const validated = HouseholdProfileSchema.safeParse(parsed);
     if (validated.success) {
-      inMemoryProfile = validated.data;
-      return validated.data;
+      // Normalise member roleLabels on read (Decision A-36)
+      const normalised: HouseholdProfile = {
+        ...validated.data,
+        members: validated.data.members.map((m) => ({
+          ...m,
+          roleLabel: roleLabelFor(m),
+        })),
+      };
+      inMemoryProfile = normalised;
+      return normalised;
     } else {
       console.warn('Stored profile corrupted, resetting storage:', validated.error);
       deleteProfile();
@@ -73,7 +83,14 @@ export function getProfile(): HouseholdProfile | null {
 }
 
 export function saveProfile(profile: HouseholdProfile): void {
-  const validated = HouseholdProfileSchema.parse(profile);
+  const normalised: HouseholdProfile = {
+    ...profile,
+    members: profile.members.map((m) => ({
+      ...m,
+      roleLabel: roleLabelFor(m),
+    })),
+  };
+  const validated = HouseholdProfileSchema.parse(normalised);
   inMemoryProfile = validated;
 
   try {
@@ -103,20 +120,41 @@ export function hasProfile(): boolean {
   return getProfile() !== null;
 }
 
+export interface ProfileExportPayload {
+  schemaVersion: 1;
+  profile: HouseholdProfile;
+  settings?: AirWiseSettings;
+}
+
 export function exportProfileJson(): string {
   const profile = getProfile();
   if (!profile) throw new Error('No profile available to export');
-  return JSON.stringify(profile, null, 2);
+  const settings = getSettings();
+  const payload: ProfileExportPayload = {
+    schemaVersion: 1,
+    profile,
+    settings,
+  };
+  return JSON.stringify(payload, null, 2);
 }
 
 export function importProfileJson(jsonStr: string): { success: boolean; error?: string } {
   try {
     const parsed = JSON.parse(jsonStr);
-    const result = HouseholdProfileSchema.safeParse(parsed);
+    // Allow either export envelope ({ schemaVersion: 1, profile, settings }) or raw profile
+    const rawProfile = parsed && typeof parsed === 'object' && 'profile' in parsed ? parsed.profile : parsed;
+    const result = HouseholdProfileSchema.safeParse(rawProfile);
     if (!result.success) {
       return { success: false, error: 'Invalid profile format or missing required fields' };
     }
     saveProfile(result.data);
+
+    if (parsed && typeof parsed === 'object' && 'settings' in parsed && parsed.settings) {
+      if (typeof parsed.settings.aiEnabled === 'boolean') {
+        setSettings({ aiEnabled: parsed.settings.aiEnabled });
+      }
+    }
+
     return { success: true };
   } catch (err: unknown) {
     return { success: false, error: err instanceof Error ? err.message : 'Invalid JSON' };

@@ -14,7 +14,7 @@ describe('Household Risk Radar Engine', () => {
     // Child (5-12, asthma_copd) weight = max(2, 4) = 4
     // Elder (65+, no flags) weight = 3
     const mostVulnerable = findMostVulnerableMember(PRIYA_PROFILE.members);
-    expect(mostVulnerable.roleLabel).toBe('Child, 7');
+    expect(mostVulnerable.roleLabel).toBe('Child 5-12');
     expect(mostVulnerable.flags).toContain('asthma_copd');
   });
 
@@ -53,9 +53,9 @@ describe('Household Risk Radar Engine', () => {
     const slots = deriveTimeSlots(PRIYA_PROFILE, snapshot.pm25.hourly);
     const radar = computeRiskRadar(PRIYA_PROFILE, snapshot, slots);
 
-    expect(radar.memberRoleLabel).toBe('Child, 7');
+    expect(radar.memberRoleLabel).toBe('Child 5-12');
     expect(radar.slotId).toBeDefined();
-    expect(radar.explanation).toContain('Child, 7');
+    expect(radar.explanation).toContain('Child 5-12');
     expect(radar.score).toBeGreaterThan(0);
     expect(radar.reasonCode).toBeDefined();
   });
@@ -65,7 +65,7 @@ describe('Household Risk Radar Engine', () => {
     const slots = deriveTimeSlots(HEALTHY_ADULT_PROFILE, snapshot.pm25.hourly);
     const radar = computeRiskRadar(HEALTHY_ADULT_PROFILE, snapshot, slots);
 
-    expect(radar.memberRoleLabel).toBe('Adult, 28');
+    expect(radar.memberRoleLabel).toBe('Adult 18-64');
     expect(radar.score).toBeGreaterThan(0);
   });
 });

@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { HouseholdProfile, AirSnapshot, ActionCandidate } from '../../domain/types';
-import { computeBaseLevel, computeEffectiveLevel, hasSensitiveMembers } from '../../domain/levels';
-import { deriveTimeSlots } from '../../domain/radar';
+import { hasSensitiveMembers } from '../../domain/levels';
 import { evaluateMobilityPolicy } from '../../domain/mobility';
-import { evaluatePolicy } from '../../domain/policy';
+import { useDailyPlan } from '../hooks/useDailyPlan';
 import { ActionCard } from '../components/ActionCard';
 import { ActionDetailModal } from '../components/ActionDetailModal';
 
@@ -16,9 +15,7 @@ export function MoveScreen({ profile, snapshot }: MoveScreenProps) {
   const [selectedAction, setSelectedAction] = useState<ActionCandidate | null>(null);
 
   const targetRegion = profile.location.country === 'IN' ? 'IN' : 'US';
-  const baseLevel = computeBaseLevel(snapshot.pm25.now, targetRegion);
-  const effectiveLevel = computeEffectiveLevel(baseLevel, profile.members);
-  const slots = deriveTimeSlots(profile, snapshot.pm25.hourly, targetRegion, snapshot.utcOffsetSeconds);
+  const { effectiveLevel, slots, policyResult } = useDailyPlan(profile, snapshot, targetRegion, false);
 
   const mobilityPolicy = evaluateMobilityPolicy(
     profile,
@@ -31,10 +28,8 @@ export function MoveScreen({ profile, snapshot }: MoveScreenProps) {
     snapshot.utcOffsetSeconds,
   );
 
-  const policyResult = evaluatePolicy(profile, snapshot, slots, false, targetRegion);
-  const moveCandidates = policyResult.approvedCandidates.filter(
-    (c) => c.action.category === 'mobility'
-  );
+  const moveCandidates =
+    policyResult?.approvedCandidates.filter((c: ActionCandidate) => c.action.category === 'mobility') || [];
 
   const isWalkingSuitable = effectiveLevel <= 1 && (snapshot.freshness === 'fresh' || snapshot.freshness === 'aging');
   const isWalkingForbidden = !isWalkingSuitable;
@@ -115,11 +110,11 @@ export function MoveScreen({ profile, snapshot }: MoveScreenProps) {
           Travel & Commute Recommendations
         </h2>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
-          {moveCandidates.map((cand) => (
+          {moveCandidates.map((cand: ActionCandidate) => (
             <ActionCard
               key={cand.action.id}
               candidate={cand}
-              onSelect={(c) => setSelectedAction(c)}
+              onSelect={(c: ActionCandidate) => setSelectedAction(c)}
             />
           ))}
         </div>

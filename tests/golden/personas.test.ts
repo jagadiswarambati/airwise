@@ -69,9 +69,7 @@ describe('Golden Persona Tests across Scenarios', () => {
       cooking: { fuel: 'lpg', hasExhaust: false },
       equipment: { purifier: false, windowAC: false, hvac: false },
       budget: 'low',
-      members: [
-        { id: 'm1', roleLabel: 'Adult, 26 (Delivery Worker)', ageGroup: '18-64', flags: [] },
-      ],
+      members: [{ id: 'm1', roleLabel: 'Adult 18-64', ageGroup: '18-64', flags: [] }],
       travel: {
         modes: ['two_wheeler'],
         oneWayKm: 25,
@@ -138,8 +136,8 @@ describe('Golden Persona Tests across Scenarios', () => {
       equipment: { purifier: false, windowAC: false, hvac: false },
       budget: 'free',
       members: [
-        { id: 'm1', roleLabel: 'Senior, 71', ageGroup: '65+', flags: ['heart'] },
-        { id: 'm2', roleLabel: 'Senior, 67', ageGroup: '65+', flags: ['asthma_copd'] },
+        { id: 'm1', roleLabel: 'Adult 65+', ageGroup: '65+', flags: ['heart'] },
+        { id: 'm2', roleLabel: 'Adult 65+', ageGroup: '65+', flags: ['asthma_copd'] },
       ],
       travel: {
         modes: ['walk'],
@@ -207,8 +205,8 @@ describe('Golden Persona Tests across Scenarios', () => {
       equipment: { purifier: false, windowAC: false, hvac: false },
       budget: 'free',
       members: [
-        { id: 'm1', roleLabel: 'Adult, 21 (Student)', ageGroup: '18-64', flags: [] },
-        { id: 'm2', roleLabel: 'Infant, 4 months', ageGroup: 'u5', flags: [] },
+        { id: 'm1', roleLabel: 'Adult 18-64', ageGroup: '18-64', flags: [] },
+        { id: 'm2', roleLabel: 'Infant under 5', ageGroup: 'u5', flags: [] },
       ],
       travel: {
         modes: ['bus', 'walk'],

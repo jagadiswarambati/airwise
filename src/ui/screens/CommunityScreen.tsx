@@ -1,55 +1,40 @@
-import React, { useState, useEffect } from 'react';
-import { HouseholdProfile, AirSnapshot } from '../../domain/types';
-import { computeBaseLevel, computeEffectiveLevel } from '../../domain/levels';
+import React, { useState } from 'react';
+import { HouseholdProfile, AirSnapshot, RiskLevel } from '../../domain/types';
+import { LEVEL_NAMES } from '../../domain/levels';
 import {
   GREEN_MEADOWS_SOCIETY,
   calculateCommunityAggregateVkm,
   generateShareableBriefing,
+  SEEDED_CARPOOL_HOUSEHOLDS,
+  SEEDED_BASELINE_CARPOOL_VKM,
 } from '../../data/community';
+import { useCommunityPledge } from '../../state/communityStore';
+import { useDailyPlan } from '../hooks/useDailyPlan';
 
 interface CommunityScreenProps {
   profile: HouseholdProfile;
   snapshot: AirSnapshot;
 }
 
-const STORAGE_KEY_PLEDGE = 'airwise_community_no_burning_pledge';
-
 export const CommunityScreen: React.FC<CommunityScreenProps> = ({ profile, snapshot }) => {
-  const [hasPledged, setHasPledged] = useState<boolean>(false);
+  const [hasPledged, setHasPledged] = useCommunityPledge();
   const [copyFeedback, setCopyFeedback] = useState<boolean>(false);
 
   const targetRegion = profile.location.country === 'IN' ? 'IN' : 'US';
-  const baseLevel = computeBaseLevel(snapshot.pm25.now, targetRegion);
-  const effectiveLevel = computeEffectiveLevel(baseLevel, profile.members);
+  const { effectiveLevel, plan } = useDailyPlan(profile, snapshot, targetRegion, true);
 
   const society = GREEN_MEADOWS_SOCIETY;
-  const aggregateVkm = calculateCommunityAggregateVkm(profile);
-  const shareableText = generateShareableBriefing(snapshot, effectiveLevel, society);
-
-  // Initialize pledge from localStorage safely
-  useEffect(() => {
-    try {
-      if (typeof window !== 'undefined' && window.localStorage) {
-        const stored = window.localStorage.getItem(STORAGE_KEY_PLEDGE);
-        if (stored === 'true') {
-          setHasPledged(true);
-        }
-      }
-    } catch {
-      // Storage unavailable / blocked
-    }
-  }, []);
+  const aggregateVkm = calculateCommunityAggregateVkm(profile, hasPledged);
+  const topActionTitles = plan?.topActions.map((c) => c.action.title) || [];
+  const shareableText = generateShareableBriefing(
+    snapshot,
+    effectiveLevel,
+    topActionTitles,
+    hasPledged,
+  );
 
   const handleTogglePledge = () => {
-    const nextState = !hasPledged;
-    setHasPledged(nextState);
-    try {
-      if (typeof window !== 'undefined' && window.localStorage) {
-        window.localStorage.setItem(STORAGE_KEY_PLEDGE, String(nextState));
-      }
-    } catch {
-      // Storage unavailable
-    }
+    setHasPledged(!hasPledged);
   };
 
   const handleCopyBriefing = async () => {
@@ -73,6 +58,7 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ profile, snaps
 
   const totalPledges = society.basePledges.noBurning + (hasPledged ? 1 : 0);
   const pm25Now = snapshot.pm25.now !== null ? Math.round(snapshot.pm25.now) : null;
+  const levelName = LEVEL_NAMES[effectiveLevel as RiskLevel] || 'Caution';
 
   return (
     <div className="community-screen" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
@@ -87,7 +73,7 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ profile, snaps
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
           <h2 id="community-header-title" style={{ margin: 0, fontSize: '1.2rem', fontWeight: 700 }}>
-            👥 Residential Community Mode
+            Residential Community Mode
           </h2>
           <span
             style={{
@@ -142,15 +128,15 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ profile, snaps
               {pm25Now !== null ? `${pm25Now} µg/m³` : 'Unmeasured'}
             </div>
             <div style={{ fontSize: '0.7rem', fontWeight: 600, color: `var(--level-${effectiveLevel}-text)` }}>
-              Level {effectiveLevel}
+              {levelName} level
             </div>
           </div>
         </div>
 
         <p style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', margin: '0 0 var(--space-3) 0' }}>
           {effectiveLevel >= 3
-            ? 'Smog advisory active. Residents should keep windows sealed and limit outdoor time for children and seniors.'
-            : 'Moderate baseline conditions. Maintain regular ventilation discipline and avoid smoke-generating activities.'}
+            ? `Air is ${levelName} level for most households here. Residents should keep windows sealed and limit outdoor time for children and seniors.`
+            : `Air is ${levelName} level for most households here. Maintain regular ventilation discipline and avoid smoke-generating activities.`}
         </p>
 
         {/* Copyable Plain-Text Briefing for WhatsApp / Notice Board (Rule CM-04) */}
@@ -165,7 +151,7 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ profile, snaps
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
             <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--color-text-main)' }}>
-              📱 WhatsApp / Notice Board Format
+              WhatsApp / Notice Board Format
             </span>
             <button
               type="button"
@@ -181,7 +167,7 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ profile, snaps
               }}
               aria-label="Copy plain text briefing to clipboard"
             >
-              {copyFeedback ? '✓ Copied!' : '📋 Copy Briefing'}
+              {copyFeedback ? 'Copied' : 'Copy Briefing'}
             </button>
           </div>
 
@@ -214,7 +200,7 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ profile, snaps
               fontWeight: 600,
             }}
           >
-            ✓ Daily clean-air briefing copied to clipboard. Ready to paste into society chat!
+            Daily clean-air briefing copied to clipboard. Ready to paste into society chat.
           </div>
         )}
       </section>
@@ -227,7 +213,7 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ profile, snaps
               Action CM-01 · Clean Air Pledge
             </span>
             <h3 id="pledge-heading" style={{ margin: '2px 0 0 0', fontSize: '1.05rem' }}>
-              Zero Open Burning Pledge
+              No-Burning Pledge
             </h3>
           </div>
 
@@ -246,8 +232,7 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ profile, snaps
         </div>
 
         <p style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', margin: '0 0 var(--space-3) 0', lineHeight: 1.4 }}>
-          Open burning of leaves, garden cuttings, or domestic waste creates dangerous localized PM2.5 spikes.
-          Pledging commits your household and staff to 100% municipal waste collection.
+          Open burning of leaves, garden waste, or rubbish creates dangerous localized PM2.5 spikes.
         </p>
 
         <button
@@ -271,7 +256,7 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ profile, snaps
           }}
           aria-pressed={hasPledged}
         >
-          {hasPledged ? '✓ Household Pledged to Zero Burning' : '✍️ Sign No-Burning Pledge'}
+          {hasPledged ? '✓ Pledged not to burn leaves, garden waste or rubbish' : 'Pledge not to burn leaves, garden waste or rubbish'}
         </button>
       </section>
 
@@ -284,7 +269,7 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ profile, snaps
           Building Carpool Coordination
         </h3>
         <p style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', margin: '0 0 var(--space-3) 0', lineHeight: 1.4 }}>
-          {society.basePledges.carpoolParticipants} residents at {society.name} coordinate morning departures on common tech corridor routes.
+          {SEEDED_CARPOOL_HOUSEHOLDS} residents at {society.name} coordinate morning departures on common tech corridor routes.
         </p>
 
         <div
@@ -299,7 +284,7 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ profile, snaps
           }}
         >
           <div>
-            <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#1a73e8' }}>18</div>
+            <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#1a73e8' }}>{SEEDED_CARPOOL_HOUSEHOLDS}</div>
             <div style={{ fontSize: '0.7rem', color: 'var(--color-text-secondary)' }}>Commuters</div>
           </div>
           <div>
@@ -307,7 +292,7 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ profile, snaps
             <div style={{ fontSize: '0.7rem', color: 'var(--color-text-secondary)' }}>Departure Slot</div>
           </div>
           <div>
-            <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#1a73e8' }}>~180+</div>
+            <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#1a73e8' }}>~{SEEDED_BASELINE_CARPOOL_VKM}</div>
             <div style={{ fontSize: '0.7rem', color: 'var(--color-text-secondary)' }}>vkm saved/wk</div>
           </div>
         </div>
@@ -322,7 +307,7 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ profile, snaps
           Vulnerable Resident Buddy Check
         </h3>
         <p style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', margin: '0 0 var(--space-3) 0', lineHeight: 1.4 }}>
-          In severe smog episodes, healthy residents check on at-risk households to deliver groceries or help seal drafty windows.
+          Healthy residents check on at-risk households during elevated pollution episodes.
         </p>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', marginBottom: 'var(--space-2)' }}>
@@ -380,7 +365,7 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ profile, snaps
       {/* Aggregate Community Vehicle-KM Avoided (Formula C1) */}
       <section className="card" aria-labelledby="community-vkm-heading">
         <h3 id="community-vkm-heading" style={{ margin: '0 0 6px 0', fontSize: '1.05rem' }}>
-          🌱 Aggregate Community Vehicle-KM Avoided
+          Aggregate Community Vehicle-KM Avoided
         </h3>
         <div
           style={{
@@ -399,7 +384,7 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ profile, snaps
         </div>
 
         <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--color-text-secondary)', lineHeight: 1.4 }}>
-          Combines {society.name}'s baseline ({society.seededWeeklyAvoidedVkm} vkm across 18 carpooling residents) with your household's profile contribution.
+          Combines {society.name}'s baseline ({SEEDED_BASELINE_CARPOOL_VKM} vkm across {SEEDED_CARPOOL_HOUSEHOLDS} carpooling residents) with your household's profile contribution.
         </p>
       </section>
     </div>

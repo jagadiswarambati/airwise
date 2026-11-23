@@ -5,7 +5,7 @@ exports[`Golden Persona Tests across Scenarios > No-Data Golden Snapshot > match
   "headline": "High pollution alert. Protect your indoor air and avoid unnecessary outdoor exposure.",
   "planConfidence": "low",
   "radar": {
-    "memberRoleLabel": "Child, 7",
+    "memberRoleLabel": "Child 5-12",
     "reasonCode": "COMMUTE_PEAK_RISK",
     "slotId": "commute-out",
     "slotLabel": "Morning Commute",
@@ -69,7 +69,7 @@ exports[`Golden Persona Tests across Scenarios > Persona 1: Priya (Multi-Generat
   "headline": "Moderate air quality. Safe for most, but keep an eye on changing conditions.",
   "planConfidence": "medium",
   "radar": {
-    "memberRoleLabel": "Child, 7",
+    "memberRoleLabel": "Child 5-12",
     "reasonCode": "COMMUTE_PEAK_RISK",
     "slotId": "commute-out",
     "slotLabel": "Morning Commute",
@@ -131,7 +131,7 @@ exports[`Golden Persona Tests across Scenarios > Persona 1: Priya (Multi-Generat
   "headline": "Caution advised. Sensitive members should reduce prolonged outdoor exertion.",
   "planConfidence": "medium",
   "radar": {
-    "memberRoleLabel": "Child, 7",
+    "memberRoleLabel": "Child 5-12",
     "reasonCode": "COMMUTE_PEAK_RISK",
     "slotId": "commute-out",
     "slotLabel": "Morning Commute",
@@ -195,7 +195,7 @@ exports[`Golden Persona Tests across Scenarios > Persona 1: Priya (Multi-Generat
   "headline": "Severe pollution conditions. Minimize outdoor exposure and maintain a clean indoor environment.",
   "planConfidence": "medium",
   "radar": {
-    "memberRoleLabel": "Child, 7",
+    "memberRoleLabel": "Child 5-12",
     "reasonCode": "COMMUTE_PEAK_RISK",
     "slotId": "commute-out",
     "slotLabel": "Morning Commute",
@@ -259,7 +259,7 @@ exports[`Golden Persona Tests across Scenarios > Persona 1: Priya (Multi-Generat
   "headline": "High pollution alert. Protect your indoor air and avoid unnecessary outdoor exposure.",
   "planConfidence": "low",
   "radar": {
-    "memberRoleLabel": "Child, 7",
+    "memberRoleLabel": "Child 5-12",
     "reasonCode": "COMMUTE_PEAK_RISK",
     "slotId": "commute-out",
     "slotLabel": "Morning Commute",
@@ -323,7 +323,7 @@ exports[`Golden Persona Tests across Scenarios > Persona 2: Arjun (Outdoor Worke
   "headline": "Severe pollution conditions. Minimize outdoor exposure and maintain a clean indoor environment.",
   "planConfidence": "medium",
   "radar": {
-    "memberRoleLabel": "Adult, 26 (Delivery Worker)",
+    "memberRoleLabel": "Adult 18-64",
     "reasonCode": "COMMUTE_PEAK_RISK",
     "slotId": "commute-out",
     "slotLabel": "Morning Commute",
@@ -384,7 +384,7 @@ exports[`Golden Persona Tests across Scenarios > Persona 3: Ramesh & Meena (Elde
   "headline": "Caution advised. Sensitive members should reduce prolonged outdoor exertion.",
   "planConfidence": "medium",
   "radar": {
-    "memberRoleLabel": "Senior, 71",
+    "memberRoleLabel": "Adult 65+",
     "reasonCode": "COMMUTE_PEAK_RISK",
     "slotId": "commute-out",
     "slotLabel": "Morning Commute",
@@ -441,7 +441,7 @@ exports[`Golden Persona Tests across Scenarios > Persona 4: Ananya & Infant (Fre
   "headline": "Severe pollution conditions. Minimize outdoor exposure and maintain a clean indoor environment.",
   "planConfidence": "medium",
   "radar": {
-    "memberRoleLabel": "Infant, 4 months",
+    "memberRoleLabel": "Infant under 5",
     "reasonCode": "COMMUTE_PEAK_RISK",
     "slotId": "commute-out",
     "slotLabel": "Morning Commute",

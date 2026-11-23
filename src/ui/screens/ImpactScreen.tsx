@@ -1,10 +1,28 @@
 import React, { useState } from 'react';
 import { HouseholdProfile, AirSnapshot, ActionCandidate } from '../../domain/types';
-import { computeBaseLevel, computeEffectiveLevel } from '../../domain/levels';
-import { deriveTimeSlots } from '../../domain/radar';
-import { evaluatePolicy } from '../../domain/policy';
 import { calculateAvoidedVkm } from '../../domain/impact';
-import { calculateCommunityAggregateVkm, GREEN_MEADOWS_SOCIETY } from '../../data/community';
+import {
+  calculateCommunityAggregateVkm,
+  GREEN_MEADOWS_SOCIETY,
+  SEEDED_CARPOOL_HOUSEHOLDS,
+} from '../../data/community';
+import {
+  DEFAULT_CARPOOL_DAYS,
+  DEFAULT_REMOTE_DAYS,
+  DEFAULT_CARPOOL_OCCUPANCY,
+} from '../../domain/config/thresholds';
+import {
+  FORMULA_E1_TITLE,
+  FORMULA_E1_SUMMARY,
+  FORMULA_E1_EQUATIONS,
+  FORMULA_X1_TITLE,
+  FORMULA_X1_SUMMARY,
+  FORMULA_X1_EQUATION,
+  FORMULA_C1_TITLE,
+  FORMULA_C1_SUMMARY,
+  FORMULA_C1_EQUATION,
+} from '../../domain/config/impact-copy';
+import { useDailyPlan } from '../hooks/useDailyPlan';
 import { ActionDetailModal } from '../components/ActionDetailModal';
 
 interface ImpactScreenProps {
@@ -17,30 +35,31 @@ export const ImpactScreen: React.FC<ImpactScreenProps> = ({ profile, snapshot })
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
 
   const targetRegion = profile.location.country === 'IN' ? 'IN' : 'US';
-  const baseLevel = computeBaseLevel(snapshot.pm25.now, targetRegion);
-  const effectiveLevel = computeEffectiveLevel(baseLevel, profile.members);
-  const slots = deriveTimeSlots(profile, snapshot.pm25.hourly, targetRegion, snapshot.utcOffsetSeconds);
-
-  // Evaluate policy with community mode enabled so all applicable actions are represented
-  const policyResult = evaluatePolicy(profile, snapshot, slots, true, targetRegion);
-  const approvedCandidates = policyResult.approvedCandidates;
+  const { policyResult } = useDailyPlan(profile, snapshot, targetRegion, true);
+  const approvedCandidates = policyResult?.approvedCandidates || [];
 
   const filteredCandidates =
     categoryFilter === 'all'
       ? approvedCandidates
-      : approvedCandidates.filter((c) => c.action.category === categoryFilter);
+      : approvedCandidates.filter((c: ActionCandidate) => c.action.category === categoryFilter);
 
-  // Weekly defensible vehicle-km savings for household
+  // Weekly defensible vehicle-km savings for household (Formula E1 for MO-03 & MO-05 only per §5)
   const carpoolVkm = calculateAvoidedVkm('MO-03', profile);
-  const errandsVkm = calculateAvoidedVkm('MO-04', profile);
   const remoteVkm = calculateAvoidedVkm('MO-05', profile);
-  const walkingVkm = effectiveLevel <= 1 ? calculateAvoidedVkm('MO-07', profile) : undefined;
 
   const weeklyVkmBreakdown = [
-    { id: 'MO-03', title: 'Carpooling 2 days/week', vkm: carpoolVkm, note: 'Default 2-person occupancy' },
-    { id: 'MO-04', title: 'Combining errands', vkm: errandsVkm, note: 'Saves 1 short round trip' },
-    { id: 'MO-05', title: 'Remote work 1 day/week', vkm: remoteVkm, note: 'Eliminates 1 round trip commute' },
-    { id: 'MO-07', title: 'Walking short trips', vkm: walkingVkm, note: 'Replaces ~2 km weekly short trip (clean days only)' },
+    {
+      id: 'MO-03',
+      title: `Carpooling ${DEFAULT_CARPOOL_DAYS} days/week`,
+      vkm: carpoolVkm,
+      note: `Default ${DEFAULT_CARPOOL_OCCUPANCY}-person occupancy`,
+    },
+    {
+      id: 'MO-05',
+      title: `Remote work ${DEFAULT_REMOTE_DAYS} day/week`,
+      vkm: remoteVkm,
+      note: 'Eliminates 1 round trip commute',
+    },
   ].filter((item) => item.vkm !== undefined && item.vkm > 0);
 
   const totalWeeklyVkm = weeklyVkmBreakdown.reduce((sum, item) => sum + (item.vkm || 0), 0);
@@ -152,7 +171,7 @@ export const ImpactScreen: React.FC<ImpactScreenProps> = ({ profile, snapshot })
             </div>
 
             <div style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)', lineHeight: 1.4 }}>
-              <strong>Documented Assumptions:</strong> Assumes round-trip distance of 2 × {profile.travel.oneWayKm} km; 2-person carpool occupancy saves 50% vehicle distance on shared days; remote work eliminates 1 full round trip.
+              <strong>Documented Assumptions:</strong> Assumes round-trip distance of 2 × {profile.travel.oneWayKm} km; {DEFAULT_CARPOOL_OCCUPANCY}-person carpool occupancy saves {Math.round((1 - 1 / DEFAULT_CARPOOL_OCCUPANCY) * 100)}% vehicle distance on shared days ({DEFAULT_CARPOOL_DAYS} days/week); remote work eliminates {DEFAULT_REMOTE_DAYS} full round trip. Qualitative actions (combining errands, anti-idling, walking) do not add numeric estimates.
             </div>
           </div>
         ) : (
@@ -215,7 +234,7 @@ export const ImpactScreen: React.FC<ImpactScreenProps> = ({ profile, snapshot })
         </div>
 
         <div style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)' }}>
-          Formula C1: Combines {GREEN_MEADOWS_SOCIETY.seededWeeklyAvoidedVkm} vkm baseline (18 carpooling homes) + {roundedWeeklyVkm} vkm household contribution.
+          Formula C1: Combines {GREEN_MEADOWS_SOCIETY.seededWeeklyAvoidedVkm} vkm baseline ({SEEDED_CARPOOL_HOUSEHOLDS} carpooling homes) + {roundedWeeklyVkm} vkm household contribution.
         </div>
       </section>
 
@@ -226,26 +245,27 @@ export const ImpactScreen: React.FC<ImpactScreenProps> = ({ profile, snapshot })
         </h2>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)', fontSize: '0.85rem' }}>
           <div>
-            <strong style={{ color: 'var(--color-primary)' }}>Formula E1 — Avoided Vehicle-Kilometers (vkm):</strong>
+            <strong style={{ color: 'var(--color-primary)' }}>{FORMULA_E1_TITLE}</strong>
             <p style={{ margin: '4px 0 0 0', color: 'var(--color-text-secondary)' }}>
-              • <em>Carpooling (MO-03, CM-02):</em> vkm = oneWayKm × 2 × sharedTrips × (1 - 1 / occupancy). Default occupancy = 2.<br />
-              • <em>Remote Work (MO-05):</em> vkm = oneWayKm × 2 × 1 round trip eliminated.<br />
-              • <em>Combining Errands (MO-04):</em> vkm = min(oneWayKm × 2, 10 km).<br />
-              • <em>Walking Short Trips (MO-07):</em> vkm = 2.0 km/week on Clear/Watch days only.
+              {FORMULA_E1_SUMMARY}<br />
+              • <em>{FORMULA_E1_EQUATIONS[0]}</em><br />
+              • <em>{FORMULA_E1_EQUATIONS[1]}</em>
             </p>
           </div>
 
           <div>
-            <strong style={{ color: 'var(--color-primary)' }}>Formula X1 — Commute Exposure Delta:</strong>
+            <strong style={{ color: 'var(--color-primary)' }}>{FORMULA_X1_TITLE}</strong>
             <p style={{ margin: '4px 0 0 0', color: 'var(--color-text-secondary)' }}>
-              Δ exposure = peakDepartureHourMean - shiftedDepartureHourMean (µg/m³ PM2.5). Requires ≥ 5 µg/m³ reduction and ≥ 15% delta to recommend.
+              {FORMULA_X1_SUMMARY}<br />
+              • <em>{FORMULA_X1_EQUATION}</em>
             </p>
           </div>
 
           <div>
-            <strong style={{ color: 'var(--color-primary)' }}>Formula C1 — Community Aggregate Vehicle-Kilometers:</strong>
+            <strong style={{ color: 'var(--color-primary)' }}>{FORMULA_C1_TITLE}</strong>
             <p style={{ margin: '4px 0 0 0', color: 'var(--color-text-secondary)' }}>
-              C1 = SeededSocietyBaseline + Σ HouseholdAvoidedVkm across active participating residents.
+              {FORMULA_C1_SUMMARY}<br />
+              • <em>{FORMULA_C1_EQUATION}</em>
             </p>
           </div>
         </div>
@@ -279,7 +299,7 @@ export const ImpactScreen: React.FC<ImpactScreenProps> = ({ profile, snapshot })
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
-          {filteredCandidates.map((cand) => {
+          {filteredCandidates.map((cand: ActionCandidate) => {
             const exp = cand.impact.exposure;
             const em = cand.impact.emissions;
 

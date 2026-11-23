@@ -40,43 +40,43 @@ describe('Policy Matrix Invariant Suite (P-01 to P-22)', () => {
   const vulnerabilityPersonas: Array<{ label: string; members: Member[] }> = [
     {
       label: 'V0: Healthy adults',
-      members: [{ id: 'm1', roleLabel: 'Adult, 30', ageGroup: '18-64', flags: [] }],
+      members: [{ id: 'm1', roleLabel: 'Adult 18-64', ageGroup: '18-64', flags: [] }],
     },
     {
       label: 'V1: Child 5-12',
       members: [
-        { id: 'm1', roleLabel: 'Adult, 35', ageGroup: '18-64', flags: [] },
-        { id: 'm2', roleLabel: 'Child, 8', ageGroup: '5-12', flags: [] },
+        { id: 'm1', roleLabel: 'Adult 18-64', ageGroup: '18-64', flags: [] },
+        { id: 'm2', roleLabel: 'Child 5-12', ageGroup: '5-12', flags: [] },
       ],
     },
     {
       label: 'V2: Infant under 5 + adult',
       members: [
-        { id: 'm1', roleLabel: 'Adult, 29', ageGroup: '18-64', flags: [] },
-        { id: 'm2', roleLabel: 'Infant, 1', ageGroup: 'u5', flags: [] },
+        { id: 'm1', roleLabel: 'Adult 18-64', ageGroup: '18-64', flags: [] },
+        { id: 'm2', roleLabel: 'Infant under 5', ageGroup: 'u5', flags: [] },
       ],
     },
     {
       label: 'V2_ONLY: Under 5 only',
       members: [
-        { id: 'm1', roleLabel: 'Infant, 1', ageGroup: 'u5', flags: [] },
-        { id: 'm2', roleLabel: 'Toddler, 3', ageGroup: 'u5', flags: [] },
+        { id: 'm1', roleLabel: 'Infant under 5', ageGroup: 'u5', flags: [] },
+        { id: 'm2', roleLabel: 'Infant under 5', ageGroup: 'u5', flags: [] },
       ],
     },
     {
       label: 'V3: Senior 65+',
-      members: [{ id: 'm1', roleLabel: 'Elder, 72', ageGroup: '65+', flags: [] }],
+      members: [{ id: 'm1', roleLabel: 'Adult 65+', ageGroup: '65+', flags: [] }],
     },
     {
       label: 'V4: Adult with asthma/COPD',
-      members: [{ id: 'm1', roleLabel: 'Adult, 42', ageGroup: '18-64', flags: ['asthma_copd'] }],
+      members: [{ id: 'm1', roleLabel: 'Adult 18-64', ageGroup: '18-64', flags: ['asthma_copd'] }],
     },
     {
       label: 'V5: Mixed sensitive',
       members: [
-        { id: 'm1', roleLabel: 'Adult, 34', ageGroup: '18-64', flags: [] },
-        { id: 'm2', roleLabel: 'Child, 7', ageGroup: '5-12', flags: ['asthma_copd'] },
-        { id: 'm3', roleLabel: 'Elder, 68', ageGroup: '65+', flags: ['heart'] },
+        { id: 'm1', roleLabel: 'Adult 18-64', ageGroup: '18-64', flags: [] },
+        { id: 'm2', roleLabel: 'Child 5-12', ageGroup: '5-12', flags: ['asthma_copd'] },
+        { id: 'm3', roleLabel: 'Adult 65+', ageGroup: '65+', flags: ['heart'] },
       ],
     },
   ];
