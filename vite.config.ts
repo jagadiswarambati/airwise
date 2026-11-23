@@ -60,7 +60,9 @@ function apiDevAndPreviewPlugin(): Plugin {
           } else {
             res.statusCode = 404;
             res.setHeader('Content-Type', 'application/json');
-            res.end(JSON.stringify({ error: { code: 'NotFound', message: 'API endpoint not found' } }));
+            res.end(
+              JSON.stringify({ error: { code: 'NotFound', message: 'API endpoint not found' } }),
+            );
             return;
           }
 
@@ -72,7 +74,9 @@ function apiDevAndPreviewPlugin(): Plugin {
         } catch (_err: unknown) {
           res.statusCode = 500;
           res.setHeader('Content-Type', 'application/json');
-          res.end(JSON.stringify({ error: { code: 'InternalError', message: 'Internal server error' } }));
+          res.end(
+            JSON.stringify({ error: { code: 'InternalError', message: 'Internal server error' } }),
+          );
         }
       });
     },

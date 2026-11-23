@@ -46,10 +46,35 @@ export default tsPlugin.config(
         {
           patterns: [
             {
-              group: ['../data/*', '@/data/*', '../ai/*', '@/ai/*', '../ui/*', '@/ui/*', '../state/*', '@/state/*', 'react', 'react-dom'],
-              message: 'Domain layer must remain pure and cannot import from data, ai, ui, state, or React.',
+              group: ['**/data/**', '**/ai/**', '**/ui/**', '**/state/**', 'react', 'react-dom'],
+              message:
+                'Domain layer must remain pure and cannot import from data, ai, ui, state, or React.',
             },
           ],
+        },
+      ],
+      'no-restricted-globals': [
+        'error',
+        {
+          name: 'window',
+          message: 'Domain layer must remain environment-agnostic; do not access global window.',
+        },
+        {
+          name: 'document',
+          message: 'Domain layer must remain environment-agnostic; do not access global document.',
+        },
+        {
+          name: 'localStorage',
+          message:
+            'Domain layer must remain environment-agnostic; do not access global localStorage.',
+        },
+        {
+          name: 'navigator',
+          message: 'Domain layer must remain environment-agnostic; do not access global navigator.',
+        },
+        {
+          name: 'fetch',
+          message: 'Domain layer must remain pure; no I/O or network fetch allowed in domain core.',
         },
       ],
     },
@@ -63,7 +88,7 @@ export default tsPlugin.config(
         {
           patterns: [
             {
-              group: ['../ui/*', '@/ui/*', 'react', 'react-dom'],
+              group: ['**/ui/**', 'react', 'react-dom'],
               message: 'Data and AI layers cannot import UI components or React.',
             },
           ],

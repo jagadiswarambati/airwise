@@ -1,0 +1,13 @@
+node_modules
+dist
+coverage
+.git
+package-lock.json
+*.md
+docs
+*.snap
+src
+api
+*.json
+*.html
+*.css

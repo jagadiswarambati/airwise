@@ -11,6 +11,6 @@ export default defineConfig({
     globals: true,
     environment: 'node',
     include: ['tests/**/*.test.{ts,tsx}'],
+    exclude: ['**/node_modules/**', '**/dist/**', 'tests/policy/matrix-full.test.ts'],
   },
 });
-

@@ -22,14 +22,23 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Format check
+        run: npm run format:check
+
       - name: Lint
         run: npm run lint
 
       - name: Typecheck
         run: npm run typecheck
 
-      - name: Run unit & policy tests
+      - name: Traceability check
+        run: npm run check:traceability
+
+      - name: Run unit & contract tests
         run: npm test
+
+      - name: Run policy matrix tests
+        run: npm run test:policy
 
       - name: Timezone invariance tests
         run: npm run test:tz
@@ -48,4 +57,3 @@ jobs:
 
       - name: Security audit
         run: npm audit --audit-level=high
-
