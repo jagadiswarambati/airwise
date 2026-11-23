@@ -10,6 +10,7 @@ import {
 } from '../../data/community';
 import { useCommunityPledge } from '../../state/communityStore';
 import { useDailyPlan } from '../hooks/useDailyPlan';
+import { Icon } from '../icons';
 
 interface CommunityScreenProps {
   profile: HouseholdProfile;
@@ -61,35 +62,23 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ profile, snaps
   const levelName = LEVEL_NAMES[effectiveLevel as RiskLevel] || 'Caution';
 
   return (
-    <div className="community-screen" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+    <div className="community-screen screen-container">
       {/* Demo Data Header Banner */}
       <section
-        className="card"
-        style={{
-          borderLeft: '4px solid #1a73e8',
-          backgroundColor: '#f8fafc',
-        }}
+        className="card card-callout-exposure"
         aria-labelledby="community-header-title"
       >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-          <h2 id="community-header-title" style={{ margin: 0, fontSize: '1.2rem', fontWeight: 700 }}>
-            Residential Community Mode
+        <div className="section-title-row mb-1">
+          <h2 id="community-header-title" className="section-heading flex-row-center gap-1">
+            <Icon name="people" size={20} aria-hidden="true" />
+            <span>Residential Community Mode</span>
           </h2>
-          <span
-            style={{
-              padding: '2px 8px',
-              backgroundColor: '#e8f0fe',
-              color: '#1a73e8',
-              borderRadius: 'var(--radius-full)',
-              fontSize: '0.75rem',
-              fontWeight: 700,
-            }}
-          >
+          <span className="aw-badge aw-badge-data-type">
             Demo data
           </span>
         </div>
 
-        <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--color-text-secondary)', lineHeight: 1.4 }}>
+        <p className="community-header-desc">
           Demonstrating collective building action at <strong>{society.name}</strong> ({society.totalHomes} homes).
           Helps housing societies coordinate waste burning bans, morning carpools, and vulnerable resident welfare.
         </p>
@@ -97,93 +86,50 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ profile, snaps
 
       {/* Society Daily Air Briefing Card */}
       <section className="card" aria-labelledby="society-briefing-title">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+        <div className="society-briefing-header">
           <div>
-            <span
-              style={{
-                fontSize: '0.75rem',
-                fontWeight: 700,
-                color: 'var(--color-primary)',
-                textTransform: 'uppercase',
-                letterSpacing: '0.5px',
-              }}
-            >
+            <span className="society-subtitle">
               Today's Society Briefing
             </span>
-            <h3 id="society-briefing-title" style={{ margin: '2px 0 0 0', fontSize: '1.1rem' }}>
+            <h3 id="society-briefing-title" className="society-title">
               {society.name}
             </h3>
           </div>
 
-          <div
-            style={{
-              textAlign: 'right',
-              padding: '4px 10px',
-              backgroundColor: `var(--level-${effectiveLevel}-bg)`,
-              border: `1px solid var(--level-${effectiveLevel}-border)`,
-              borderRadius: 'var(--radius-sm)',
-            }}
-          >
-            <div style={{ fontSize: '0.95rem', fontWeight: 800, color: `var(--level-${effectiveLevel}-text)` }}>
+          <div className={`society-level-badge card-risk-level-${effectiveLevel}`}>
+            <div className="society-level-pm25">
               {pm25Now !== null ? `${pm25Now} µg/m³` : 'Unmeasured'}
             </div>
-            <div style={{ fontSize: '0.7rem', fontWeight: 600, color: `var(--level-${effectiveLevel}-text)` }}>
+            <div className="society-level-name">
               {levelName} level
             </div>
           </div>
         </div>
 
-        <p style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', margin: '0 0 var(--space-3) 0' }}>
+        <p className="society-briefing-summary">
           {effectiveLevel >= 3
             ? `Air is ${levelName} level for most households here. Residents should keep windows sealed and limit outdoor time for children and seniors.`
             : `Air is ${levelName} level for most households here. Maintain regular ventilation discipline and avoid smoke-generating activities.`}
         </p>
 
         {/* Copyable Plain-Text Briefing for WhatsApp / Notice Board (Rule CM-04) */}
-        <div
-          style={{
-            padding: 'var(--space-3)',
-            backgroundColor: 'var(--color-bg-secondary)',
-            borderRadius: 'var(--radius-sm)',
-            border: '1px solid var(--color-border)',
-            marginBottom: 'var(--space-3)',
-          }}
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-            <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--color-text-main)' }}>
+        <div className="shareable-box">
+          <div className="shareable-header">
+            <span className="shareable-title">
               WhatsApp / Notice Board Format
             </span>
             <button
               type="button"
               onClick={handleCopyBriefing}
-              className="btn-secondary"
-              style={{
-                padding: '4px 10px',
-                fontSize: '0.8rem',
-                minHeight: '36px',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '4px',
-              }}
+              className="btn-secondary shareable-copy-btn"
               aria-label="Copy plain text briefing to clipboard"
             >
-              {copyFeedback ? 'Copied' : 'Copy Briefing'}
+              <Icon name="copy" size={16} aria-hidden="true" />
+              <span>{copyFeedback ? 'Copied' : 'Copy Briefing'}</span>
             </button>
           </div>
 
-          <pre
-            style={{
-              margin: 0,
-              fontSize: '0.75rem',
-              whiteSpace: 'pre-wrap',
-              wordBreak: 'break-word',
-              color: 'var(--color-text-muted)',
-              fontFamily: 'monospace',
-              maxHeight: '140px',
-              overflowY: 'auto',
-              lineHeight: 1.4,
-            }}
-          >
+          <pre className="code-snippet">
             {shareableText}
           </pre>
         </div>
@@ -191,14 +137,7 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ profile, snaps
         {copyFeedback && (
           <div
             role="status"
-            style={{
-              padding: '6px 12px',
-              backgroundColor: '#e6f4ea',
-              color: '#137333',
-              borderRadius: 'var(--radius-sm)',
-              fontSize: '0.8rem',
-              fontWeight: 600,
-            }}
+            className="box-highlight-emissions text-xs font-semibold"
           >
             Daily clean-air briefing copied to clipboard. Ready to paste into society chat.
           </div>
@@ -207,183 +146,125 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ profile, snaps
 
       {/* Action CM-01: Zero Open Burning Pledge */}
       <section className="card" aria-labelledby="pledge-heading">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+        <div className="pledge-header-row">
           <div>
-            <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#137333', textTransform: 'uppercase' }}>
+            <span className="pledge-subtitle text-emissions">
               Action CM-01 · Clean Air Pledge
             </span>
-            <h3 id="pledge-heading" style={{ margin: '2px 0 0 0', fontSize: '1.05rem' }}>
+            <h3 id="pledge-heading" className="pledge-title">
               No-Burning Pledge
             </h3>
           </div>
 
-          <span
-            style={{
-              padding: '2px 8px',
-              backgroundColor: '#e6f4ea',
-              color: '#137333',
-              borderRadius: 'var(--radius-sm)',
-              fontSize: '0.8rem',
-              fontWeight: 700,
-            }}
-          >
+          <span className="tag-emissions-pill">
             {totalPledges} / {society.totalHomes} Pledged
           </span>
         </div>
 
-        <p style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', margin: '0 0 var(--space-3) 0', lineHeight: 1.4 }}>
+        <p className="pledge-desc">
           Open burning of leaves, garden waste, or rubbish creates dangerous localized PM2.5 spikes.
         </p>
 
         <button
           type="button"
           onClick={handleTogglePledge}
-          style={{
-            width: '100%',
-            padding: '10px 16px',
-            borderRadius: 'var(--radius-sm)',
-            border: hasPledged ? '1px solid #ceead6' : '1px solid #137333',
-            backgroundColor: hasPledged ? '#e6f4ea' : '#137333',
-            color: hasPledged ? '#137333' : '#ffffff',
-            fontWeight: 700,
-            fontSize: '0.9rem',
-            cursor: 'pointer',
-            minHeight: '44px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '8px',
-          }}
+          className={`pledge-toggle-btn ${hasPledged ? 'pledge-toggle-pledged' : 'pledge-toggle-unpledged'}`}
           aria-pressed={hasPledged}
         >
-          {hasPledged ? '✓ Pledged not to burn leaves, garden waste or rubbish' : 'Pledge not to burn leaves, garden waste or rubbish'}
+          {hasPledged ? (
+            <>
+              <Icon name="check" size={18} aria-hidden="true" />
+              <span>Pledged not to burn leaves, garden waste or rubbish</span>
+            </>
+          ) : (
+            <span>Pledge not to burn leaves, garden waste or rubbish</span>
+          )}
         </button>
       </section>
 
       {/* Action CM-02: Carpool Coordination Concept */}
       <section className="card" aria-labelledby="carpool-heading">
-        <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#1a73e8', textTransform: 'uppercase' }}>
+        <span className="carpool-subtitle text-exposure">
           Action CM-02 · Collective Mobility
         </span>
-        <h3 id="carpool-heading" style={{ margin: '2px 0 6px 0', fontSize: '1.05rem' }}>
+        <h3 id="carpool-heading" className="carpool-title">
           Building Carpool Coordination
         </h3>
-        <p style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', margin: '0 0 var(--space-3) 0', lineHeight: 1.4 }}>
+        <p className="carpool-desc">
           {SEEDED_CARPOOL_HOUSEHOLDS} residents at {society.name} coordinate morning departures on common tech corridor routes.
         </p>
 
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(3, 1fr)',
-            gap: '8px',
-            padding: '10px',
-            backgroundColor: '#e8f0fe',
-            borderRadius: 'var(--radius-sm)',
-            textAlign: 'center',
-          }}
-        >
+        <div className="carpool-stats-grid">
           <div>
-            <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#1a73e8' }}>{SEEDED_CARPOOL_HOUSEHOLDS}</div>
-            <div style={{ fontSize: '0.7rem', color: 'var(--color-text-secondary)' }}>Commuters</div>
+            <div className="carpool-stat-val">{SEEDED_CARPOOL_HOUSEHOLDS}</div>
+            <div className="carpool-stat-label">Commuters</div>
           </div>
           <div>
-            <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#1a73e8' }}>08:30</div>
-            <div style={{ fontSize: '0.7rem', color: 'var(--color-text-secondary)' }}>Departure Slot</div>
+            <div className="carpool-stat-val">08:30</div>
+            <div className="carpool-stat-label">Departure Slot</div>
           </div>
           <div>
-            <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#1a73e8' }}>~{SEEDED_BASELINE_CARPOOL_VKM}</div>
-            <div style={{ fontSize: '0.7rem', color: 'var(--color-text-secondary)' }}>vkm saved/wk</div>
+            <div className="carpool-stat-val">~{SEEDED_BASELINE_CARPOOL_VKM}</div>
+            <div className="carpool-stat-label">vkm saved/wk</div>
           </div>
         </div>
       </section>
 
       {/* Action CM-03: Buddy-Check List for Vulnerable Neighbors */}
       <section className="card" aria-labelledby="buddy-check-heading">
-        <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#9a3412', textTransform: 'uppercase' }}>
+        <span className="buddy-subtitle text-warning">
           Action CM-03 · Vulnerability Care
         </span>
-        <h3 id="buddy-check-heading" style={{ margin: '2px 0 6px 0', fontSize: '1.05rem' }}>
+        <h3 id="buddy-check-heading" className="buddy-title">
           Vulnerable Resident Buddy Check
         </h3>
-        <p style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', margin: '0 0 var(--space-3) 0', lineHeight: 1.4 }}>
+        <p className="buddy-desc">
           Healthy residents check on at-risk households during elevated pollution episodes.
         </p>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', marginBottom: 'var(--space-2)' }}>
-          <div
-            style={{
-              padding: '8px',
-              backgroundColor: '#fff7ed',
-              borderRadius: 'var(--radius-sm)',
-              border: '1px solid #fed7aa',
-              textAlign: 'center',
-            }}
-          >
-            <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#9a3412' }}>
+        <div className="buddy-census-grid">
+          <div className="buddy-census-card">
+            <div className="buddy-census-num">
               {society.vulnerableCensus.seniors}
             </div>
-            <div style={{ fontSize: '0.7rem', color: '#9a3412' }}>Seniors (65+)</div>
+            <div className="buddy-census-label">Seniors (65+)</div>
           </div>
 
-          <div
-            style={{
-              padding: '8px',
-              backgroundColor: '#fff7ed',
-              borderRadius: 'var(--radius-sm)',
-              border: '1px solid #fed7aa',
-              textAlign: 'center',
-            }}
-          >
-            <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#9a3412' }}>
+          <div className="buddy-census-card">
+            <div className="buddy-census-num">
               {society.vulnerableCensus.childrenUnder12}
             </div>
-            <div style={{ fontSize: '0.7rem', color: '#9a3412' }}>Children (&lt;12)</div>
+            <div className="buddy-census-label">Children (&lt;12)</div>
           </div>
 
-          <div
-            style={{
-              padding: '8px',
-              backgroundColor: '#fff7ed',
-              borderRadius: 'var(--radius-sm)',
-              border: '1px solid #fed7aa',
-              textAlign: 'center',
-            }}
-          >
-            <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#9a3412' }}>
+          <div className="buddy-census-card">
+            <div className="buddy-census-num">
               {society.vulnerableCensus.respiratoryFlagged}
             </div>
-            <div style={{ fontSize: '0.7rem', color: '#9a3412' }}>Respiratory</div>
+            <div className="buddy-census-label">Respiratory</div>
           </div>
         </div>
 
-        <div style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)', fontStyle: 'italic' }}>
+        <div className="buddy-note">
           Census displays aggregated, non-identifying counts only to preserve neighbor privacy.
         </div>
       </section>
 
       {/* Aggregate Community Vehicle-KM Avoided (Formula C1) */}
       <section className="card" aria-labelledby="community-vkm-heading">
-        <h3 id="community-vkm-heading" style={{ margin: '0 0 6px 0', fontSize: '1.05rem' }}>
+        <h3 id="community-vkm-heading" className="community-vkm-title">
           Aggregate Community Vehicle-KM Avoided
         </h3>
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'baseline',
-            gap: '8px',
-            marginBottom: 'var(--space-2)',
-          }}
-        >
-          <span style={{ fontSize: '2rem', fontWeight: 800, color: '#137333' }}>
+        <div className="community-tally-box">
+          <span className="community-tally-num">
             ~{aggregateVkm}
           </span>
-          <span style={{ fontSize: '0.95rem', fontWeight: 600, color: '#137333' }}>
+          <span className="community-tally-label">
             vkm avoided this week (Formula C1)
           </span>
         </div>
 
-        <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--color-text-secondary)', lineHeight: 1.4 }}>
+        <p className="community-vkm-desc">
           Combines {society.name}'s baseline ({SEEDED_BASELINE_CARPOOL_VKM} vkm across {SEEDED_CARPOOL_HOUSEHOLDS} carpooling residents) with your household's profile contribution.
         </p>
       </section>

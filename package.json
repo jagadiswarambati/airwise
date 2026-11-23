@@ -13,6 +13,7 @@
     "test:policy": "vitest run tests/policy/policy-matrix.test.ts tests/policy/mutation.test.ts",
     "test:matrix": "node scripts/run-matrix.mjs",
     "check:traceability": "node scripts/check-traceability.mjs",
+    "check:ui": "node scripts/check-ui.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "check:size": "node scripts/check-size.mjs",

@@ -1,6 +1,7 @@
 import React from 'react';
 import { ActionCandidate, AirSnapshot, Plan } from '../../domain/types';
 import { ActionDetailModal } from './ActionDetailModal';
+import { Icon } from '../icons';
 
 interface SevereSmogViewProps {
   snapshot: AirSnapshot;
@@ -25,26 +26,17 @@ export const SevereSmogView: React.FC<SevereSmogViewProps> = ({
 
   return (
     <div className="severe-container" role="alert" aria-live="assertive">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <span
-          style={{
-            backgroundColor: '#a855f7',
-            color: '#ffffff',
-            padding: '4px 10px',
-            borderRadius: '9999px',
-            fontWeight: 800,
-            fontSize: '0.875rem',
-            letterSpacing: '0.05em',
-          }}
-        >
-          🚨 SEVERE SMOG ALERT
+      <div className="severe-header-row">
+        <span className="severe-badge">
+          <Icon name="severe" size={16} aria-hidden="true" />
+          <span>SEVERE SMOG ALERT</span>
         </span>
 
         {isManualOverride && onToggleManualOverride && (
           <button
             type="button"
             onClick={onToggleManualOverride}
-            style={{ color: '#e9d5ff', textDecoration: 'underline', fontSize: '0.85rem' }}
+            className="severe-override-btn"
           >
             Turn off manual override
           </button>
@@ -53,53 +45,35 @@ export const SevereSmogView: React.FC<SevereSmogViewProps> = ({
 
       <div>
         <h1 className="severe-title">Severe Air Quality Hazard</h1>
-        <p style={{ fontSize: '1.25rem', marginTop: '6px', color: '#f3e8ff' }}>
+        <p className="severe-subtext">
           Current outdoor PM2.5 is <strong>{pm25Val} µg/m³</strong>. Outdoor exertion is hazardous.
           Stay indoors and seal living spaces.
         </p>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-        <h2 style={{ fontSize: '1.15rem', color: '#d8b4fe' }}>Top 3 Immediate Protections</h2>
+      <div className="severe-actions-group">
+        <h2 className="severe-section-title">Top 3 Immediate Protections</h2>
         {topActions.map((cand) => (
           <div key={cand.action.id} className="severe-card">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-              <div style={{ fontSize: '1.2rem', fontWeight: 700 }}>
+            <div className="severe-card-header">
+              <div className="severe-card-title">
                 {cand.action.title}
               </div>
-              <span
-                style={{
-                  backgroundColor: '#7e22ce',
-                  color: '#ffffff',
-                  padding: '2px 8px',
-                  borderRadius: '4px',
-                  fontSize: '0.8rem',
-                  fontWeight: 600,
-                }}
-              >
+              <span className="severe-card-tag">
                 {cand.tags.cost}
               </span>
             </div>
 
-            <p style={{ fontSize: '1rem', color: '#f5f3ff', margin: '4px 0' }}>
+            <p className="severe-card-desc">
               {cand.impact.explanation}
             </p>
 
             <button
               type="button"
               onClick={() => setSelectedAction(cand)}
-              style={{
-                alignSelf: 'flex-start',
-                marginTop: '8px',
-                color: '#ffffff',
-                backgroundColor: '#9333ea',
-                padding: '8px 16px',
-                borderRadius: '6px',
-                fontWeight: 600,
-                fontSize: '0.9rem',
-              }}
+              className="severe-action-btn"
             >
-              Why &amp; Dual-Axis Impact →
+              Action Guidance &amp; Impact
             </button>
           </div>
         ))}
@@ -109,18 +83,9 @@ export const SevereSmogView: React.FC<SevereSmogViewProps> = ({
         <button
           type="button"
           onClick={onExitSevereView}
-          style={{
-            marginTop: 'auto',
-            padding: '16px',
-            backgroundColor: '#ffffff',
-            color: '#581c87',
-            fontSize: '1.1rem',
-            fontWeight: 800,
-            borderRadius: '8px',
-            textAlign: 'center',
-          }}
+          className="aw-btn aw-btn-secondary"
         >
-          Show Full Plan &amp; Timeline
+          Show full plan
         </button>
       )}
 
@@ -133,4 +98,3 @@ export const SevereSmogView: React.FC<SevereSmogViewProps> = ({
     </div>
   );
 };
-

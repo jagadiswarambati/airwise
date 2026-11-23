@@ -5,6 +5,7 @@ import { evaluateMobilityPolicy } from '../../domain/mobility';
 import { useDailyPlan } from '../hooks/useDailyPlan';
 import { ActionCard } from '../components/ActionCard';
 import { ActionDetailModal } from '../components/ActionDetailModal';
+import { Icon } from '../icons';
 
 interface MoveScreenProps {
   profile: HouseholdProfile;
@@ -35,44 +36,31 @@ export function MoveScreen({ profile, snapshot }: MoveScreenProps) {
   const isWalkingForbidden = !isWalkingSuitable;
 
   return (
-    <div className="move-screen" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+    <div className="move-screen screen-container">
       {/* Commute Exposure Planner */}
-      <section className="card" aria-labelledby="commute-planner-heading" style={{ borderLeft: '4px solid #1a73e8' }}>
-        <h2 id="commute-planner-heading" style={{ margin: '0 0 var(--space-2) 0', fontSize: '1.25rem' }}>
-          🚗 Commute Exposure Planner
+      <section className="card card-callout-exposure" aria-labelledby="commute-planner-heading">
+        <h2 id="commute-planner-heading" className="screen-section-title">
+          <Icon name="car" size={22} aria-hidden="true" />
+          <span>Commute Exposure Planner</span>
         </h2>
 
-        <div style={{ fontSize: '0.9rem', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-3)' }}>
+        <div className="commute-meta-text">
           Usual departure: <strong>{profile.routine.leave}</strong> · Return: <strong>{profile.routine.returnHome}</strong> · Modes: <strong>{profile.travel.modes.join(', ')}</strong>
         </div>
 
         {mobilityPolicy.commuteShiftFeasible ? (
-          <div
-            style={{
-              padding: 'var(--space-3)',
-              backgroundColor: '#e8f0fe',
-              borderRadius: 'var(--radius-sm)',
-              color: '#1a73e8',
-              fontSize: '0.9rem',
-              lineHeight: 1.4,
-            }}
-          >
-            <strong>✨ Commute timing window benefit detected (Rule P-16):</strong>
-            <p style={{ margin: '4px 0 0 0' }}>
+          <div className="box-highlight-exposure">
+            <div className="flex-row-center gap-1">
+              <Icon name="exposure" size={16} aria-hidden="true" />
+              <strong>Commute timing window benefit detected (Rule P-16):</strong>
+            </div>
+            <p className="mt-1">
               Shifting departure by 1 hour reduces travel exposure by approximately{' '}
               <strong>{Math.round(mobilityPolicy.forecastDifferenceUgm3 || 0)} µg/m³</strong> compared to peak road stagnation.
             </p>
           </div>
         ) : (
-          <div
-            style={{
-              padding: 'var(--space-3)',
-              backgroundColor: 'var(--color-bg-secondary)',
-              borderRadius: 'var(--radius-sm)',
-              fontSize: '0.85rem',
-              color: 'var(--color-text-secondary)',
-            }}
-          >
+          <div className="box-subtle">
             {profile.travel.canShiftTime
               ? 'Forecast pollution levels are relatively uniform across morning travel windows today; a timing shift does not exceed the required 15% and 5 µg/m³ improvement threshold.'
               : 'Commute shift is marked as not flexible in your household profile.'}
@@ -82,22 +70,18 @@ export function MoveScreen({ profile, snapshot }: MoveScreenProps) {
 
       {/* Walking and Cycling Suitability Banner */}
       <section
-        className="card"
-        style={{
-          borderLeft: isWalkingForbidden ? '4px solid #c5221f' : '4px solid #137333',
-          backgroundColor: isWalkingForbidden ? '#fffbfa' : '#f8fdf9',
-        }}
+        className={`card ${isWalkingForbidden ? 'card-callout-warning' : 'card-callout-emissions'}`}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', marginBottom: 'var(--space-1)' }}>
-          <span style={{ fontSize: '1.2rem' }}>{isWalkingForbidden ? '⚠️' : '🚲'}</span>
-          <h3 style={{ margin: 0, fontSize: '1.1rem' }}>
-            Walking & Cycling Suitability:{' '}
-            <span style={{ color: isWalkingForbidden ? '#c5221f' : '#137333' }}>
+        <div className="flex-row-center gap-2 mb-1">
+          <Icon name={isWalkingForbidden ? 'warning' : 'clear'} size={20} aria-hidden="true" />
+          <h3 className="walking-title">
+            Walking &amp; Cycling Suitability:{' '}
+            <span className={isWalkingForbidden ? 'text-warning' : 'text-emissions'}>
               {isWalkingForbidden ? 'Not suitable today' : 'Suitable for short trips'}
             </span>
           </h3>
         </div>
-        <p style={{ margin: 'var(--space-1) 0 0 0', fontSize: '0.85rem', color: 'var(--color-text-secondary)' }}>
+        <p className="walking-explanation">
           {isWalkingForbidden
             ? 'Aerobic exertion increases inhaled particulate volume by 3–5x. With current elevated PM2.5 or dark/stale conditions, outdoor walking and cycling are suppressed (Rule P-08).'
             : 'Outdoor PM2.5 is low and daylight conditions are favorable for walking or cycling.'}
@@ -106,10 +90,10 @@ export function MoveScreen({ profile, snapshot }: MoveScreenProps) {
 
       {/* Recommended Mobility Actions */}
       <section aria-labelledby="move-actions-heading">
-        <h2 id="move-actions-heading" style={{ margin: '0 0 var(--space-3) 0', fontSize: '1.15rem' }}>
-          Travel & Commute Recommendations
+        <h2 id="move-actions-heading" className="section-heading mb-3">
+          Travel &amp; Commute Recommendations
         </h2>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+        <div className="actions-stack">
           {moveCandidates.map((cand: ActionCandidate) => (
             <ActionCard
               key={cand.action.id}

@@ -1,5 +1,6 @@
 import React from 'react';
 import { RiskRadarResult } from '../../domain/types';
+import { Icon } from '../icons';
 
 interface RiskRadarCardProps {
   radar: RiskRadarResult;
@@ -13,32 +14,23 @@ export const RiskRadarCard: React.FC<RiskRadarCardProps> = ({ radar }) => {
         <span className="tag tag-exposure">Priority Focus</span>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '1.25rem' }} aria-hidden="true">🎯</span>
+      <div className="radar-body">
+        <div className="radar-profile-row">
+          <Icon name="protect" size={24} aria-hidden="true" />
           <div>
-            <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>
+            <div className="radar-role-title">
               {radar.memberRoleLabel}
             </div>
-            <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
+            <div className="radar-role-sub">
               Highest vulnerability today
             </div>
           </div>
         </div>
 
-        <div
-          style={{
-            backgroundColor: 'var(--color-surface-subtle)',
-            padding: '10px 12px',
-            borderRadius: '6px',
-            fontSize: '0.875rem',
-            lineHeight: 1.4,
-          }}
-        >
+        <div className="radar-box">
           <strong>{radar.slotLabel}:</strong> {radar.explanation}
         </div>
       </div>
     </section>
   );
 };
-

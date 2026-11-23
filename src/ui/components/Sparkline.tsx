@@ -44,16 +44,16 @@ export const Sparkline: React.FC<SparklineProps> = ({
 
   const areaData = `${pathData} L ${width} ${height} L 0 ${height} Z`;
 
-  // Color stroke based on recent value
+  // Determine haze level based on latest reading
   const latestValue = values[values.length - 1];
-  let strokeColor = '#10b981'; // Green for Clear
-  if (latestValue > 120) strokeColor = '#a855f7'; // Purple for Severe
-  else if (latestValue > 90) strokeColor = '#ef4444'; // Red for Protect
-  else if (latestValue > 60) strokeColor = '#f97316'; // Orange for Caution
-  else if (latestValue > 30) strokeColor = '#eab308'; // Yellow for Watch
+  let level = 0;
+  if (latestValue > 120) level = 4;
+  else if (latestValue > 90) level = 3;
+  else if (latestValue > 60) level = 2;
+  else if (latestValue > 30) level = 1;
 
   return (
-    <div className="sparkline-container" aria-label={ariaLabel}>
+    <div className={`sparkline-container sparkline-level-${level}`} aria-label={ariaLabel}>
       <svg
         viewBox={`0 0 ${width} ${height}`}
         className="sparkline-svg"
@@ -61,15 +61,21 @@ export const Sparkline: React.FC<SparklineProps> = ({
         aria-hidden="true"
       >
         <defs>
-          <linearGradient id="sparkline-gradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={strokeColor} stopOpacity="0.25" />
-            <stop offset="100%" stopColor={strokeColor} stopOpacity="0.0" />
+          <linearGradient id={`sparkline-gradient-${level}`} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="currentColor" stopOpacity="0.25" />
+            <stop offset="100%" stopColor="currentColor" stopOpacity="0.0" />
           </linearGradient>
         </defs>
-        <path d={areaData} fill="url(#sparkline-gradient)" />
-        <path d={pathData} fill="none" stroke={strokeColor} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+        <path d={areaData} fill={`url(#sparkline-gradient-${level})`} />
+        <path
+          d={pathData}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
       </svg>
     </div>
   );
 };
-

@@ -2,6 +2,7 @@ import React from 'react';
 import { AirSnapshot, RiskLevel } from '../../domain/types';
 import { RiskBadge } from './RiskBadge';
 import { Sparkline } from './Sparkline';
+import { Badge } from '../primitives';
 
 interface AirBriefingCardProps {
   snapshot: AirSnapshot;
@@ -13,34 +14,27 @@ export const AirBriefingCard: React.FC<AirBriefingCardProps> = ({ snapshot, effe
   const aqi = snapshot.aqi;
 
   const trendLabels = {
-    rising: '↗ Rising',
-    falling: '↘ Falling',
-    steady: '→ Steady',
-    unknown: '— Trend unknown',
+    rising: 'Rising',
+    falling: 'Falling',
+    steady: 'Steady',
+    unknown: 'Trend unknown',
   };
-
-  const freshnessBadgeClass =
-    snapshot.freshness === 'fresh'
-      ? 'tag-emissions'
-      : snapshot.freshness === 'aging'
-        ? 'tag-cost'
-        : 'tag-urgent';
 
   return (
     <section className="card" aria-label="Current Air Quality Briefing">
       <div className="card-header">
         <span className="card-title">Air Briefing</span>
-        <div style={{ display: 'flex', gap: '6px' }}>
-          <span className={`tag ${freshnessBadgeClass}`}>
+        <div className="briefing-badges">
+          <Badge type="freshness" variant={snapshot.freshness}>
             {snapshot.freshness === 'fresh'
               ? 'Fresh'
               : snapshot.freshness === 'aging'
                 ? 'Aging'
                 : 'Stale data'}
-          </span>
-          <span className="tag tag-cost">
+          </Badge>
+          <Badge type="data-type">
             {snapshot.source.dataType === 'sample' ? 'Sample' : 'Modelled'}
-          </span>
+          </Badge>
         </div>
       </div>
 
@@ -57,9 +51,9 @@ export const AirBriefingCard: React.FC<AirBriefingCardProps> = ({ snapshot, effe
           )}
         </div>
 
-        <div style={{ textAlign: 'right' }}>
+        <div className="briefing-meta">
           <RiskBadge level={effectiveLevel} />
-          <div className="trend-badge" style={{ marginTop: '4px' }}>
+          <div className="trend-badge">
             <span>{trendLabels[snapshot.trend]}</span>
           </div>
         </div>
@@ -69,4 +63,3 @@ export const AirBriefingCard: React.FC<AirBriefingCardProps> = ({ snapshot, effe
     </section>
   );
 };
-

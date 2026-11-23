@@ -32,7 +32,7 @@ export const QuickChecksCard: React.FC<QuickChecksCardProps> = ({ checks }) => {
         <span className="tag tag-cost">Deterministic</span>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+      <div className="quick-checks-list">
         {checks.map((check, idx) => {
           const isExpanded = expandedIdx === idx;
           return (
@@ -42,7 +42,6 @@ export const QuickChecksCard: React.FC<QuickChecksCardProps> = ({ checks }) => {
                 className="qc-question-row"
                 onClick={() => toggleExpand(idx)}
                 aria-expanded={isExpanded}
-                style={{ width: '100%', textAlign: 'left', cursor: 'pointer' }}
               >
                 <span className="qc-question">{check.question}</span>
                 <span className={`qc-verdict ${getVerdictClass(check.verdict)}`}>
@@ -50,7 +49,7 @@ export const QuickChecksCard: React.FC<QuickChecksCardProps> = ({ checks }) => {
                 </span>
               </button>
 
-              <div className="qc-answer" style={{ marginTop: '4px' }}>
+              <div className="qc-answer">
                 {check.answer}
               </div>
             </div>
@@ -60,4 +59,3 @@ export const QuickChecksCard: React.FC<QuickChecksCardProps> = ({ checks }) => {
     </section>
   );
 };
-

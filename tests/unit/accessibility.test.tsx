@@ -1,5 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { renderToString } from 'react-dom/server';
+import fs from 'node:fs';
+import path from 'node:path';
 import { TabBar } from '../../src/ui/components/TabBar';
 import { ActionCard } from '../../src/ui/components/ActionCard';
 import { ActionDetailModal } from '../../src/ui/components/ActionDetailModal';
@@ -12,7 +14,7 @@ import { PRIYA_PROFILE } from '../fixtures/sample-profiles';
  * Computes sRGB relative luminance per WCAG 2.2 specification.
  */
 function getLuminance(hex: string): number {
-  const cleanHex = hex.replace('#', '');
+  const cleanHex = hex.replace('#', '').trim();
   const r = parseInt(cleanHex.substring(0, 2), 16) / 255;
   const g = parseInt(cleanHex.substring(2, 4), 16) / 255;
   const b = parseInt(cleanHex.substring(4, 6), 16) / 255;
@@ -36,38 +38,53 @@ function getContrastRatio(hex1: string, hex2: string): number {
   return (lighter + 0.05) / (darker + 0.05);
 }
 
+function loadCssTokens(): Record<string, string> {
+  const css = fs.readFileSync(path.resolve('src/styles/tokens.css'), 'utf8');
+  const match = css.match(/:root\s*\{([^}]+)\}/);
+  if (!match) return {};
+  const map: Record<string, string> = {};
+  const re = /(--[a-zA-Z0-9-_]+)\s*:\s*([^;]+);/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(match[1])) !== null) {
+    map[m[1]] = m[2].trim();
+  }
+  return map;
+}
+
+const tokens = loadCssTokens();
+
 describe('Accessibility & WCAG 2.2 AA Contrast Compliance', () => {
   describe('WCAG 2.2 AA Color Contrast Audits', () => {
     it('verifies Level 0 (Clear) text meets WCAG AA >= 4.5:1', () => {
-      const contrast = getContrastRatio('#065f46', '#ecfdf5');
+      const contrast = getContrastRatio(tokens['--haze-0-ink'], tokens['--haze-0-bg']);
       expect(contrast).toBeGreaterThanOrEqual(4.5);
     });
 
     it('verifies Level 1 (Watch) text meets WCAG AA >= 4.5:1', () => {
-      const contrast = getContrastRatio('#854d0e', '#fefce8');
+      const contrast = getContrastRatio(tokens['--haze-1-ink'], tokens['--haze-1-bg']);
       expect(contrast).toBeGreaterThanOrEqual(4.5);
     });
 
     it('verifies Level 2 (Caution) text meets WCAG AA >= 4.5:1', () => {
-      const contrast = getContrastRatio('#9a3412', '#fff7ed');
+      const contrast = getContrastRatio(tokens['--haze-2-ink'], tokens['--haze-2-bg']);
       expect(contrast).toBeGreaterThanOrEqual(4.5);
     });
 
     it('verifies Level 3 (Protect) text meets WCAG AA >= 4.5:1', () => {
-      const contrast = getContrastRatio('#991b1b', '#fef2f2');
+      const contrast = getContrastRatio(tokens['--haze-3-ink'], tokens['--haze-3-bg']);
       expect(contrast).toBeGreaterThanOrEqual(4.5);
     });
 
     it('verifies Level 4 (Severe) text meets WCAG AA >= 4.5:1', () => {
-      const contrast = getContrastRatio('#581c87', '#faf5ff');
+      const contrast = getContrastRatio(tokens['--haze-4-ink'], tokens['--haze-4-bg']);
       expect(contrast).toBeGreaterThanOrEqual(4.5);
     });
 
     it('verifies main text and muted text on white surface meet WCAG standards', () => {
-      const mainTextContrast = getContrastRatio('#0f172a', '#ffffff');
+      const mainTextContrast = getContrastRatio(tokens['--ink'], tokens['--surface']);
       expect(mainTextContrast).toBeGreaterThanOrEqual(7.0); // WCAG AAA
 
-      const mutedTextContrast = getContrastRatio('#475569', '#ffffff');
+      const mutedTextContrast = getContrastRatio(tokens['--ink-2'], tokens['--surface']);
       expect(mutedTextContrast).toBeGreaterThanOrEqual(4.5); // WCAG AA
     });
   });

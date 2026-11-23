@@ -3,6 +3,7 @@ import { useProfile } from './state/profileStore';
 import { OnboardingFlow } from './ui/onboarding/OnboardingFlow';
 import { TodayScreen } from './ui/screens/TodayScreen';
 import { HouseholdProfile } from './domain/types';
+import { Icon } from './ui/icons';
 
 export function App() {
   const { profile, save, remove, loadPriya } = useProfile();
@@ -23,7 +24,7 @@ export function App() {
       <main className="app-container">
         <header className="app-header">
           <div className="brand-section">
-            <span style={{ fontSize: '1.35rem' }} aria-hidden="true">🍃</span>
+            <Icon name="wind" size={24} aria-hidden="true" />
             <span className="brand-title">AirWise Onboarding</span>
           </div>
           {profile && (
@@ -31,7 +32,6 @@ export function App() {
               type="button"
               className="btn-secondary"
               onClick={() => setIsEditing(false)}
-              style={{ fontSize: '0.8rem', minHeight: '36px', padding: '0 12px' }}
             >
               Cancel
             </button>
@@ -56,4 +56,3 @@ export function App() {
     />
   );
 }
-

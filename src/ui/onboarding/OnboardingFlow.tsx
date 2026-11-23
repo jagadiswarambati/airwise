@@ -13,6 +13,7 @@ import {
   roleLabelFor,
 } from '../../domain/types';
 import citiesData from '../../data/samples/cities.json';
+import { Icon } from '../icons';
 
 interface OnboardingFlowProps {
   initialProfile?: HouseholdProfile | null;
@@ -61,22 +62,20 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
   const [hasHvac, setHasHvac] = useState<boolean>(initialProfile?.equipment.hvac ?? false);
   const [budget, setBudget] = useState<BudgetTier>(initialProfile?.budget || 'low');
 
-  // Step 4: Travel & Flexibility
-  const [modes, setModes] = useState<Mode[]>(
-    initialProfile?.travel.modes || ['two_wheeler', 'car'],
-  );
-  const [oneWayKm, setOneWayKm] = useState<number>(initialProfile?.travel.oneWayKm || 10);
+  // Step 4: Travel & Commute
+  const [modes, setModes] = useState<Mode[]>(initialProfile?.travel.modes || ['two_wheeler']);
+  const [oneWayKm, setOneWayKm] = useState<number>(initialProfile?.travel.oneWayKm || 12);
   const [tripsPerWeek, setTripsPerWeek] = useState<number>(
     initialProfile?.travel.tripsPerWeek || 5,
   );
-  const [canShiftTime, setCanShiftTime] = useState<boolean>(
-    initialProfile?.travel.canShiftTime ?? true,
-  );
-  const [canWorkRemotely, setCanWorkRemotely] = useState<boolean>(
-    initialProfile?.travel.canWorkRemotely ?? true,
-  );
   const [transitAvailable, setTransitAvailable] = useState<boolean | 'unknown'>(
     initialProfile?.travel.transitAvailable ?? true,
+  );
+  const [canShiftTime, setCanShiftTime] = useState<boolean>(
+    initialProfile?.travel.canShiftTime ?? false,
+  );
+  const [canWorkRemotely, setCanWorkRemotely] = useState<boolean>(
+    initialProfile?.travel.canWorkRemotely ?? false,
   );
   const [outdoorWorker, setOutdoorWorker] = useState<boolean>(
     initialProfile?.travel.outdoorWorker ?? false,
@@ -88,18 +87,17 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
   const [returnHome, setReturnHome] = useState(initialProfile?.routine.returnHome || '17:30');
   const [bed, setBed] = useState(initialProfile?.routine.bed || '22:00');
 
-  // Member Management Helpers
   const addMember = () => {
-    const newId = (members.length + 1).toString();
+    const nextId = (members.length + 1).toString();
     setMembers((prev) => [
       ...prev,
-      { id: newId, roleLabel: roleLabelFor({ ageGroup: '18-64' }), ageGroup: '18-64', flags: [] },
+      {
+        id: nextId,
+        roleLabel: roleLabelFor({ ageGroup: '18-64' }),
+        ageGroup: '18-64',
+        flags: [],
+      },
     ]);
-  };
-
-  const removeMember = (id: string) => {
-    if (members.length <= 1) return;
-    setMembers((prev) => prev.filter((m) => m.id !== id));
   };
 
   const updateMember = (id: string, updates: Partial<Member>) => {
@@ -115,20 +113,22 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
     );
   };
 
-  const toggleFlag = (id: string, flag: Flag) => {
-    setMembers((prev) =>
-      prev.map((m) => {
-        if (m.id !== id) return m;
-        const flags = m.flags.includes(flag)
-          ? m.flags.filter((f) => f !== flag)
-          : [...m.flags, flag];
-        return { ...m, flags };
-      }),
-    );
+  const removeMember = (id: string) => {
+    if (members.length <= 1) return;
+    setMembers(members.filter((m) => m.id !== id));
   };
 
-  const selectCity = (city: (typeof citiesData)[0]) => {
-    setCityLabel(`${city.name}, ${city.state ? city.state + ', ' : ''}${city.country}`);
+  const toggleFlag = (memberId: string, flag: Flag) => {
+    const target = members.find((m) => m.id === memberId);
+    if (!target) return;
+    const newFlags = target.flags.includes(flag)
+      ? target.flags.filter((f) => f !== flag)
+      : [...target.flags, flag];
+    updateMember(memberId, { flags: newFlags });
+  };
+
+  const selectCity = (city: { name: string; lat: number; lon: number; country: string }) => {
+    setCityLabel(`${city.name}, ${city.country}`);
     setLat(city.lat);
     setLon(city.lon);
     setCountry(city.country);
@@ -136,22 +136,38 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
     const finalProfile: HouseholdProfile = {
       schemaVersion: 1,
-      location: { label: cityLabel, lat, lon, country },
+      location: {
+        lat: Math.round(lat * 100) / 100,
+        lon: Math.round(lon * 100) / 100,
+        label: cityLabel,
+        country: country || (cityLabel.includes('India') ? 'IN' : 'US'),
+      },
       members,
-      housing: { tenure, type: housingType },
-      cooking: { fuel, hasExhaust },
+      housing: {
+        tenure,
+        type: housingType,
+      },
+      cooking: {
+        fuel,
+        hasExhaust,
+      },
       homeHeating,
-      equipment: { purifier: hasPurifier, windowAC: hasWindowAC, hvac: hasHvac },
+      equipment: {
+        purifier: hasPurifier,
+        windowAC: hasWindowAC,
+        hvac: hasHvac,
+      },
       budget,
       travel: {
         modes,
         oneWayKm,
         tripsPerWeek,
+        transitAvailable,
         canShiftTime,
         canWorkRemotely,
-        transitAvailable,
         outdoorWorker,
       },
       routine: {
@@ -169,30 +185,19 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
   return (
     <div className="onboarding-container">
       {/* Shortcut Preset Banner */}
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          backgroundColor: '#eff6ff',
-          border: '1px solid #bfdbfe',
-          borderRadius: '8px',
-          padding: '10px 14px',
-        }}
-      >
+      <div className="onboarding-preset-banner">
         <div>
-          <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#1e40af' }}>
+          <div className="onboarding-preset-title">
             Quick 1-Tap Evaluation
           </div>
-          <div style={{ fontSize: '0.75rem', color: '#3b82f6' }}>
+          <div className="onboarding-preset-desc">
             Load Priya's preset (asthmatic child, elder, low budget).
           </div>
         </div>
         <button
           type="button"
           onClick={onLoadPriya}
-          className="btn-primary"
-          style={{ fontSize: '0.8rem', minHeight: '36px', padding: '4px 12px' }}
+          className="btn-primary onboarding-preset-btn"
         >
           Try Priya's Household
         </button>
@@ -205,25 +210,24 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
         ))}
       </div>
 
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <form onSubmit={handleSubmit} className="onboarding-form">
         {/* STEP 1: Location */}
         {step === 1 && (
           <div className="card">
             <h2 className="card-title">Step 1: Location</h2>
-            <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
+            <p className="text-sm text-muted">
               Choose your city or enter approximate coordinates. Location is rounded to ~1 km for privacy.
             </p>
 
             <div className="form-group">
               <label className="form-label">City Search / Preset</label>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '8px' }}>
+              <div className="city-presets-row">
                 {citiesData.slice(0, 8).map((city) => (
                   <button
                     key={city.name}
                     type="button"
                     onClick={() => selectCity(city)}
-                    className="tag tag-cost"
-                    style={{ cursor: 'pointer' }}
+                    className="tag tag-cost cursor-pointer"
                   >
                     {city.name}
                   </button>
@@ -239,7 +243,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
               />
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+            <div className="grid-2-col">
               <div className="form-group">
                 <label className="form-label">Latitude</label>
                 <input
@@ -274,29 +278,22 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
         {step === 2 && (
           <div className="card">
             <h2 className="card-title">Step 2: Who lives in your home?</h2>
-            <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
+            <p className="text-sm text-muted">
               We ask for age groups and respiratory flags only. No personal names are ever recorded.
             </p>
 
             {members.map((m, idx) => (
               <div
                 key={m.id}
-                style={{
-                  border: '1px solid var(--color-border-subtle)',
-                  borderRadius: '6px',
-                  padding: '10px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '8px',
-                }}
+                className="member-card"
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>Member {idx + 1}</span>
+                <div className="member-card-header">
+                  <span className="member-card-title">Member {idx + 1}</span>
                   {members.length > 1 && (
                     <button
                       type="button"
                       onClick={() => removeMember(m.id)}
-                      style={{ color: 'var(--level-3-text)', fontSize: '0.8rem' }}
+                      className="member-remove-btn"
                     >
                       Remove
                     </button>
@@ -320,7 +317,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
 
                 <div className="form-group">
                   <label className="form-label">Sensitivity Flags</label>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                  <div className="flags-wrap">
                     {(['asthma_copd', 'heart', 'pregnancy', 'other_sensitivity'] as Flag[]).map(
                       (flag) => {
                         const active = m.flags.includes(flag);
@@ -337,10 +334,13 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
                             key={flag}
                             type="button"
                             onClick={() => toggleFlag(m.id, flag)}
-                            className={`tag ${active ? 'tag-urgent' : 'tag-cost'}`}
-                            style={{ cursor: 'pointer' }}
+                            className={`tag cursor-pointer ${active ? 'tag-urgent' : 'tag-cost'}`}
                           >
-                            {active ? '✓ ' : '+ '}
+                            {active ? (
+                              <Icon name="check" size={12} aria-hidden="true" />
+                            ) : (
+                              <span>+ </span>
+                            )}
                             {label}
                           </button>
                         );
@@ -355,11 +355,11 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
               + Add Family Member
             </button>
 
-            <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
-              <button type="button" className="btn-secondary" onClick={() => setStep(1)} style={{ flex: 1 }}>
+            <div className="form-actions-row">
+              <button type="button" className="btn-secondary btn-back" onClick={() => setStep(1)}>
                 ← Back
               </button>
-              <button type="button" className="btn-primary" onClick={() => setStep(3)} style={{ flex: 2 }}>
+              <button type="button" className="btn-primary btn-next" onClick={() => setStep(3)}>
                 Next: Home &amp; Setup →
               </button>
             </div>
@@ -371,7 +371,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
           <div className="card">
             <h2 className="card-title">Step 3: Home &amp; Equipment</h2>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+            <div className="grid-2-col">
               <div className="form-group">
                 <label className="form-label">Tenure</label>
                 <select value={tenure} onChange={(e) => setTenure(e.target.value as Tenure)} className="form-select">
@@ -389,7 +389,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+            <div className="grid-2-col">
               <div className="form-group">
                 <label className="form-label">Cooking Fuel</label>
                 <select value={fuel} onChange={(e) => setFuel(e.target.value as CookingFuel)} className="form-select">
@@ -424,8 +424,8 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
 
             <div className="form-group">
               <label className="form-label">Equipment Owned</label>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem' }}>
+              <div className="checkbox-group">
+                <label className="checkbox-label">
                   <input
                     type="checkbox"
                     checked={hasPurifier}
@@ -433,7 +433,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
                   />
                   HEPA Air Purifier
                 </label>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem' }}>
+                <label className="checkbox-label">
                   <input
                     type="checkbox"
                     checked={hasWindowAC}
@@ -441,7 +441,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
                   />
                   Window or Split AC
                 </label>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem' }}>
+                <label className="checkbox-label">
                   <input
                     type="checkbox"
                     checked={hasHvac}
@@ -461,11 +461,11 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
               </select>
             </div>
 
-            <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
-              <button type="button" className="btn-secondary" onClick={() => setStep(2)} style={{ flex: 1 }}>
+            <div className="form-actions-row">
+              <button type="button" className="btn-secondary btn-back" onClick={() => setStep(2)}>
                 ← Back
               </button>
-              <button type="button" className="btn-primary" onClick={() => setStep(4)} style={{ flex: 2 }}>
+              <button type="button" className="btn-primary btn-next" onClick={() => setStep(4)}>
                 Next: Travel &amp; Commute →
               </button>
             </div>
@@ -479,7 +479,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
 
             <div className="form-group">
               <label className="form-label">Primary Commute Modes</label>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+              <div className="flags-wrap">
                 {(['two_wheeler', 'car', 'bus', 'metro_rail', 'walk', 'cycle'] as Mode[]).map((mode) => {
                   const active = modes.includes(mode);
                   return (
@@ -489,10 +489,13 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
                       onClick={() =>
                         setModes(active ? modes.filter((m) => m !== mode) : [...modes, mode])
                       }
-                      className={`tag ${active ? 'tag-exposure' : 'tag-cost'}`}
-                      style={{ cursor: 'pointer' }}
+                      className={`tag cursor-pointer ${active ? 'tag-exposure' : 'tag-cost'}`}
                     >
-                      {active ? '✓ ' : '+ '}
+                      {active ? (
+                        <Icon name="check" size={12} aria-hidden="true" />
+                      ) : (
+                        <span>+ </span>
+                      )}
                       {mode.replace('_', ' ')}
                     </button>
                   );
@@ -500,7 +503,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+            <div className="grid-2-col">
               <div className="form-group">
                 <label className="form-label">One-Way Distance (km)</label>
                 <input
@@ -544,8 +547,8 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
 
             <div className="form-group">
               <label className="form-label">Flexibility &amp; Exposure</label>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem' }}>
+              <div className="checkbox-group">
+                <label className="checkbox-label">
                   <input
                     type="checkbox"
                     checked={canShiftTime}
@@ -553,7 +556,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
                   />
                   Can shift commute departure by 30–60 mins
                 </label>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem' }}>
+                <label className="checkbox-label">
                   <input
                     type="checkbox"
                     checked={canWorkRemotely}
@@ -561,7 +564,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
                   />
                   Can work remotely on bad smog days
                 </label>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem' }}>
+                <label className="checkbox-label">
                   <input
                     type="checkbox"
                     checked={outdoorWorker}
@@ -572,11 +575,11 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
               </div>
             </div>
 
-            <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
-              <button type="button" className="btn-secondary" onClick={() => setStep(3)} style={{ flex: 1 }}>
+            <div className="form-actions-row">
+              <button type="button" className="btn-secondary btn-back" onClick={() => setStep(3)}>
                 ← Back
               </button>
-              <button type="button" className="btn-primary" onClick={() => setStep(5)} style={{ flex: 2 }}>
+              <button type="button" className="btn-primary btn-next" onClick={() => setStep(5)}>
                 Next: Daily Routine →
               </button>
             </div>
@@ -587,11 +590,11 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
         {step === 5 && (
           <div className="card">
             <h2 className="card-title">Step 5: Daily Schedule</h2>
-            <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
+            <p className="text-sm text-muted">
               Helps align your 6-slot timeline with actual exposure windows.
             </p>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+            <div className="grid-2-col">
               <div className="form-group">
                 <label className="form-label">Wake Up</label>
                 <input
@@ -641,12 +644,12 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
               </div>
             </div>
 
-            <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
-              <button type="button" className="btn-secondary" onClick={() => setStep(4)} style={{ flex: 1 }}>
+            <div className="form-actions-row mt-3">
+              <button type="button" className="btn-secondary btn-back" onClick={() => setStep(4)}>
                 ← Back
               </button>
-              <button type="submit" className="btn-primary" style={{ flex: 2 }}>
-                Save &amp; Generate Plan 🚀
+              <button type="submit" className="btn-primary btn-next">
+                Save &amp; Generate Plan
               </button>
             </div>
           </div>

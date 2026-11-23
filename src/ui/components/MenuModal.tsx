@@ -4,6 +4,7 @@ import { exportProfileJson, importProfileJson } from '../../state/profileStore';
 import { clearAllLocalData } from '../../state/lifecycle';
 import { ScenarioType } from '../../data/fallback-chain';
 import { useSettings } from '../../state/settingsStore';
+import { Icon } from '../icons';
 
 interface MenuModalProps {
   isOpen: boolean;
@@ -99,23 +100,22 @@ export const MenuModal: React.FC<MenuModalProps> = ({
     <div className="modal-overlay" role="dialog" aria-modal="true" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h2 style={{ fontSize: '1.15rem', fontWeight: 700 }}>Menu &amp; Settings</h2>
+          <h2 className="action-modal-title">Menu &amp; Settings</h2>
           <button type="button" className="btn-icon" onClick={onClose} aria-label="Close menu">
-            ✕
+            <Icon name="close" size={20} aria-hidden="true" />
           </button>
         </div>
 
         <div className="modal-body">
           {/* Quick Preset Action */}
-          <div style={{ backgroundColor: 'var(--color-surface-subtle)', padding: '12px', borderRadius: '8px' }}>
-            <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>Evaluation Presets</div>
-            <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', margin: '4px 0 8px 0' }}>
+          <div className="menu-preset-box">
+            <div className="menu-preset-title">Evaluation Presets</div>
+            <p className="menu-preset-desc">
               Load standard testing household (Priya: asthmatic child, elder, low budget, no purifier).
             </p>
             <button
               type="button"
-              className="btn-primary"
-              style={{ width: '100%', fontSize: '0.85rem' }}
+              className="btn-primary w-full text-sm"
               onClick={() => {
                 onLoadPriya();
                 onClose();
@@ -126,25 +126,11 @@ export const MenuModal: React.FC<MenuModalProps> = ({
           </div>
 
           {/* AI Personalization Settings Toggle */}
-          <div
-            style={{
-              backgroundColor: 'var(--color-surface-subtle)',
-              padding: '12px',
-              borderRadius: '8px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '6px',
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div className="menu-ai-box">
+            <div className="menu-ai-row">
               <label
                 htmlFor="ai-toggle"
-                style={{
-                  fontWeight: 600,
-                  fontSize: '0.9rem',
-                  cursor: isLlmAvailable ? 'pointer' : 'not-allowed',
-                  opacity: isLlmAvailable ? 1 : 0.6,
-                }}
+                className={`menu-ai-label ${isLlmAvailable ? 'cursor-pointer' : 'cursor-disabled'}`}
               >
                 Personalise plan with AI
               </label>
@@ -154,21 +140,21 @@ export const MenuModal: React.FC<MenuModalProps> = ({
                 checked={settings.aiEnabled && isLlmAvailable}
                 disabled={!isLlmAvailable}
                 onChange={(e) => updateSettings({ aiEnabled: e.target.checked })}
-                style={{ width: '1.2rem', height: '1.2rem', cursor: isLlmAvailable ? 'pointer' : 'not-allowed' }}
+                className="checkbox-input"
               />
             </div>
-            <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', margin: 0, lineHeight: 1.35 }}>
+            <p className="menu-ai-desc">
               Age bands, equipment, routine times; no location, names, or health records are sent.
             </p>
             {!isLlmAvailable && (
-              <span style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', fontStyle: 'italic' }}>
+              <span className="menu-ai-disabled-note">
                 (AI service disabled on this deployment)
               </span>
             )}
           </div>
 
           {/* Scenario Switching */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          <div className="form-group">
             <label className="form-label">Active Air Scenario</label>
             <select
               value={currentScenario}
@@ -187,7 +173,7 @@ export const MenuModal: React.FC<MenuModalProps> = ({
           </div>
 
           {/* Profile Actions */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px' }}>
+          <div className="menu-actions-group">
             <button
               type="button"
               className="btn-secondary"
@@ -205,37 +191,30 @@ export const MenuModal: React.FC<MenuModalProps> = ({
                   Export Profile (JSON)
                 </button>
 
-                <label className="btn-secondary" style={{ textAlign: 'center', cursor: 'pointer' }}>
+                <label className="btn-secondary text-center cursor-pointer">
                   Import Profile (JSON)
                   <input
                     type="file"
                     accept=".json"
                     onChange={handleImportFile}
-                    style={{ display: 'none' }}
+                    className="sr-only"
                   />
                 </label>
 
                 {importError && (
-                  <div style={{ color: 'var(--level-3-text)', fontSize: '0.8rem' }}>
+                  <div className="text-warning text-xs">
                     {importError}
                   </div>
                 )}
 
                 <button
                   type="button"
-                  style={{
-                    color: 'var(--level-3-text)',
-                    backgroundColor: 'var(--level-3-bg)',
-                    border: '1px solid var(--level-3-border)',
-                    borderRadius: 'var(--radius-md)',
-                    minHeight: 'var(--target-min)',
-                    fontWeight: 600,
-                  }}
+                  className="menu-delete-btn"
                   onClick={confirmDelete}
                 >
                   Delete all data
                 </button>
-                <div style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', textAlign: 'center' }}>
+                <div className="menu-delete-note">
                   Stored in this browser only. No server-side copy exists.
                 </div>
               </>
@@ -243,19 +222,11 @@ export const MenuModal: React.FC<MenuModalProps> = ({
           </div>
 
           {/* About */}
-          <div
-            style={{
-              borderTop: '1px solid var(--color-border-subtle)',
-              paddingTop: '12px',
-              fontSize: '0.75rem',
-              color: 'var(--color-text-muted)',
-              lineHeight: 1.4,
-            }}
-          >
+          <div className="menu-about-box">
             <p>
               <strong>AirWise</strong> is an AI-powered household clean-air decision assistant.
             </p>
-            <p style={{ marginTop: '4px' }}>
+            <p className="mt-1">
               Phase B build: Pure TypeScript deterministic core with live &amp; demo data layers.
               No health claims or medical advice provided.
             </p>

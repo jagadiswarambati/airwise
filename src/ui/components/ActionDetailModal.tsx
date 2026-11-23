@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { ActionCandidate } from '../../domain/types';
+import { Icon } from '../icons';
 
 interface ActionDetailModalProps {
   candidate: ActionCandidate | null;
@@ -31,7 +32,7 @@ export const ActionDetailModal: React.FC<ActionDetailModalProps> = ({ candidate,
     >
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h2 id="modal-action-title" style={{ fontSize: '1.15rem', fontWeight: 700 }}>
+          <h2 id="modal-action-title" className="action-modal-title">
             {action.title}
           </h2>
           <button
@@ -39,9 +40,8 @@ export const ActionDetailModal: React.FC<ActionDetailModalProps> = ({ candidate,
             className="btn-icon"
             onClick={onClose}
             aria-label="Close action detail"
-            style={{ fontSize: '1.25rem' }}
           >
-            ✕
+            <Icon name="close" size={20} aria-hidden="true" />
           </button>
         </div>
 
@@ -51,7 +51,7 @@ export const ActionDetailModal: React.FC<ActionDetailModalProps> = ({ candidate,
             <div className="banner banner-warning">
               <div>
                 {fixedDisclaimers.map((caveat, idx) => (
-                  <p key={idx} style={{ margin: 0, fontWeight: 500 }}>
+                  <p key={idx} className="disclaimer-text">
                     {caveat}
                   </p>
                 ))}
@@ -61,73 +61,59 @@ export const ActionDetailModal: React.FC<ActionDetailModalProps> = ({ candidate,
 
           {/* Dual-Axis Impact Breakdown */}
           <section aria-label="Dual-Axis Impact Breakdown">
-            <h3 style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)', marginBottom: '8px' }}>
+            <h3 className="modal-section-subtitle">
               DUAL-AXIS IMPACT
             </h3>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+            <div className="dual-axis-grid">
               {/* Exposure Axis */}
-              <div
-                style={{
-                  border: '1px solid #bae6fd',
-                  backgroundColor: '#f0f9ff',
-                  borderRadius: '8px',
-                  padding: '10px',
-                }}
-              >
-                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#0369a1' }}>
+              <div className="axis-card-exposure">
+                <div className="axis-card-title text-exposure">
                   EXPOSURE AXIS
                 </div>
-                <div style={{ fontSize: '1rem', fontWeight: 700, margin: '4px 0' }}>
+                <div className="axis-card-value">
                   {impact.exposure.direction === 'reduces'
                     ? 'Reduces Exposure ↓'
                     : impact.exposure.direction === 'neutral'
                       ? 'Neutral —'
                       : 'Conditional'}
                 </div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
+                <div className="axis-card-label">
                   Label: <strong>{impact.exposure.label}</strong> ({impact.exposure.confidence}{' '}
                   confidence)
                 </div>
                 {impact.exposure.magnitude && (
-                  <div style={{ fontSize: '0.8rem', fontWeight: 600, marginTop: '4px' }}>
+                  <div className="axis-card-sub text-exposure">
                     {impact.exposure.magnitude}
                   </div>
                 )}
-                <p style={{ fontSize: '0.75rem', marginTop: '6px', color: 'var(--color-text-main)' }}>
+                <p className="axis-card-note">
                   {impact.exposure.note}
                 </p>
               </div>
 
               {/* Emissions Axis */}
-              <div
-                style={{
-                  border: '1px solid #bbf7d0',
-                  backgroundColor: '#f0fdf4',
-                  borderRadius: '8px',
-                  padding: '10px',
-                }}
-              >
-                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#15803d' }}>
+              <div className="axis-card-emissions">
+                <div className="axis-card-title text-emissions">
                   EMISSIONS AXIS
                 </div>
-                <div style={{ fontSize: '1rem', fontWeight: 700, margin: '4px 0' }}>
+                <div className="axis-card-value">
                   {impact.emissions.direction === 'reduces'
                     ? 'Reduces Emissions ↓'
                     : impact.emissions.direction === 'neutral'
                       ? 'Neutral —'
                       : 'Conditional'}
                 </div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
+                <div className="axis-card-label">
                   Label: <strong>{impact.emissions.label}</strong> ({impact.emissions.confidence}{' '}
                   confidence)
                 </div>
                 {impact.emissions.value && (
-                  <div style={{ fontSize: '0.8rem', fontWeight: 600, marginTop: '4px' }}>
+                  <div className="axis-card-sub text-emissions">
                     ≈ {impact.emissions.value.vkm} vkm avoided/wk
                   </div>
                 )}
-                <p style={{ fontSize: '0.75rem', marginTop: '6px', color: 'var(--color-text-main)' }}>
+                <p className="axis-card-note">
                   {impact.emissions.note}
                 </p>
               </div>
@@ -136,20 +122,20 @@ export const ActionDetailModal: React.FC<ActionDetailModalProps> = ({ candidate,
 
           {/* What this does NOT change */}
           <section>
-            <h4 style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--color-text-muted)' }}>
+            <h4 className="modal-section-heading">
               WHAT IT DOES NOT CHANGE
             </h4>
-            <p style={{ fontSize: '0.85rem', color: 'var(--color-text-main)', marginTop: '4px' }}>
+            <p className="modal-section-text">
               {impact.doesNotChange}
             </p>
           </section>
 
           {/* Assumptions */}
           <section>
-            <h4 style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--color-text-muted)' }}>
+            <h4 className="modal-section-heading">
               ASSUMPTIONS
             </h4>
-            <ul style={{ paddingLeft: '18px', fontSize: '0.8rem', color: 'var(--color-text-muted)', marginTop: '4px' }}>
+            <ul className="modal-assumptions-list">
               {impact.assumptions.map((item, i) => (
                 <li key={i}>{item}</li>
               ))}
@@ -158,9 +144,8 @@ export const ActionDetailModal: React.FC<ActionDetailModalProps> = ({ candidate,
 
           <button
             type="button"
-            className="btn-primary"
+            className="btn-primary w-full mt-2"
             onClick={onClose}
-            style={{ width: '100%', marginTop: '8px' }}
           >
             Done
           </button>
@@ -169,4 +154,3 @@ export const ActionDetailModal: React.FC<ActionDetailModalProps> = ({ candidate,
     </div>
   );
 };
-

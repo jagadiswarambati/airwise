@@ -1,5 +1,6 @@
 import React from 'react';
 import { ScenarioType } from '../../data/fallback-chain';
+import { Icon } from '../icons';
 
 interface HeaderProps {
   currentScenario: ScenarioType;
@@ -19,7 +20,7 @@ export const Header: React.FC<HeaderProps> = ({
   return (
     <header className="app-header">
       <div className="brand-section">
-        <span style={{ fontSize: '1.35rem' }} aria-hidden="true">🍃</span>
+        <Icon name="wind" size={24} aria-hidden="true" />
         <span className="brand-title">AirWise</span>
       </div>
 
@@ -41,16 +42,12 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Severe Mode Manual Toggle */}
         <button
           type="button"
-          className="btn-icon"
+          className={`btn-icon ${isManualSevere ? 'btn-icon-active' : ''}`}
           onClick={onToggleSevere}
           aria-label={isManualSevere ? 'Disable Severe Smog Mode' : 'Enable Severe Smog Mode'}
           title={isManualSevere ? 'Severe Mode Active' : 'Toggle Severe Mode'}
-          style={{
-            backgroundColor: isManualSevere ? 'var(--level-4-bg)' : undefined,
-            color: isManualSevere ? 'var(--level-4-text)' : undefined,
-          }}
         >
-          <span aria-hidden="true">🚨</span>
+          <Icon name="severe" size={20} aria-hidden="true" />
         </button>
 
         {/* Menu & Settings */}
@@ -60,10 +57,9 @@ export const Header: React.FC<HeaderProps> = ({
           onClick={onOpenMenu}
           aria-label="Open household menu and settings"
         >
-          <span aria-hidden="true" style={{ fontSize: '1.25rem' }}>☰</span>
+          <Icon name="menu" size={20} aria-hidden="true" />
         </button>
       </div>
     </header>
   );
 };
-

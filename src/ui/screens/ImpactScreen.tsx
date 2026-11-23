@@ -24,6 +24,7 @@ import {
 } from '../../domain/config/impact-copy';
 import { useDailyPlan } from '../hooks/useDailyPlan';
 import { ActionDetailModal } from '../components/ActionDetailModal';
+import { Icon } from '../icons';
 
 interface ImpactScreenProps {
   profile: HouseholdProfile;
@@ -69,47 +70,37 @@ export const ImpactScreen: React.FC<ImpactScreenProps> = ({ profile, snapshot })
   const communityAggregateVkm = calculateCommunityAggregateVkm(profile);
 
   return (
-    <div className="impact-screen" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+    <div className="impact-screen screen-container">
       {/* Dual-Axis Philosophy Banner */}
       <section
-        className="card"
+        className="card card-callout-primary"
         aria-labelledby="dual-axis-title"
-        style={{ borderLeft: '4px solid var(--color-primary)' }}
       >
-        <h2 id="dual-axis-title" style={{ margin: '0 0 var(--space-2) 0', fontSize: '1.25rem' }}>
-          ⚖️ Honest Dual-Axis Impact
+        <h2 id="dual-axis-title" className="screen-section-title">
+          <Icon name="chart" size={22} aria-hidden="true" />
+          <span>Honest Dual-Axis Impact</span>
         </h2>
-        <p style={{ margin: '0 0 var(--space-3) 0', fontSize: '0.95rem', color: 'var(--color-text-secondary)', lineHeight: 1.5 }}>
+        <p className="dual-axis-desc">
           AirWise tracks <strong>Exposure</strong> and <strong>Emissions</strong> on separate axes.
           Protecting yourself from dirty air does not clean the outdoors, and lowering vehicle emissions does not
           instantly lower ambient pollution outside your window.
         </p>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-3)' }}>
-          <div
-            style={{
-              padding: 'var(--space-3)',
-              backgroundColor: '#e8f0fe',
-              borderRadius: 'var(--radius-sm)',
-              border: '1px solid #c2e7ff',
-            }}
-          >
-            <strong style={{ color: '#1a73e8', display: 'block', marginBottom: '4px' }}>🛡️ Exposure Axis</strong>
-            <span style={{ fontSize: '0.85rem', color: 'var(--color-text-main)' }}>
+        <div className="dual-axis-overview-grid">
+          <div className="box-highlight-exposure">
+            <strong className="text-exposure block mb-1">
+              <Icon name="protect" size={16} aria-hidden="true" /> Exposure Axis
+            </strong>
+            <span className="text-main text-xs">
               What you and your family inhale. Focuses on filtration, scheduling, and indoor sanctuaries.
             </span>
           </div>
 
-          <div
-            style={{
-              padding: 'var(--space-3)',
-              backgroundColor: '#e6f4ea',
-              borderRadius: 'var(--radius-sm)',
-              border: '1px solid #ceead6',
-            }}
-          >
-            <strong style={{ color: '#137333', display: 'block', marginBottom: '4px' }}>🌱 Emissions Axis</strong>
-            <span style={{ fontSize: '0.85rem', color: 'var(--color-text-main)' }}>
+          <div className="box-highlight-emissions">
+            <strong className="text-emissions block mb-1">
+              <Icon name="emissions" size={16} aria-hidden="true" /> Emissions Axis
+            </strong>
+            <span className="text-main text-xs">
               What your household emits. Focuses on vehicle trips avoided, carpooling, and anti-idling.
             </span>
           </div>
@@ -118,72 +109,46 @@ export const ImpactScreen: React.FC<ImpactScreenProps> = ({ profile, snapshot })
 
       {/* Weekly Defensible Household Tally */}
       <section className="card" aria-labelledby="weekly-tally-heading">
-        <h2 id="weekly-tally-heading" style={{ margin: '0 0 var(--space-2) 0', fontSize: '1.15rem' }}>
-          📊 Weekly Household Defensible Tally
+        <h2 id="weekly-tally-heading" className="section-heading mb-1">
+          <Icon name="chart" size={20} aria-hidden="true" />
+          <span>Weekly Household Defensible Tally</span>
         </h2>
-        <p style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', margin: '0 0 var(--space-3) 0' }}>
+        <p className="tally-subtitle">
           Derived strictly from your profile travel parameters ({profile.travel.oneWayKm} km one-way, {profile.travel.tripsPerWeek} trips/week) using Formula E1.
         </p>
 
         {roundedWeeklyVkm > 0 ? (
           <div>
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'baseline',
-                gap: '8px',
-                marginBottom: 'var(--space-3)',
-                padding: 'var(--space-3)',
-                backgroundColor: 'var(--color-bg-surface)',
-                borderRadius: 'var(--radius-sm)',
-                border: '1px solid var(--color-border)',
-              }}
-            >
-              <span style={{ fontSize: '2rem', fontWeight: 800, color: '#137333' }}>
+            <div className="tally-reading-box">
+              <span className="tally-value-number">
                 ~{roundedWeeklyVkm}
               </span>
-              <span style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--color-text-main)' }}>
+              <span className="tally-value-unit">
                 vehicle-km avoided / week (Estimated)
               </span>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: 'var(--space-3)' }}>
+            <div className="tally-breakdown-stack">
               {weeklyVkmBreakdown.map((item) => (
                 <div
                   key={item.id}
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    padding: '8px 12px',
-                    backgroundColor: 'var(--color-bg-secondary)',
-                    borderRadius: 'var(--radius-sm)',
-                    fontSize: '0.85rem',
-                  }}
+                  className="tally-breakdown-row"
                 >
                   <div>
                     <strong>{item.title}</strong>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)' }}>{item.note}</div>
+                    <div className="text-xs text-muted">{item.note}</div>
                   </div>
-                  <span style={{ fontWeight: 700, color: '#137333' }}>~{item.vkm} vkm</span>
+                  <span className="tally-row-vkm">~{item.vkm} vkm</span>
                 </div>
               ))}
             </div>
 
-            <div style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)', lineHeight: 1.4 }}>
+            <div className="assumptions-box">
               <strong>Documented Assumptions:</strong> Assumes round-trip distance of 2 × {profile.travel.oneWayKm} km; {DEFAULT_CARPOOL_OCCUPANCY}-person carpool occupancy saves {Math.round((1 - 1 / DEFAULT_CARPOOL_OCCUPANCY) * 100)}% vehicle distance on shared days ({DEFAULT_CARPOOL_DAYS} days/week); remote work eliminates {DEFAULT_REMOTE_DAYS} full round trip. Qualitative actions (combining errands, anti-idling, walking) do not add numeric estimates.
             </div>
           </div>
         ) : (
-          <div
-            style={{
-              padding: 'var(--space-3)',
-              backgroundColor: 'var(--color-bg-secondary)',
-              borderRadius: 'var(--radius-sm)',
-              fontSize: '0.85rem',
-              color: 'var(--color-text-secondary)',
-            }}
-          >
+          <div className="box-subtle">
             <strong>0 vehicle-km recorded:</strong> Profile commute distance is 0 km or no motorized vehicle commute indicated. Vehicle-km reductions are only estimated where commuting distances and vehicle trips are explicitly documented in your household profile.
           </div>
         )}
@@ -191,62 +156,44 @@ export const ImpactScreen: React.FC<ImpactScreenProps> = ({ profile, snapshot })
 
       {/* Community Aggregate Estimate Card (Formula C1) */}
       <section className="card" aria-labelledby="community-aggregate-heading">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-          <h2 id="community-aggregate-heading" style={{ margin: 0, fontSize: '1.15rem' }}>
-            👥 Community Aggregate Impact
+        <div className="section-title-row mb-2">
+          <h2 id="community-aggregate-heading" className="section-heading flex-row-center gap-1">
+            <Icon name="people" size={20} aria-hidden="true" />
+            <span>Community Aggregate Impact</span>
           </h2>
-          <span
-            style={{
-              padding: '2px 8px',
-              backgroundColor: '#f1f3f4',
-              borderRadius: 'var(--radius-full)',
-              fontSize: '0.75rem',
-              fontWeight: 600,
-              color: 'var(--color-text-secondary)',
-            }}
-          >
+          <span className="aw-badge aw-badge-data-type">
             Demo data
           </span>
         </div>
 
-        <p style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', margin: '0 0 var(--space-3) 0' }}>
+        <p className="community-aggregate-desc">
           Collective emissions avoided across {GREEN_MEADOWS_SOCIETY.name} ({GREEN_MEADOWS_SOCIETY.totalHomes} homes) combining baseline resident pledges with your household contribution.
         </p>
 
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'baseline',
-            gap: '8px',
-            padding: 'var(--space-3)',
-            backgroundColor: '#e6f4ea',
-            borderRadius: 'var(--radius-sm)',
-            border: '1px solid #ceead6',
-            marginBottom: 'var(--space-2)',
-          }}
-        >
-          <span style={{ fontSize: '2rem', fontWeight: 800, color: '#137333' }}>
+        <div className="community-tally-box">
+          <span className="community-tally-num">
             ~{communityAggregateVkm}
           </span>
-          <span style={{ fontSize: '0.95rem', fontWeight: 600, color: '#137333' }}>
+          <span className="community-tally-label">
             community vehicle-km avoided / week (Estimated)
           </span>
         </div>
 
-        <div style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)' }}>
+        <div className="text-xs text-muted">
           Formula C1: Combines {GREEN_MEADOWS_SOCIETY.seededWeeklyAvoidedVkm} vkm baseline ({SEEDED_CARPOOL_HOUSEHOLDS} carpooling homes) + {roundedWeeklyVkm} vkm household contribution.
         </div>
       </section>
 
       {/* Transparent Formulas Card */}
       <section className="card" aria-labelledby="formulas-heading">
-        <h2 id="formulas-heading" style={{ margin: '0 0 var(--space-2) 0', fontSize: '1.15rem' }}>
-          📐 Transparent Formulas &amp; Methodology
+        <h2 id="formulas-heading" className="section-heading mb-2 flex-row-center gap-1">
+          <Icon name="info" size={20} aria-hidden="true" />
+          <span>Transparent Formulas &amp; Methodology</span>
         </h2>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)', fontSize: '0.85rem' }}>
+        <div className="formulas-stack">
           <div>
-            <strong style={{ color: 'var(--color-primary)' }}>{FORMULA_E1_TITLE}</strong>
-            <p style={{ margin: '4px 0 0 0', color: 'var(--color-text-secondary)' }}>
+            <strong className="text-accent">{FORMULA_E1_TITLE}</strong>
+            <p className="formula-desc">
               {FORMULA_E1_SUMMARY}<br />
               • <em>{FORMULA_E1_EQUATIONS[0]}</em><br />
               • <em>{FORMULA_E1_EQUATIONS[1]}</em>
@@ -254,16 +201,16 @@ export const ImpactScreen: React.FC<ImpactScreenProps> = ({ profile, snapshot })
           </div>
 
           <div>
-            <strong style={{ color: 'var(--color-primary)' }}>{FORMULA_X1_TITLE}</strong>
-            <p style={{ margin: '4px 0 0 0', color: 'var(--color-text-secondary)' }}>
+            <strong className="text-accent">{FORMULA_X1_TITLE}</strong>
+            <p className="formula-desc">
               {FORMULA_X1_SUMMARY}<br />
               • <em>{FORMULA_X1_EQUATION}</em>
             </p>
           </div>
 
           <div>
-            <strong style={{ color: 'var(--color-primary)' }}>{FORMULA_C1_TITLE}</strong>
-            <p style={{ margin: '4px 0 0 0', color: 'var(--color-text-secondary)' }}>
+            <strong className="text-accent">{FORMULA_C1_TITLE}</strong>
+            <p className="formula-desc">
               {FORMULA_C1_SUMMARY}<br />
               • <em>{FORMULA_C1_EQUATION}</em>
             </p>
@@ -273,9 +220,10 @@ export const ImpactScreen: React.FC<ImpactScreenProps> = ({ profile, snapshot })
 
       {/* Per-Action Dual-Axis Impact Catalog */}
       <section aria-labelledby="action-cards-heading">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-3)' }}>
-          <h2 id="action-cards-heading" style={{ margin: 0, fontSize: '1.15rem' }}>
-            📋 Per-Action Dual-Axis Verification
+        <div className="section-title-row mb-3">
+          <h2 id="action-cards-heading" className="section-heading flex-row-center gap-1">
+            <Icon name="copy" size={20} aria-hidden="true" />
+            <span>Per-Action Dual-Axis Verification</span>
           </h2>
 
           {/* Category Filter */}
@@ -283,12 +231,7 @@ export const ImpactScreen: React.FC<ImpactScreenProps> = ({ profile, snapshot })
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
             aria-label="Filter actions by category"
-            style={{
-              padding: '4px 8px',
-              borderRadius: 'var(--radius-sm)',
-              border: '1px solid var(--color-border)',
-              fontSize: '0.85rem',
-            }}
+            className="category-filter-select"
           >
             <option value="all">All Categories ({approvedCandidates.length})</option>
             <option value="indoor">Indoor</option>
@@ -298,7 +241,7 @@ export const ImpactScreen: React.FC<ImpactScreenProps> = ({ profile, snapshot })
           </select>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+        <div className="actions-stack">
           {filteredCandidates.map((cand: ActionCandidate) => {
             const exp = cand.impact.exposure;
             const em = cand.impact.emissions;
@@ -306,14 +249,7 @@ export const ImpactScreen: React.FC<ImpactScreenProps> = ({ profile, snapshot })
             return (
               <div
                 key={cand.action.id}
-                className="card"
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 'var(--space-2)',
-                  cursor: 'pointer',
-                  border: '1px solid var(--color-border)',
-                }}
+                className="card catalog-action-card"
                 onClick={() => setSelectedAction(cand)}
                 onKeyDown={(e) => e.key === 'Enter' && setSelectedAction(cand)}
                 tabIndex={0}
@@ -321,137 +257,77 @@ export const ImpactScreen: React.FC<ImpactScreenProps> = ({ profile, snapshot })
                 aria-label={`View full details for ${cand.action.title}`}
               >
                 {/* Header */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div className="catalog-header-row">
                   <div>
-                    <span
-                      style={{
-                        fontSize: '0.75rem',
-                        fontWeight: 700,
-                        color: 'var(--color-primary)',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.5px',
-                      }}
-                    >
+                    <span className="catalog-action-id">
                       {cand.action.id} · {cand.action.category}
                     </span>
-                    <h3 style={{ margin: '2px 0 0 0', fontSize: '1rem', fontWeight: 700 }}>
+                    <h3 className="catalog-action-title">
                       {cand.action.title}
                     </h3>
                   </div>
 
-                  <span
-                    style={{
-                      fontSize: '0.75rem',
-                      padding: '2px 8px',
-                      borderRadius: 'var(--radius-sm)',
-                      backgroundColor: 'var(--color-bg-secondary)',
-                      fontWeight: 600,
-                    }}
-                  >
+                  <span className="catalog-cost-badge">
                     {cand.tags.cost} · {cand.tags.effort}
                   </span>
                 </div>
 
                 {/* Dual-Axis Cards Grid */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '4px' }}>
+                <div className="dual-axis-grid mt-1">
                   {/* Exposure Axis */}
-                  <div
-                    style={{
-                      padding: '8px 10px',
-                      backgroundColor: '#e8f0fe',
-                      borderRadius: 'var(--radius-sm)',
-                      border: '1px solid #c2e7ff',
-                      fontSize: '0.8rem',
-                    }}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                      <strong style={{ color: '#1a73e8' }}>Exposure</strong>
-                      <span
-                        style={{
-                          fontSize: '0.7rem',
-                          fontWeight: 700,
-                          padding: '1px 5px',
-                          borderRadius: '4px',
-                          backgroundColor: '#ffffff',
-                          color: '#1a73e8',
-                        }}
-                      >
+                  <div className="axis-card-exposure">
+                    <div className="flex-between mb-1">
+                      <strong className="text-exposure">Exposure</strong>
+                      <span className="tag-exposure-pill">
                         {exp.label}
                       </span>
                     </div>
-                    <div style={{ fontWeight: 600, marginBottom: '2px' }}>
-                      {exp.direction === 'reduces' && '⬇️ Reduces exposure'}
-                      {exp.direction === 'neutral' && '↔️ Neutral exposure'}
-                      {exp.direction === 'conditional' && '⚖️ Conditional'}
+                    <div className="catalog-axis-direction">
+                      {exp.direction === 'reduces' && 'Reduces exposure ↓'}
+                      {exp.direction === 'neutral' && 'Neutral exposure —'}
+                      {exp.direction === 'conditional' && 'Conditional'}
                     </div>
                     {exp.magnitude && (
-                      <div style={{ fontWeight: 700, color: '#1a73e8', marginBottom: '2px' }}>
+                      <div className="catalog-magnitude text-exposure">
                         {exp.magnitude}
                       </div>
                     )}
-                    <div style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)', lineHeight: 1.3 }}>
+                    <div className="catalog-axis-note">
                       {exp.note}
                     </div>
                   </div>
 
                   {/* Emissions Axis */}
-                  <div
-                    style={{
-                      padding: '8px 10px',
-                      backgroundColor: '#e6f4ea',
-                      borderRadius: 'var(--radius-sm)',
-                      border: '1px solid #ceead6',
-                      fontSize: '0.8rem',
-                    }}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                      <strong style={{ color: '#137333' }}>Emissions</strong>
-                      <span
-                        style={{
-                          fontSize: '0.7rem',
-                          fontWeight: 700,
-                          padding: '1px 5px',
-                          borderRadius: '4px',
-                          backgroundColor: '#ffffff',
-                          color: '#137333',
-                        }}
-                      >
+                  <div className="axis-card-emissions">
+                    <div className="flex-between mb-1">
+                      <strong className="text-emissions">Emissions</strong>
+                      <span className="tag-emissions-pill">
                         {em.label}
                       </span>
                     </div>
-                    <div style={{ fontWeight: 600, marginBottom: '2px' }}>
-                      {em.direction === 'reduces' && '⬇️ Reduces emissions'}
-                      {em.direction === 'neutral' && '↔️ Neutral emissions'}
-                      {em.direction === 'conditional' && '⚖️ Conditional'}
+                    <div className="catalog-axis-direction">
+                      {em.direction === 'reduces' && 'Reduces emissions ↓'}
+                      {em.direction === 'neutral' && 'Neutral emissions —'}
+                      {em.direction === 'conditional' && 'Conditional'}
                     </div>
                     {em.value && (
-                      <div style={{ fontWeight: 700, color: '#137333', marginBottom: '2px' }}>
+                      <div className="catalog-magnitude text-emissions">
                         ~{em.value.vkm} vkm avoided
                       </div>
                     )}
-                    <div style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)', lineHeight: 1.3 }}>
+                    <div className="catalog-axis-note">
                       {em.note}
                     </div>
                   </div>
                 </div>
 
                 {/* Honest Boundary Disclosure */}
-                <div
-                  style={{
-                    padding: '6px 8px',
-                    backgroundColor: '#fff7ed',
-                    borderRadius: 'var(--radius-sm)',
-                    border: '1px solid #fed7aa',
-                    fontSize: '0.75rem',
-                    color: '#9a3412',
-                    lineHeight: 1.3,
-                  }}
-                >
+                <div className="catalog-boundary-box">
                   <strong>Boundary:</strong> {cand.impact.doesNotChange}
                 </div>
 
                 {/* Documented Assumptions */}
-                <div style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)' }}>
+                <div className="catalog-assumptions-text">
                   <strong>Assumptions:</strong> {cand.impact.assumptions.join('; ')}
                 </div>
               </div>

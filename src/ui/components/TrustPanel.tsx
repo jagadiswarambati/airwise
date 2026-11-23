@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { TrustModel } from '../../data/trust';
+import { Icon } from '../icons';
 
 interface TrustPanelProps {
   trust: TrustModel;
@@ -13,83 +14,59 @@ export const TrustPanel: React.FC<TrustPanelProps> = ({ trust }) => {
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          width: '100%',
-          cursor: 'pointer',
-        }}
+        className="trust-toggle-btn"
         aria-expanded={isOpen}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span aria-hidden="true">🛡️</span>
-          <span className="card-title" style={{ fontSize: '0.9rem' }}>
+        <div className="trust-title-row">
+          <Icon name="protect" size={18} aria-hidden="true" />
+          <span className="card-title">
             Trust &amp; Data Transparency
           </span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div className="trust-badges-row">
           <span className="tag tag-cost">{trust.dataTypeBadge}</span>
-          <span style={{ fontSize: '0.8rem' }}>{isOpen ? '▲' : '▼'}</span>
+          <Icon name="chevron" size={16} aria-hidden="true" />
         </div>
       </button>
 
       {isOpen && (
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '12px',
-            paddingTop: '8px',
-            borderTop: '1px solid var(--color-border-subtle)',
-            fontSize: '0.8rem',
-            color: 'var(--color-text-muted)',
-          }}
-        >
-          <div>
+        <div className="trust-details">
+          <div className="trust-item">
             <strong>Data Source:</strong> {trust.sourceName}
           </div>
 
-          <div>
+          <div className="trust-item">
             <strong>Freshness:</strong>{' '}
             <span className="tag tag-cost">{trust.freshnessBadge}</span> {trust.freshnessNote}
           </div>
 
-          <div>
+          <div className="trust-item">
             <strong>Resolution:</strong> {trust.resolutionNote}
           </div>
 
-          <div>
+          <div className="trust-item">
             <strong>Plan Confidence:</strong>{' '}
-            <span className="tag tag-exposure" style={{ textTransform: 'capitalize' }}>
+            <span className="tag tag-exposure">
               {trust.planConfidence}
             </span>
-            <div style={{ marginTop: '2px' }}>{trust.confidenceReason}</div>
+            <div className="trust-subnote">{trust.confidenceReason}</div>
           </div>
 
-          <div>
+          <div className="trust-item">
             <strong>Plan Source:</strong> {trust.planSource}
           </div>
 
           {trust.isFallback && trust.fallbackReason && (
-            <div className="banner banner-offline" style={{ fontSize: '0.75rem' }}>
+            <div className="banner banner-offline">
               {trust.fallbackReason}
             </div>
           )}
 
-          <div
-            style={{
-              padding: '8px',
-              backgroundColor: 'var(--color-surface-subtle)',
-              borderRadius: '6px',
-              fontSize: '0.75rem',
-              lineHeight: 1.35,
-            }}
-          >
+          <div className="trust-box">
             <p>
               <strong>Attribution:</strong> {trust.attribution}
             </p>
-            <p style={{ marginTop: '4px' }}>
+            <p className="trust-subnote">
               <strong>Notice:</strong> {trust.uncertaintyDisclaimer}
             </p>
           </div>
@@ -98,4 +75,3 @@ export const TrustPanel: React.FC<TrustPanelProps> = ({ trust }) => {
     </section>
   );
 };
-

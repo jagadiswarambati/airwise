@@ -27,6 +27,7 @@ import { IndoorScreen } from './IndoorScreen';
 import { MoveScreen } from './MoveScreen';
 import { ImpactScreen } from './ImpactScreen';
 import { CommunityScreen } from './CommunityScreen';
+import { Icon } from '../icons';
 
 interface TodayScreenProps {
   profile: HouseholdProfile;
@@ -117,7 +118,7 @@ export const TodayScreen: React.FC<TodayScreenProps> = ({
 
   if (loading && !snapshot) {
     return (
-      <div className="app-container" style={{ padding: '2rem', textAlign: 'center' }}>
+      <div className="app-container center-panel">
         <p>Loading air briefing &amp; generating Clean-Air Plan...</p>
       </div>
     );
@@ -125,9 +126,9 @@ export const TodayScreen: React.FC<TodayScreenProps> = ({
 
   if (error && !snapshot) {
     return (
-      <div className="app-container" style={{ padding: '2rem', textAlign: 'center' }}>
+      <div className="app-container center-panel">
         <h2>Unable to load air data</h2>
-        <p style={{ color: 'var(--level-3-text)', margin: '12px 0' }}>{error}</p>
+        <p className="error-message">{error}</p>
         <button type="button" className="btn-primary" onClick={loadAir}>
           Retry
         </button>
@@ -147,7 +148,7 @@ export const TodayScreen: React.FC<TodayScreenProps> = ({
     isFallback,
     fallbackReason,
     plan.source === 'ai'
-      ? '✨ AI-personalised plan (constrained Gemini overlay)'
+      ? 'AI-personalised plan (constrained Gemini overlay)'
       : 'Standard deterministic plan (rule-based)',
   );
 
@@ -204,13 +205,12 @@ export const TodayScreen: React.FC<TodayScreenProps> = ({
         {/* Offline / Fallback Notice */}
         {isFallback && (
           <div className="banner banner-offline" role="status">
-            <span>ℹ️</span>
+            <Icon name="info" size={18} aria-hidden="true" />
             <div>
               <div>{fallbackReason || "We couldn't reach the air data service. Using cautious defaults."}</div>
               <button
                 type="button"
-                className="btn-secondary"
-                style={{ marginTop: '6px', fontSize: '0.8rem' }}
+                className="btn-secondary mt-1 text-xs"
                 onClick={() => setScenario('moderate')}
               >
                 Use demo data
@@ -222,7 +222,7 @@ export const TodayScreen: React.FC<TodayScreenProps> = ({
         {/* Stale Data Warning Banner (Rule P-03) */}
         {(snapshot.freshness === 'stale' || snapshot.freshness === 'none') && (
           <div className="banner banner-warning" role="alert">
-            <span>⚠️</span>
+            <Icon name="warning" size={18} aria-hidden="true" />
             <div>
               <strong>Stale / Unverified Air Data:</strong> Outdoor recommendations (ventilation and
               walking) are cautiously suppressed.
@@ -254,13 +254,9 @@ export const TodayScreen: React.FC<TodayScreenProps> = ({
 
             {/* Household Risk Headline */}
             <section
-              className="card"
-              style={{
-                backgroundColor: `var(--level-${effectiveLevel}-bg)`,
-                borderColor: `var(--level-${effectiveLevel}-border)`,
-              }}
+              className={`card card-risk-level-${effectiveLevel}`}
             >
-              <div style={{ fontWeight: 700, fontSize: '1rem', color: `var(--level-${effectiveLevel}-text)` }}>
+              <div className="risk-headline-text">
                 {plan.headline}
               </div>
             </section>
@@ -270,20 +266,17 @@ export const TodayScreen: React.FC<TodayScreenProps> = ({
 
             {/* Top 3 Actions */}
             <section aria-label="Today's Top 3 Actions">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                <h2 style={{ fontSize: '1.05rem', fontWeight: 700 }}>Today's Top Actions</h2>
+              <div className="section-title-row">
+                <h2 className="section-heading">Today's Top Actions</h2>
                 <span
-                  style={{
-                    fontSize: '0.8rem',
-                    fontWeight: 600,
-                    color: plan.source === 'ai' ? '#1a73e8' : 'var(--color-text-muted)',
-                  }}
+                  className={plan.source === 'ai' ? 'plan-source-badge-ai' : 'plan-source-badge-standard'}
                 >
-                  {plan.source === 'ai' ? '✨ AI-personalised' : '🛡️ Standard plan'}
+                  <Icon name={plan.source === 'ai' ? 'exposure' : 'protect'} size={14} aria-hidden="true" />
+                  <span>{plan.source === 'ai' ? 'AI-personalised' : 'Standard plan'}</span>
                 </span>
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <div className="actions-stack">
                 {plan.topActions.map((cand) => (
                   <ActionCard
                     key={cand.action.id}
@@ -296,7 +289,7 @@ export const TodayScreen: React.FC<TodayScreenProps> = ({
 
             {/* 6-Slot Daily Timeline */}
             <section aria-label="Daily Clean-Air Timeline">
-              <h2 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: '12px' }}>
+              <h2 className="section-heading mb-3">
                 Daily Clean-Air Timeline
               </h2>
 
@@ -308,7 +301,7 @@ export const TodayScreen: React.FC<TodayScreenProps> = ({
                       <span className="slot-time">{slot.note}</span>
                     </div>
 
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <div className="timeline-slot-actions">
                       {slot.actions.map((cand) => (
                         <ActionCard
                           key={cand.action.id}

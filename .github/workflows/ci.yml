@@ -34,6 +34,9 @@ jobs:
       - name: Traceability check
         run: npm run check:traceability
 
+      - name: UI design tokens and style checks
+        run: npm run check:ui
+
       - name: Run unit & contract tests
         run: npm test
 
