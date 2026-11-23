@@ -21,7 +21,12 @@ describe('Data Provider Contract Tests - /api/air & Fallback Chain', () => {
       windSpeed10m: 12.0,
       relativeHumidity2m: 55,
       hourly: [
-        { time: '2026-11-21T00:00:00Z', temperature2m: 22.0, windSpeed10m: 10.0, relativeHumidity2m: 60 },
+        {
+          time: '2026-11-21T00:00:00Z',
+          temperature2m: 22.0,
+          windSpeed10m: 10.0,
+          relativeHumidity2m: 60,
+        },
       ],
       daylight: {
         sunrise: '2026-11-21T06:30:00Z',

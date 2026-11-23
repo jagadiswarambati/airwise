@@ -17,14 +17,14 @@ describe('Content Lint & Safety Audit', () => {
       // Exposure axis
       expect(action.impactSpec.exposure).toBeDefined();
       expect(action.impactSpec.exposure.direction).toBeDefined();
-      expect(action.impactSpec.exposure.label).toMatch(/^(Measured|Estimated|Recommended)$/);
+      expect(action.impactSpec.exposure.label).toMatch(/^(Estimated|Recommended)$/);
       expect(action.impactSpec.exposure.evidence).toMatch(/^(high|medium|low)$/);
       expect(action.impactSpec.exposure.noteTemplate.trim().length).toBeGreaterThan(0);
 
       // Emissions axis
       expect(action.impactSpec.emissions).toBeDefined();
       expect(action.impactSpec.emissions.direction).toBeDefined();
-      expect(action.impactSpec.emissions.label).toMatch(/^(Measured|Estimated|Recommended)$/);
+      expect(action.impactSpec.emissions.label).toMatch(/^(Estimated|Recommended)$/);
       expect(action.impactSpec.emissions.evidence).toMatch(/^(high|medium|low)$/);
       expect(action.impactSpec.emissions.noteTemplate.trim().length).toBeGreaterThan(0);
 
@@ -34,12 +34,33 @@ describe('Content Lint & Safety Audit', () => {
     }
   });
 
+  it('strictly bans the word "Measured" across all catalog impact specifications and user copy in MVP', () => {
+    // In MVP, without hardware sensors or personal monitors, all figures are Estimated or Recommended
+    for (const action of ACTION_CATALOG) {
+      expect(action.impactSpec.exposure.label).not.toBe('Measured');
+      expect(action.impactSpec.emissions.label).not.toBe('Measured');
+      expect(action.impactSpec.exposure.noteTemplate).not.toMatch(/\bMeasured\b/);
+      expect(action.impactSpec.emissions.noteTemplate).not.toMatch(/\bMeasured\b/);
+    }
+
+    for (const [id, template] of Object.entries(ACTION_TEMPLATES)) {
+      expect(template.shortWhy, `Template ${id}`).not.toMatch(/\bMeasured\b/);
+      expect(template.fullDescription, `Template ${id}`).not.toMatch(/\bMeasured\b/);
+    }
+  });
+
   it('ensures all action templates have complete copy and boundary disclosures', () => {
     for (const [id, template] of Object.entries(ACTION_TEMPLATES)) {
       expect(template.title.trim().length, `Template ${id} missing title`).toBeGreaterThan(0);
       expect(template.shortWhy.trim().length, `Template ${id} missing shortWhy`).toBeGreaterThan(0);
-      expect(template.fullDescription.trim().length, `Template ${id} missing fullDescription`).toBeGreaterThan(0);
-      expect(template.doesNotChange.trim().length, `Template ${id} missing doesNotChange`).toBeGreaterThan(0);
+      expect(
+        template.fullDescription.trim().length,
+        `Template ${id} missing fullDescription`,
+      ).toBeGreaterThan(0);
+      expect(
+        template.doesNotChange.trim().length,
+        `Template ${id} missing doesNotChange`,
+      ).toBeGreaterThan(0);
       expect(template.assumptions.length, `Template ${id} missing assumptions`).toBeGreaterThan(0);
     }
   });
@@ -48,14 +69,16 @@ describe('Content Lint & Safety Audit', () => {
     const pe04 = ACTION_TEMPLATES['PE-04'];
     expect(pe04).toBeDefined();
     expect(pe04.fixedDisclaimer).toBe(
-      "Follow your clinician's plan; seek urgent care if breathing is difficult or symptoms are severe."
+      "Follow your clinician's plan; seek urgent care if breathing is difficult or symptoms are severe.",
     );
   });
 
   it('verifies PE-02 respirator guidance includes clinician caveat (Rule P-13)', () => {
     const pe02 = ACTION_TEMPLATES['PE-02'];
     expect(pe02).toBeDefined();
-    expect(pe02.fixedDisclaimer).toContain('Some respirators make breathing harder. Ask your clinician');
+    expect(pe02.fixedDisclaimer).toContain(
+      'Some respirators make breathing harder. Ask your clinician',
+    );
   });
 
   it('asserts zero banned phrases across catalog, templates, prompt, and community data', () => {
@@ -90,13 +113,64 @@ describe('Content Lint & Safety Audit', () => {
     }
   });
 
+  it('checks for unsourced percent figures across action copy: only documented figures allowed', () => {
+    const allowedPercentages = ['95%', '100%', '50%', '15%', '0%'];
+
+    for (const action of ACTION_CATALOG) {
+      const combined = `${action.title} ${action.impactSpec.exposure.noteTemplate} ${action.impactSpec.emissions.noteTemplate} ${action.impactSpec.doesNotChange}`;
+      const matches = combined.match(/\d+%/g) || [];
+      for (const match of matches) {
+        expect(
+          allowedPercentages,
+          `Action ${action.id} contains undocumented percentage ${match}`,
+        ).toContain(match);
+      }
+    }
+
+    for (const [id, template] of Object.entries(ACTION_TEMPLATES)) {
+      const combined = `${template.title} ${template.shortWhy} ${template.fullDescription} ${template.doesNotChange}`;
+      const matches = combined.match(/\d+%/g) || [];
+      for (const match of matches) {
+        expect(
+          allowedPercentages,
+          `Template ${id} contains undocumented percentage ${match}`,
+        ).toContain(match);
+      }
+    }
+  });
+
+  it('verifies that community briefing preserves privacy: contains no individual ages, health flags, or coordinates', () => {
+    const briefing = generateShareableBriefing(getSampleScenarioSnapshot('moderate'), 2);
+
+    // No personal names
+    expect(briefing).not.toMatch(/\bPriya\b/i);
+    expect(briefing).not.toMatch(/\bArjun\b/i);
+    expect(briefing).not.toMatch(/\bRamesh\b/i);
+
+    // No specific personal health flags
+    expect(briefing).not.toMatch(/\basthma\b/i);
+    expect(briefing).not.toMatch(/\bcopd\b/i);
+    expect(briefing).not.toMatch(/\bheart\b/i);
+    expect(briefing).not.toMatch(/\bpregnant\b/i);
+
+    // No individual member age strings (e.g. "8yo", "age 8", "Child, 8")
+    expect(briefing).not.toMatch(/\b\d+\s*yo\b/i);
+    expect(briefing).not.toMatch(/\bage\s*\d+\b/i);
+    expect(briefing).not.toMatch(/Child,\s*\d+/i);
+
+    // No fine-grained GPS coordinates
+    expect(briefing).not.toMatch(/\d+\.\d{3,}/);
+  });
+
   it('verifies honest dual-axis distinction: no claim that exposure reduction automatically reduces emissions', () => {
     for (const action of ACTION_CATALOG) {
-      // If action reduces exposure, ensure emissions isn't claimed to reduce without explicit rationale
-      if (action.impactSpec.exposure.direction === 'reduces' && action.impactSpec.emissions.direction === 'reduces') {
-        // Actions that legitimately reduce both with documented mechanisms:
-        // IN-08 (low smoke), IN-09 (stop smoke), MO-01 (off-peak commute), MO-04 (combine errands), MO-05 (remote work), CM-01 (anti-burning), CM-04 (briefing)
-        expect(['IN-08', 'IN-09', 'MO-01', 'MO-04', 'MO-05', 'CM-01', 'CM-04']).toContain(action.id);
+      if (
+        action.impactSpec.exposure.direction === 'reduces' &&
+        action.impactSpec.emissions.direction === 'reduces'
+      ) {
+        expect(['IN-08', 'IN-09', 'MO-01', 'MO-04', 'MO-05', 'CM-01', 'CM-04']).toContain(
+          action.id,
+        );
       }
     }
   });

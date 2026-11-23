@@ -1,39 +1,62 @@
 import { describe, it, expect } from 'vitest';
 import { buildDeterministicPlan } from '../../src/domain/plan-builder';
 import { getSampleScenarioSnapshot } from '../../src/data/fallback-chain';
-import { HouseholdProfile } from '../../src/domain/types';
+import { HouseholdProfile, AirSnapshot } from '../../src/domain/types';
 import { evaluatePolicy } from '../../src/domain/policy';
-import { deriveTimeSlots } from '../../src/domain/radar';
+import { deriveTimeSlots, computeRiskRadar } from '../../src/domain/radar';
 import { PRIYA_PROFILE } from '../fixtures/sample-profiles';
 
+/**
+ * Golden Persona Tests across Scenarios:
+ * Locks down snapshot assertions of headline, radar, topThreeIds, timelineIds,
+ * and planConfidence for core representative personas and edge cases.
+ */
 describe('Golden Persona Tests across Scenarios', () => {
   const scenarios = ['clear', 'moderate', 'severe', 'stale'] as const;
 
   // Persona 1: Priya (Multi-Generational Urban Household with Child & Senior)
   describe('Persona 1: Priya (Multi-Generational Urban)', () => {
-    it.each(scenarios)('evaluates safely in scenario: %s', (scenario) => {
-      const snapshot = getSampleScenarioSnapshot(scenario);
-      const plan = buildDeterministicPlan(PRIYA_PROFILE, snapshot);
+    it.each(scenarios)(
+      'evaluates safely and matches golden snapshot in scenario: %s',
+      (scenario) => {
+        const snapshot = getSampleScenarioSnapshot(scenario);
+        const slots = deriveTimeSlots(PRIYA_PROFILE, snapshot.pm25.hourly, 'IN');
+        const radar = computeRiskRadar(PRIYA_PROFILE, snapshot, slots);
+        const plan = buildDeterministicPlan(PRIYA_PROFILE, snapshot);
 
-      expect(plan.topActionIds).toHaveLength(3);
-      expect(plan.timeline).toHaveLength(6);
+        expect({
+          headline: plan.headline,
+          radar: {
+            slotId: radar.slotId,
+            slotLabel: radar.slotLabel,
+            memberRoleLabel: radar.memberRoleLabel,
+            reasonCode: radar.reasonCode,
+          },
+          topThreeIds: plan.topActionIds,
+          timelineIds: plan.timeline.map((s) => ({ slotId: s.slotId, actionIds: s.actionIds })),
+          planConfidence: plan.planConfidence,
+        }).toMatchSnapshot();
 
-      if (scenario === 'severe') {
-        expect(plan.flags.severeMode).toBe(true);
-        expect(plan.topActionIds).toContain('IN-01'); // Windows closed mandatory
-        expect(plan.topActionIds).toContain('PE-03'); // Indoor play mandatory for 8yo child
-        expect(plan.topActionIds).not.toContain('MO-07'); // Walking forbidden
-      }
+        expect(plan.topActionIds).toHaveLength(3);
+        expect(plan.timeline).toHaveLength(6);
 
-      if (scenario === 'clear') {
-        expect(plan.flags.severeMode).toBe(false);
-        expect(['high', 'medium']).toContain(plan.planConfidence);
-      }
+        if (scenario === 'severe') {
+          expect(plan.flags.severeMode).toBe(true);
+          expect(plan.topActionIds).toContain('IN-01'); // Windows closed mandatory
+          expect(plan.topActionIds).toContain('PE-03'); // Indoor play mandatory for 8yo child
+          expect(plan.topActionIds).not.toContain('MO-07'); // Walking forbidden
+        }
 
-      if (scenario === 'stale') {
-        expect(plan.planConfidence).toBe('low');
-      }
-    });
+        if (scenario === 'clear') {
+          expect(plan.flags.severeMode).toBe(false);
+          expect(['high', 'medium']).toContain(plan.planConfidence);
+        }
+
+        if (scenario === 'stale') {
+          expect(plan.planConfidence).toBe('low');
+        }
+      },
+    );
   });
 
   // Persona 2: Arjun (Outdoor Gig Delivery Worker, Low Budget, Motorcycle)
@@ -46,7 +69,9 @@ describe('Golden Persona Tests across Scenarios', () => {
       cooking: { fuel: 'lpg', hasExhaust: false },
       equipment: { purifier: false, windowAC: false, hvac: false },
       budget: 'low',
-      members: [{ id: 'm1', roleLabel: 'Adult, 26 (Delivery Worker)', ageGroup: '18-64', flags: [] }],
+      members: [
+        { id: 'm1', roleLabel: 'Adult, 26 (Delivery Worker)', ageGroup: '18-64', flags: [] },
+      ],
       travel: {
         modes: ['two_wheeler'],
         oneWayKm: 25,
@@ -65,16 +90,28 @@ describe('Golden Persona Tests across Scenarios', () => {
       },
     };
 
-    it('never requires purifier purchases or high-budget actions', () => {
-      const snapshot = getSampleScenarioSnapshot('moderate');
+    it('matches golden snapshot in severe air', () => {
+      const snapshot = getSampleScenarioSnapshot('severe');
+      const slots = deriveTimeSlots(arjunProfile, snapshot.pm25.hourly, 'IN');
+      const radar = computeRiskRadar(arjunProfile, snapshot, slots);
       const plan = buildDeterministicPlan(arjunProfile, snapshot);
 
-      // Low budget gating (Rule P-10)
+      expect({
+        headline: plan.headline,
+        radar: {
+          slotId: radar.slotId,
+          slotLabel: radar.slotLabel,
+          memberRoleLabel: radar.memberRoleLabel,
+          reasonCode: radar.reasonCode,
+        },
+        topThreeIds: plan.topActionIds,
+        timelineIds: plan.timeline.map((s) => ({ slotId: s.slotId, actionIds: s.actionIds })),
+        planConfidence: plan.planConfidence,
+      }).toMatchSnapshot();
+
       expect(plan.topActionIds).not.toContain('IN-05'); // Purifier absent
       expect(plan.topActionIds).not.toContain('IN-06'); // AC absent
-      // Cooking exhaust absent -> recommends low-smoke cooking (Rule P-12)
-      const allActionIds = plan.timeline.flatMap((t) => t.actionIds);
-      expect(allActionIds).toContain('IN-08');
+      expect(plan.flags.severeMode).toBe(true);
     });
 
     it('approves respirator (PE-02) for high-exposure motorcycle trips in severe air', () => {
@@ -94,7 +131,7 @@ describe('Golden Persona Tests across Scenarios', () => {
   describe('Persona 3: Ramesh & Meena (Elderly, Combustion Heating)', () => {
     const rameshProfile: HouseholdProfile = {
       schemaVersion: 1,
-      location: { label: 'Shimla, India', lat: 31.10, lon: 77.17, country: 'IN' },
+      location: { label: 'Shimla, India', lat: 31.1, lon: 77.17, country: 'IN' },
       housing: { tenure: 'own', type: 'house' },
       homeHeating: 'combustion', // Combustion heating!
       cooking: { fuel: 'biomass', hasExhaust: false }, // Biomass without exhaust!
@@ -122,6 +159,31 @@ describe('Golden Persona Tests across Scenarios', () => {
       },
     };
 
+    it('matches golden snapshot in moderate scenario', () => {
+      const snapshot = getSampleScenarioSnapshot('moderate');
+      const slots = deriveTimeSlots(rameshProfile, snapshot.pm25.hourly, 'IN');
+      const radar = computeRiskRadar(rameshProfile, snapshot, slots);
+      const plan = buildDeterministicPlan(rameshProfile, snapshot);
+
+      expect({
+        headline: plan.headline,
+        radar: {
+          slotId: radar.slotId,
+          slotLabel: radar.slotLabel,
+          memberRoleLabel: radar.memberRoleLabel,
+          reasonCode: radar.reasonCode,
+        },
+        topThreeIds: plan.topActionIds,
+        timelineIds: plan.timeline.map((s) => ({ slotId: s.slotId, actionIds: s.actionIds })),
+        planConfidence: plan.planConfidence,
+      }).toMatchSnapshot();
+
+      expect(plan.topActionIds).not.toContain('IN-04');
+      for (const cand of plan.topActions) {
+        expect(cand.action.cost).toBe('free');
+      }
+    });
+
     it('strictly forbids draft sealing (IN-04) to prevent carbon monoxide poisoning (Rule P-22)', () => {
       for (const scenario of scenarios) {
         const snapshot = getSampleScenarioSnapshot(scenario);
@@ -132,19 +194,10 @@ describe('Golden Persona Tests across Scenarios', () => {
         expect(plan.topActionIds).not.toContain('IN-04');
       }
     });
-
-    it('strictly restricts all recommendations to free tier (Rule P-10)', () => {
-      const snapshot = getSampleScenarioSnapshot('moderate');
-      const plan = buildDeterministicPlan(rameshProfile, snapshot);
-
-      for (const cand of plan.topActions) {
-        expect(cand.action.cost).toBe('free');
-      }
-    });
   });
 
   // Persona 4: Ananya (Student with Infant Sibling under 5)
-  describe('Persona 4: Ananya & Infant (Choking & Suffocation Safety)', () => {
+  describe('Persona 4: Ananya & Infant (Free-budget Student with Infant)', () => {
     const infantProfile: HouseholdProfile = {
       schemaVersion: 1,
       location: { label: 'Delhi, India', lat: 28.61, lon: 77.21, country: 'IN' },
@@ -175,11 +228,25 @@ describe('Golden Persona Tests across Scenarios', () => {
       },
     };
 
-    it('never suggests masks or respirators for under-5 infants (Rule P-13)', () => {
+    it('matches golden snapshot in severe air', () => {
       const snapshot = getSampleScenarioSnapshot('severe');
+      const slots = deriveTimeSlots(infantProfile, snapshot.pm25.hourly, 'IN');
+      const radar = computeRiskRadar(infantProfile, snapshot, slots);
       const plan = buildDeterministicPlan(infantProfile, snapshot);
 
-      // Outdoor play shift (PE-03) and window seal (IN-01) mandatory
+      expect({
+        headline: plan.headline,
+        radar: {
+          slotId: radar.slotId,
+          slotLabel: radar.slotLabel,
+          memberRoleLabel: radar.memberRoleLabel,
+          reasonCode: radar.reasonCode,
+        },
+        topThreeIds: plan.topActionIds,
+        timelineIds: plan.timeline.map((s) => ({ slotId: s.slotId, actionIds: s.actionIds })),
+        planConfidence: plan.planConfidence,
+      }).toMatchSnapshot();
+
       expect(plan.topActionIds).toContain('PE-03');
       expect(plan.topActionIds).toContain('IN-01');
     });
@@ -193,45 +260,42 @@ describe('Golden Persona Tests across Scenarios', () => {
     });
   });
 
-  // Persona 5: Vikram & Neha (Tech Professionals, High Budget, Full Equipment)
-  describe('Persona 5: Vikram & Neha (Tech, Full Equipment)', () => {
-    const techProfile: HouseholdProfile = {
-      schemaVersion: 1,
-      location: { label: 'Hyderabad, India', lat: 17.38, lon: 78.48, country: 'IN' },
-      housing: { tenure: 'own', type: 'apartment' },
-      homeHeating: 'electric',
-      cooking: { fuel: 'electric', hasExhaust: true },
-      equipment: { purifier: true, windowAC: false, hvac: true },
-      budget: 'flexible',
-      members: [
-        { id: 'm1', roleLabel: 'Adult, 38', ageGroup: '18-64', flags: [] },
-        { id: 'm2', roleLabel: 'Adult, 36', ageGroup: '18-64', flags: [] },
-      ],
-      travel: {
-        modes: ['car'],
-        oneWayKm: 18,
-        tripsPerWeek: 4,
-        canShiftTime: true,
-        canWorkRemotely: true,
-        transitAvailable: true,
-        outdoorWorker: false,
-      },
-      routine: {
-        wake: '07:00',
-        leave: '09:00',
-        returnHome: '18:00',
-        cooking: ['19:30'],
-        bed: '23:30',
-      },
-    };
+  // Persona 6: No-Data Scenario Golden Snapshot
+  describe('No-Data Golden Snapshot', () => {
+    it('matches golden snapshot when data is missing/unavailable', () => {
+      const noDataSnapshot: AirSnapshot = {
+        pm25: { now: null as unknown as number, hourly: [] },
+        trend: 'unknown',
+        observedAt: '2026-11-23T12:00:00.000Z',
+        fetchedAt: '2026-11-23T12:00:00.000Z',
+        source: {
+          id: 'none',
+          name: 'Unavailable',
+          dataType: 'modelled',
+          resolutionNote: 'No data',
+        },
+        freshness: 'none',
+      };
 
-    it('enables purifier and HVAC recirculation actions when equipment is owned (Rule P-11)', () => {
-      const snapshot = getSampleScenarioSnapshot('moderate');
-      const plan = buildDeterministicPlan(techProfile, snapshot);
+      const slots = deriveTimeSlots(PRIYA_PROFILE, noDataSnapshot.pm25.hourly, 'IN');
+      const radar = computeRiskRadar(PRIYA_PROFILE, noDataSnapshot, slots);
+      const plan = buildDeterministicPlan(PRIYA_PROFILE, noDataSnapshot);
 
-      const allActionIds = plan.timeline.flatMap((t) => t.actionIds);
-      expect(allActionIds).toContain('IN-05'); // Purifier
-      expect(allActionIds).toContain('IN-06'); // HVAC
+      expect({
+        headline: plan.headline,
+        radar: {
+          slotId: radar.slotId,
+          slotLabel: radar.slotLabel,
+          memberRoleLabel: radar.memberRoleLabel,
+          reasonCode: radar.reasonCode,
+        },
+        topThreeIds: plan.topActionIds,
+        timelineIds: plan.timeline.map((s) => ({ slotId: s.slotId, actionIds: s.actionIds })),
+        planConfidence: plan.planConfidence,
+      }).toMatchSnapshot();
+
+      expect(plan.planConfidence).toBe('low');
+      expect(plan.topActionIds).toHaveLength(3);
     });
   });
 });

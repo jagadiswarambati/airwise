@@ -1,0 +1,494 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Golden Persona Tests across Scenarios > No-Data Golden Snapshot > matches golden snapshot when data is missing/unavailable 1`] = `
+{
+  "headline": "High pollution alert. Protect your indoor air and avoid unnecessary outdoor exposure.",
+  "planConfidence": "low",
+  "radar": {
+    "memberRoleLabel": "Child, 7",
+    "reasonCode": "COMMUTE_PEAK_RISK",
+    "slotId": "commute-out",
+    "slotLabel": "Morning Commute",
+  },
+  "timelineIds": [
+    {
+      "actionIds": [
+        "IN-01",
+      ],
+      "slotId": "early-morning",
+    },
+    {
+      "actionIds": [
+        "MO-04",
+        "MO-05",
+        "MO-06",
+      ],
+      "slotId": "commute-out",
+    },
+    {
+      "actionIds": [
+        "PE-03",
+        "IN-06",
+        "MO-05",
+      ],
+      "slotId": "daytime",
+    },
+    {
+      "actionIds": [
+        "MO-04",
+        "MO-05",
+        "MO-06",
+      ],
+      "slotId": "commute-back",
+    },
+    {
+      "actionIds": [
+        "IN-08",
+        "IN-10",
+      ],
+      "slotId": "evening",
+    },
+    {
+      "actionIds": [
+        "IN-03",
+        "IN-06",
+      ],
+      "slotId": "night",
+    },
+  ],
+  "topThreeIds": [
+    "IN-01",
+    "PE-03",
+    "IN-03",
+  ],
+}
+`;
+
+exports[`Golden Persona Tests across Scenarios > Persona 1: Priya (Multi-Generational Urban) > evaluates safely and matches golden snapshot in scenario: clear 1`] = `
+{
+  "headline": "Moderate air quality. Safe for most, but keep an eye on changing conditions.",
+  "planConfidence": "medium",
+  "radar": {
+    "memberRoleLabel": "Child, 7",
+    "reasonCode": "COMMUTE_PEAK_RISK",
+    "slotId": "commute-out",
+    "slotLabel": "Morning Commute",
+  },
+  "timelineIds": [
+    {
+      "actionIds": [
+        "IN-01",
+      ],
+      "slotId": "early-morning",
+    },
+    {
+      "actionIds": [
+        "MO-04",
+        "MO-06",
+        "MO-03",
+      ],
+      "slotId": "commute-out",
+    },
+    {
+      "actionIds": [
+        "IN-06",
+      ],
+      "slotId": "daytime",
+    },
+    {
+      "actionIds": [
+        "MO-04",
+        "MO-06",
+        "MO-03",
+      ],
+      "slotId": "commute-back",
+    },
+    {
+      "actionIds": [
+        "IN-08",
+        "IN-10",
+      ],
+      "slotId": "evening",
+    },
+    {
+      "actionIds": [
+        "IN-03",
+        "IN-06",
+      ],
+      "slotId": "night",
+    },
+  ],
+  "topThreeIds": [
+    "IN-01",
+    "IN-03",
+    "IN-06",
+  ],
+}
+`;
+
+exports[`Golden Persona Tests across Scenarios > Persona 1: Priya (Multi-Generational Urban) > evaluates safely and matches golden snapshot in scenario: moderate 1`] = `
+{
+  "headline": "Caution advised. Sensitive members should reduce prolonged outdoor exertion.",
+  "planConfidence": "medium",
+  "radar": {
+    "memberRoleLabel": "Child, 7",
+    "reasonCode": "COMMUTE_PEAK_RISK",
+    "slotId": "commute-out",
+    "slotLabel": "Morning Commute",
+  },
+  "timelineIds": [
+    {
+      "actionIds": [
+        "IN-01",
+      ],
+      "slotId": "early-morning",
+    },
+    {
+      "actionIds": [
+        "MO-04",
+        "MO-05",
+        "MO-06",
+      ],
+      "slotId": "commute-out",
+    },
+    {
+      "actionIds": [
+        "PE-03",
+        "IN-06",
+        "MO-05",
+      ],
+      "slotId": "daytime",
+    },
+    {
+      "actionIds": [
+        "MO-04",
+        "MO-05",
+        "MO-06",
+      ],
+      "slotId": "commute-back",
+    },
+    {
+      "actionIds": [
+        "IN-08",
+        "IN-10",
+      ],
+      "slotId": "evening",
+    },
+    {
+      "actionIds": [
+        "IN-03",
+        "IN-06",
+      ],
+      "slotId": "night",
+    },
+  ],
+  "topThreeIds": [
+    "PE-01",
+    "PE-03",
+    "IN-01",
+  ],
+}
+`;
+
+exports[`Golden Persona Tests across Scenarios > Persona 1: Priya (Multi-Generational Urban) > evaluates safely and matches golden snapshot in scenario: severe 1`] = `
+{
+  "headline": "Severe pollution conditions. Minimize outdoor exposure and maintain a clean indoor environment.",
+  "planConfidence": "medium",
+  "radar": {
+    "memberRoleLabel": "Child, 7",
+    "reasonCode": "COMMUTE_PEAK_RISK",
+    "slotId": "commute-out",
+    "slotLabel": "Morning Commute",
+  },
+  "timelineIds": [
+    {
+      "actionIds": [
+        "IN-01",
+      ],
+      "slotId": "early-morning",
+    },
+    {
+      "actionIds": [
+        "MO-04",
+        "MO-05",
+        "MO-06",
+      ],
+      "slotId": "commute-out",
+    },
+    {
+      "actionIds": [
+        "PE-03",
+        "IN-06",
+        "MO-05",
+      ],
+      "slotId": "daytime",
+    },
+    {
+      "actionIds": [
+        "MO-04",
+        "MO-05",
+        "MO-06",
+      ],
+      "slotId": "commute-back",
+    },
+    {
+      "actionIds": [
+        "IN-08",
+        "IN-10",
+      ],
+      "slotId": "evening",
+    },
+    {
+      "actionIds": [
+        "IN-03",
+        "IN-06",
+      ],
+      "slotId": "night",
+    },
+  ],
+  "topThreeIds": [
+    "IN-01",
+    "PE-03",
+    "IN-03",
+  ],
+}
+`;
+
+exports[`Golden Persona Tests across Scenarios > Persona 1: Priya (Multi-Generational Urban) > evaluates safely and matches golden snapshot in scenario: stale 1`] = `
+{
+  "headline": "High pollution alert. Protect your indoor air and avoid unnecessary outdoor exposure.",
+  "planConfidence": "low",
+  "radar": {
+    "memberRoleLabel": "Child, 7",
+    "reasonCode": "COMMUTE_PEAK_RISK",
+    "slotId": "commute-out",
+    "slotLabel": "Morning Commute",
+  },
+  "timelineIds": [
+    {
+      "actionIds": [
+        "IN-01",
+      ],
+      "slotId": "early-morning",
+    },
+    {
+      "actionIds": [
+        "MO-04",
+        "MO-05",
+        "MO-06",
+      ],
+      "slotId": "commute-out",
+    },
+    {
+      "actionIds": [
+        "PE-03",
+        "IN-06",
+        "MO-05",
+      ],
+      "slotId": "daytime",
+    },
+    {
+      "actionIds": [
+        "MO-04",
+        "MO-05",
+        "MO-06",
+      ],
+      "slotId": "commute-back",
+    },
+    {
+      "actionIds": [
+        "IN-08",
+        "IN-10",
+      ],
+      "slotId": "evening",
+    },
+    {
+      "actionIds": [
+        "IN-03",
+        "IN-06",
+      ],
+      "slotId": "night",
+    },
+  ],
+  "topThreeIds": [
+    "IN-01",
+    "PE-03",
+    "IN-03",
+  ],
+}
+`;
+
+exports[`Golden Persona Tests across Scenarios > Persona 2: Arjun (Outdoor Worker, Low Budget) > matches golden snapshot in severe air 1`] = `
+{
+  "headline": "Severe pollution conditions. Minimize outdoor exposure and maintain a clean indoor environment.",
+  "planConfidence": "medium",
+  "radar": {
+    "memberRoleLabel": "Adult, 26 (Delivery Worker)",
+    "reasonCode": "COMMUTE_PEAK_RISK",
+    "slotId": "commute-out",
+    "slotLabel": "Morning Commute",
+  },
+  "timelineIds": [
+    {
+      "actionIds": [
+        "IN-01",
+      ],
+      "slotId": "early-morning",
+    },
+    {
+      "actionIds": [
+        "MO-04",
+        "MO-06",
+        "MO-03",
+      ],
+      "slotId": "commute-out",
+    },
+    {
+      "actionIds": [
+        "PE-03",
+      ],
+      "slotId": "daytime",
+    },
+    {
+      "actionIds": [
+        "MO-04",
+        "MO-06",
+        "MO-03",
+      ],
+      "slotId": "commute-back",
+    },
+    {
+      "actionIds": [
+        "IN-08",
+        "IN-10",
+      ],
+      "slotId": "evening",
+    },
+    {
+      "actionIds": [
+        "IN-03",
+      ],
+      "slotId": "night",
+    },
+  ],
+  "topThreeIds": [
+    "IN-01",
+    "IN-03",
+    "IN-08",
+  ],
+}
+`;
+
+exports[`Golden Persona Tests across Scenarios > Persona 3: Ramesh & Meena (Elderly, Combustion Heating) > matches golden snapshot in moderate scenario 1`] = `
+{
+  "headline": "Caution advised. Sensitive members should reduce prolonged outdoor exertion.",
+  "planConfidence": "medium",
+  "radar": {
+    "memberRoleLabel": "Senior, 71",
+    "reasonCode": "COMMUTE_PEAK_RISK",
+    "slotId": "commute-out",
+    "slotLabel": "Morning Commute",
+  },
+  "timelineIds": [
+    {
+      "actionIds": [
+        "IN-01",
+      ],
+      "slotId": "early-morning",
+    },
+    {
+      "actionIds": [
+        "MO-04",
+      ],
+      "slotId": "commute-out",
+    },
+    {
+      "actionIds": [
+        "PE-03",
+      ],
+      "slotId": "daytime",
+    },
+    {
+      "actionIds": [
+        "MO-04",
+      ],
+      "slotId": "commute-back",
+    },
+    {
+      "actionIds": [
+        "IN-08",
+        "IN-10",
+      ],
+      "slotId": "evening",
+    },
+    {
+      "actionIds": [
+        "IN-03",
+      ],
+      "slotId": "night",
+    },
+  ],
+  "topThreeIds": [
+    "PE-01",
+    "PE-03",
+    "IN-01",
+  ],
+}
+`;
+
+exports[`Golden Persona Tests across Scenarios > Persona 4: Ananya & Infant (Free-budget Student with Infant) > matches golden snapshot in severe air 1`] = `
+{
+  "headline": "Severe pollution conditions. Minimize outdoor exposure and maintain a clean indoor environment.",
+  "planConfidence": "medium",
+  "radar": {
+    "memberRoleLabel": "Infant, 4 months",
+    "reasonCode": "COMMUTE_PEAK_RISK",
+    "slotId": "commute-out",
+    "slotLabel": "Morning Commute",
+  },
+  "timelineIds": [
+    {
+      "actionIds": [
+        "IN-01",
+      ],
+      "slotId": "early-morning",
+    },
+    {
+      "actionIds": [
+        "MO-04",
+      ],
+      "slotId": "commute-out",
+    },
+    {
+      "actionIds": [
+        "PE-03",
+      ],
+      "slotId": "daytime",
+    },
+    {
+      "actionIds": [
+        "MO-04",
+      ],
+      "slotId": "commute-back",
+    },
+    {
+      "actionIds": [
+        "IN-08",
+        "IN-10",
+      ],
+      "slotId": "evening",
+    },
+    {
+      "actionIds": [
+        "IN-03",
+      ],
+      "slotId": "night",
+    },
+  ],
+  "topThreeIds": [
+    "IN-01",
+    "PE-03",
+    "IN-03",
+  ],
+}
+`;
