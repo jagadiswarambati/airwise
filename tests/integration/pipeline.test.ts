@@ -32,7 +32,14 @@ describe('Deterministic Pipeline Integration Suite (Part 1)', () => {
     expect(plan.topActionIds).toHaveLength(3);
     expect(plan.timeline).toHaveLength(6);
 
-    const trust = buildTrustModel(snapshot, plan.planConfidence, plan.confidenceReason, 'sample', true, 'Sample scenario active');
+    const trust = buildTrustModel(
+      snapshot,
+      plan.planConfidence,
+      plan.confidenceReason,
+      'sample',
+      true,
+      'Sample scenario active',
+    );
     expect(trust.isFallback).toBe(true);
     expect(trust.dataTypeBadge).toBe('Demo data');
 
@@ -146,12 +153,20 @@ describe('Deterministic Pipeline Integration Suite (Part 1)', () => {
   it('verifies ventilation decision engine in integration pipeline', () => {
     const clearSnap = getSampleScenarioSnapshot('clear');
     const clearSlots = deriveTimeSlots(PRIYA_PROFILE, clearSnap.pm25.hourly, 'IN');
-    const clearVent = decideVentilation({ snapshot: clearSnap, effectiveLevel: 0, slots: clearSlots });
+    const clearVent = decideVentilation({
+      snapshot: clearSnap,
+      effectiveLevel: 0,
+      slots: clearSlots,
+    });
     expect(clearVent.verdict).toBe('open');
 
     const severeSnap = getSampleScenarioSnapshot('severe');
     const severeSlots = deriveTimeSlots(PRIYA_PROFILE, severeSnap.pm25.hourly, 'IN');
-    const severeVent = decideVentilation({ snapshot: severeSnap, effectiveLevel: 4, slots: severeSlots });
+    const severeVent = decideVentilation({
+      snapshot: severeSnap,
+      effectiveLevel: 4,
+      slots: severeSlots,
+    });
     expect(severeVent.verdict).toBe('closed');
   });
 
@@ -173,13 +188,19 @@ describe('Deterministic Pipeline Integration Suite (Part 1)', () => {
       clearSlots,
       true,
       clearSnap.daylight,
-      new Date(clearSnap.observedAt).toISOString().slice(0, 10) + 'T12:00:00.000Z'
+      new Date(clearSnap.observedAt).toISOString().slice(0, 10) + 'T12:00:00.000Z',
     );
     expect(mobClear.actionIds).toContain('MO-07');
 
     const severeSnap = getSampleScenarioSnapshot('severe');
     const severeSlots = deriveTimeSlots(PRIYA_PROFILE, severeSnap.pm25.hourly, 'IN');
-    const mobSevere = evaluateMobilityPolicy(walkingProfile, 4, severeSnap.freshness, severeSlots, true);
+    const mobSevere = evaluateMobilityPolicy(
+      walkingProfile,
+      4,
+      severeSnap.freshness,
+      severeSlots,
+      true,
+    );
     expect(mobSevere.actionIds).not.toContain('MO-07');
     expect(mobSevere.forbiddenActionIds).toContain('MO-07');
   });
