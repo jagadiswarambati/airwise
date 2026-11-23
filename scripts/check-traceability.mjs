@@ -65,7 +65,7 @@ for (const errType of requiredErrorTypes) {
 }
 
 // 4. Verify all referenced test files exist on disk
-const fileRegex = /`tests\/[a-zA-Z0-9_\-\.\/]+`/g;
+const fileRegex = /`tests\/[a-zA-Z0-9_\-./]+`/g;
 const matches = readmeContent.match(fileRegex) || [];
 const referencedFiles = Array.from(new Set(matches.map((m) => m.replace(/`/g, ''))));
 

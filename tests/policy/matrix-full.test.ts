@@ -176,7 +176,7 @@ describe('Full Cartesian Policy Matrix (691,200 Cases + P-22 Submatrix)', () => 
     }
 
     let casesEvaluated = 0;
-    let violations = 0;
+    const violations = 0;
 
     // Full Cartesian Loop: 5 × 6 × 6 × 3 × 4 × 5 × 8 × 4 × 2 = 691,200
     for (const air of airLevels) {
@@ -234,7 +234,6 @@ describe('Full Cartesian Policy Matrix (691,200 Cases + P-22 Submatrix)', () => 
 
     // P-22 Submatrix (Home heating: {none, electric, combustion} × 5 levels × 8 cooking = 120 cases)
     const heatingConfigs: HomeHeating[] = ['none', 'electric', 'combustion'];
-    let p22Cases = 0;
     for (const air of airLevels) {
       const snapshot = snapshotMatrix[air.pm25].fresh;
       const slots = slotsMap[air.pm25];
@@ -259,7 +258,6 @@ describe('Full Cartesian Policy Matrix (691,200 Cases + P-22 Submatrix)', () => 
           });
 
           casesEvaluated++;
-          p22Cases++;
         }
       }
     }
