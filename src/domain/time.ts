@@ -137,7 +137,7 @@ export function parseLocalMinuteOfDay(timeStr: string, utcOffsetSeconds?: number
  * Computes "now in the location" from an injected Date plus utcOffsetSeconds.
  */
 export function getNowInLocation(
-  now: Date = new Date(),
+  now: Date,
   utcOffsetSeconds: number = 0,
 ): {
   year: number;

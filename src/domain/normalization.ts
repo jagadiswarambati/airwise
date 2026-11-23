@@ -108,9 +108,11 @@ export function computeAqiFromPm25(
  */
 export function normalizeAirQuality(
   input: RawAirDataInput,
-  currentTime: Date = new Date(),
+  currentTime?: Date,
   targetRegion: 'IN' | 'US' = 'IN',
 ): AirSnapshot {
+  const effectiveCurrentTime = currentTime ?? new Date(input.fetchedAt || input.observedAt);
+
   const normalizedHourly: HourlyPoint[] = input.hourly.map((h) => ({
     time: h.time,
     pm25: h.pm25 !== null && !isNaN(h.pm25) ? Math.max(0, h.pm25) : null,
@@ -136,11 +138,11 @@ export function normalizeAirQuality(
   const freshness: DataFreshness = determineFreshness(
     input.fetchedAt,
     normalizedHourly,
-    currentTime,
+    effectiveCurrentTime,
     input.utcOffsetSeconds,
   );
 
-  const trend: Trend = calculateTrend(normalizedHourly, currentTime, input.utcOffsetSeconds);
+  const trend: Trend = calculateTrend(normalizedHourly, effectiveCurrentTime, input.utcOffsetSeconds);
 
   const sourceMetadata: DataSourceMetadata = {
     id: input.source.id,

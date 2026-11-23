@@ -38,7 +38,7 @@ export function buildDeterministicPlan(
 ): Plan {
   const targetRegion = options?.targetRegion || 'IN';
   const communityMode = options?.communityMode || false;
-  const generatedAt = options?.generatedAt || new Date().toISOString();
+  const generatedAt = options?.generatedAt || snapshot.fetchedAt || snapshot.observedAt;
 
   const slots = deriveTimeSlots(profile, snapshot.pm25.hourly, targetRegion, snapshot.utcOffsetSeconds);
   const policyResult = evaluatePolicy(

@@ -16,7 +16,7 @@ import {
 export function determineFreshness(
   fetchedAt: string | Date | null | undefined,
   hourlySeries: HourlyPoint[] = [],
-  currentTime: Date = new Date(),
+  currentTime?: Date,
   _utcOffsetSeconds?: number,
 ): DataFreshness {
   if (!fetchedAt) {
@@ -28,7 +28,8 @@ export function determineFreshness(
     return 'none';
   }
 
-  const ageMs = currentTime.getTime() - fetchedDate.getTime();
+  const referenceDate = currentTime ?? fetchedDate;
+  const ageMs = referenceDate.getTime() - fetchedDate.getTime();
   const ageHours = ageMs / (1000 * 60 * 60);
 
   // Future timestamp guard (clock skew > 1 hour)
