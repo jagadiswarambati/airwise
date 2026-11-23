@@ -3,7 +3,9 @@ import { execSync } from 'child_process';
 const timezones = ['UTC', 'Asia/Kolkata', 'America/Los_Angeles'];
 const targetTest = process.argv[2] || 'tests/unit/timezone-slots.test.ts';
 
-console.log(`Running Vitest across target timezones to verify timezone invariance (${targetTest}):`);
+console.log(
+  `Running Vitest across target timezones to verify timezone invariance (${targetTest}):`,
+);
 
 for (const tz of timezones) {
   console.log(`\n========================================`);
@@ -23,5 +25,7 @@ for (const tz of timezones) {
   }
 }
 
-console.log('\nPASS: All timezone invariance tests passed across UTC, Asia/Kolkata, and America/Los_Angeles.');
+console.log(
+  '\nPASS: All timezone invariance tests passed across UTC, Asia/Kolkata, and America/Los_Angeles.',
+);
 process.exit(0);
