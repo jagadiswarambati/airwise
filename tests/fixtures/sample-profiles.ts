@@ -102,7 +102,9 @@ export const COMBUSTION_HEATING_PROFILE: HouseholdProfile = {
 /**
  * Generates an hourly air quality forecast series around a baseline PM2.5 concentration
  */
-export function generateHourlySeries(basePm25: number): Array<{ time: string; pm25: number; aqi?: number }> {
+export function generateHourlySeries(
+  basePm25: number,
+): Array<{ time: string; pm25: number; aqi?: number }> {
   const result = [];
   const baseTime = new Date('2026-11-20T00:00:00.000Z');
 
@@ -110,8 +112,10 @@ export function generateHourlySeries(basePm25: number): Array<{ time: string; pm
     const t = new Date(baseTime.getTime() + i * 3600 * 1000);
     // Diurnal variation: higher early morning & evening, cleaner midday
     let factor = 1.0;
-    if (i >= 6 && i <= 9) factor = 1.25; // morning rush + inversion
-    else if (i >= 12 && i <= 16) factor = 0.75; // afternoon dispersion
+    if (i >= 6 && i <= 9)
+      factor = 1.25; // morning rush + inversion
+    else if (i >= 12 && i <= 16)
+      factor = 0.75; // afternoon dispersion
     else if (i >= 19 && i <= 23) factor = 1.3; // evening peak
 
     const pm25 = Math.round(basePm25 * factor * 10) / 10;
@@ -157,4 +161,3 @@ export function createSnapshot(
     freshness,
   };
 }
-
