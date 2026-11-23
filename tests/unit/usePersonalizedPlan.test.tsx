@@ -142,7 +142,9 @@ describe('usePersonalizedPlan & Client Safety Authority Flow', () => {
     const controller = new AbortController();
     controller.abort();
 
-    const mockFetch = vi.fn().mockRejectedValue(new DOMException('The user aborted a request.', 'AbortError'));
+    const mockFetch = vi
+      .fn()
+      .mockRejectedValue(new DOMException('The user aborted a request.', 'AbortError'));
     vi.stubGlobal('fetch', mockFetch);
 
     const result = await getPersonalizedPlan(

@@ -43,4 +43,3 @@ describe('Low-Cost Protection Mode (Decision A-13)', () => {
     expect(plan.flags.lowCostMode).toBe(false);
   });
 });
-

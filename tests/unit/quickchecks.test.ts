@@ -97,4 +97,3 @@ describe('Quick Checks Engine', () => {
     ]);
   });
 });
-

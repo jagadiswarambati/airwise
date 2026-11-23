@@ -88,9 +88,7 @@ describe('Accessibility & WCAG 2.2 AA Contrast Compliance', () => {
       const plan = buildDeterministicPlan(PRIYA_PROFILE, snapshot);
       const cand = plan.topActions[0];
 
-      const html = renderToString(
-        <ActionDetailModal candidate={cand} onClose={() => {}} />
-      );
+      const html = renderToString(<ActionDetailModal candidate={cand} onClose={() => {}} />);
 
       expect(html).toContain('role="dialog"');
       expect(html).toContain('aria-modal="true"');
@@ -100,9 +98,7 @@ describe('Accessibility & WCAG 2.2 AA Contrast Compliance', () => {
     it('ensures Severe Smog Mode alert has role="alert"', () => {
       const snapshot = getSampleScenarioSnapshot('severe');
       const plan = buildDeterministicPlan(PRIYA_PROFILE, snapshot);
-      const html = renderToString(
-        <SevereSmogView snapshot={snapshot} plan={plan} />
-      );
+      const html = renderToString(<SevereSmogView snapshot={snapshot} plan={plan} />);
 
       expect(html).toContain('role="alert"');
       expect(html).toContain('SEVERE SMOG ALERT');
@@ -117,7 +113,9 @@ describe('Accessibility & WCAG 2.2 AA Contrast Compliance', () => {
       const html = renderToString(<ActionCard candidate={cand} onSelect={() => {}} />);
 
       expect(html).toContain('type="button"');
-      expect(html).toContain(`aria-label="Action: ${cand.action.title}. Tap for full dual-axis impact details."`);
+      expect(html).toContain(
+        `aria-label="Action: ${cand.action.title}. Tap for full dual-axis impact details."`,
+      );
     });
   });
 });

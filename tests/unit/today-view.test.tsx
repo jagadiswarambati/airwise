@@ -16,9 +16,7 @@ import { PRIYA_PRESET } from '../../src/state/profileStore';
 describe('Today Screen Component Renders (SSR)', () => {
   it('renders AirBriefingCard with primary PM2.5, AQI, and freshness badge', () => {
     const snapshot = getSampleScenarioSnapshot('moderate');
-    const html = renderToString(
-      <AirBriefingCard snapshot={snapshot} effectiveLevel={2} />,
-    );
+    const html = renderToString(<AirBriefingCard snapshot={snapshot} effectiveLevel={2} />);
 
     expect(html).toContain('52');
     expect(html).toContain('µg/m³ PM2.5');
@@ -64,9 +62,7 @@ describe('Today Screen Component Renders (SSR)', () => {
     const plan = buildDeterministicPlan(PRIYA_PRESET, snapshot);
     const candidate = plan.topActions[0];
 
-    const html = renderToString(
-      <ActionCard candidate={candidate} onSelect={() => {}} />,
-    );
+    const html = renderToString(<ActionCard candidate={candidate} onSelect={() => {}} />);
 
     expect(html).toContain(candidate.action.title);
     expect(html).toContain(candidate.tags.cost);
@@ -86,9 +82,7 @@ describe('Today Screen Component Renders (SSR)', () => {
     const snapshot = getSampleScenarioSnapshot('severe');
     const plan = buildDeterministicPlan(PRIYA_PRESET, snapshot);
 
-    const html = renderToString(
-      <SevereSmogView snapshot={snapshot} plan={plan} />,
-    );
+    const html = renderToString(<SevereSmogView snapshot={snapshot} plan={plan} />);
 
     expect(html).toContain('SEVERE SMOG ALERT');
     expect(html).toContain('Severe Air Quality Hazard');

@@ -26,9 +26,7 @@ describe('Risk Levels & Vulnerability Engine (Rule P-02)', () => {
     { id: '1', roleLabel: 'Senior, 70', ageGroup: '65+', flags: [] },
   ];
 
-  const infantMember: Member[] = [
-    { id: '1', roleLabel: 'Infant, 1', ageGroup: 'u5', flags: [] },
-  ];
+  const infantMember: Member[] = [{ id: '1', roleLabel: 'Infant, 1', ageGroup: 'u5', flags: [] }];
 
   it('detects sensitive members across age groups and health flags', () => {
     expect(hasSensitiveMembers(healthyAdults)).toBe(false);
@@ -77,4 +75,3 @@ describe('Risk Levels & Vulnerability Engine (Rule P-02)', () => {
     expect(LEVEL_NAMES[4]).toBe('Severe for your household');
   });
 });
-

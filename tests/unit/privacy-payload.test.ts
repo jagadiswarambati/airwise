@@ -11,7 +11,9 @@ describe('AI Request Privacy & Data Minimization Guard (SECURITY_PRIVACY Section
   it('prepares an AI plan input payload containing zero PII or coordinates', () => {
     const snapshot = getSampleScenarioSnapshot('moderate');
     const slots = deriveTimeSlots(PRIYA_PROFILE, snapshot.pm25.hourly, 'IN');
-    const deterministicPlan = buildDeterministicPlan(PRIYA_PROFILE, snapshot, { targetRegion: 'IN' });
+    const deterministicPlan = buildDeterministicPlan(PRIYA_PROFILE, snapshot, {
+      targetRegion: 'IN',
+    });
     const policyResult = evaluatePolicy(PRIYA_PROFILE, snapshot, slots, false, 'IN');
 
     const input = prepareAIPlanInput(

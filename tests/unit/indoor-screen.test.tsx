@@ -23,7 +23,9 @@ describe('IndoorScreen Component (SSR)', () => {
 
   it('renders Carbon Monoxide Safety Warning (Rule P-22) for combustion heating', () => {
     const snapshot = getSampleScenarioSnapshot('moderate');
-    const html = renderToString(<IndoorScreen profile={COMBUSTION_HEATING_PROFILE} snapshot={snapshot} />);
+    const html = renderToString(
+      <IndoorScreen profile={COMBUSTION_HEATING_PROFILE} snapshot={snapshot} />,
+    );
 
     expect(html).toContain('Carbon Monoxide Safety (Rule P-22)');
     expect(html).toContain('unvented combustion heating');
@@ -36,4 +38,3 @@ describe('IndoorScreen Component (SSR)', () => {
     expect(html).toContain('Damp-wipe surfaces');
   });
 });
-

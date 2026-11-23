@@ -1,11 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { evaluateMobilityPolicy } from '../../src/domain/mobility';
 import { deriveTimeSlots } from '../../src/domain/radar';
-import {
-  PRIYA_PROFILE,
-  HEALTHY_ADULT_PROFILE,
-  createSnapshot,
-} from '../fixtures/sample-profiles';
+import { PRIYA_PROFILE, HEALTHY_ADULT_PROFILE, createSnapshot } from '../fixtures/sample-profiles';
 
 describe('Mobility Policy Engine (Rules P-08, P-16, P-17, P-18, A-25)', () => {
   it('P-08: forbids walking/cycling (MO-07) when effective level >= 2', () => {
@@ -21,7 +17,14 @@ describe('Mobility Policy Engine (Rules P-08, P-16, P-17, P-18, A-25)', () => {
   it('P-08 / A-22: suppresses walking/cycling (MO-07) when daylight is undefined', () => {
     const snapshot = createSnapshot(25); // Clear
     const slots = deriveTimeSlots(HEALTHY_ADULT_PROFILE, snapshot.pm25.hourly);
-    const result = evaluateMobilityPolicy(HEALTHY_ADULT_PROFILE, 0, 'fresh', slots, false, undefined);
+    const result = evaluateMobilityPolicy(
+      HEALTHY_ADULT_PROFILE,
+      0,
+      'fresh',
+      slots,
+      false,
+      undefined,
+    );
 
     expect(result.forbiddenActionIds).toContain('MO-07');
     expect(result.actionIds).not.toContain('MO-07');
@@ -33,7 +36,15 @@ describe('Mobility Policy Engine (Rules P-08, P-16, P-17, P-18, A-25)', () => {
     const slots = deriveTimeSlots(HEALTHY_ADULT_PROFILE, snapshot.pm25.hourly);
     const daylight = { sunrise: '2026-11-20T06:00:00Z', sunset: '2026-11-20T18:00:00Z' };
     const nightTime = '2026-11-20T21:30:00Z'; // 9:30 PM
-    const result = evaluateMobilityPolicy(HEALTHY_ADULT_PROFILE, 0, 'fresh', slots, false, daylight, nightTime);
+    const result = evaluateMobilityPolicy(
+      HEALTHY_ADULT_PROFILE,
+      0,
+      'fresh',
+      slots,
+      false,
+      daylight,
+      nightTime,
+    );
 
     expect(result.forbiddenActionIds).toContain('MO-07');
     expect(result.actionIds).not.toContain('MO-07');
@@ -45,7 +56,15 @@ describe('Mobility Policy Engine (Rules P-08, P-16, P-17, P-18, A-25)', () => {
     const slots = deriveTimeSlots(HEALTHY_ADULT_PROFILE, snapshot.pm25.hourly);
     const daylight = { sunrise: '2026-11-20T06:00:00Z', sunset: '2026-11-20T18:00:00Z' };
     const dayTime = '2026-11-20T11:00:00Z'; // 11:00 AM
-    const result = evaluateMobilityPolicy(HEALTHY_ADULT_PROFILE, 0, 'fresh', slots, false, daylight, dayTime);
+    const result = evaluateMobilityPolicy(
+      HEALTHY_ADULT_PROFILE,
+      0,
+      'fresh',
+      slots,
+      false,
+      daylight,
+      dayTime,
+    );
 
     expect(result.actionIds).toContain('MO-07');
     expect(result.forbiddenActionIds).not.toContain('MO-07');
@@ -91,4 +110,3 @@ describe('Mobility Policy Engine (Rules P-08, P-16, P-17, P-18, A-25)', () => {
     expect(result.explanations['MO-02']).toContain('unshielded waiting at outdoor stops');
   });
 });
-

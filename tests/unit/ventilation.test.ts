@@ -68,4 +68,3 @@ describe('Ventilation Decision Engine (Rules P-05, P-06, P-07)', () => {
     expect(decision.reasonCode).toBe('STALE_OR_MISSING_DATA');
   });
 });
-

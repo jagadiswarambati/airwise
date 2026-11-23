@@ -54,4 +54,3 @@ describe('Indoor-Air Policy Engine (Rules P-11, P-12, P-22)', () => {
     expect(result.forbiddenActionIds).toContain('IN-02');
   });
 });
-

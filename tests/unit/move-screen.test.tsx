@@ -40,4 +40,3 @@ describe('MoveScreen Component (SSR)', () => {
     expect(html).toContain('Emissions');
   });
 });
-

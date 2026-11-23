@@ -73,14 +73,22 @@ describe('Deterministic Plan Builder', () => {
     // Fixed CO caveat present on window closing
     const in01Action = plan.topActions.find((a) => a.action.id === 'IN-01');
     if (in01Action) {
-      expect(in01Action.fixedDisclaimers?.some((d) => d.includes('carbon monoxide') || d.includes('combustion'))).toBe(true);
+      expect(
+        in01Action.fixedDisclaimers?.some(
+          (d) => d.includes('carbon monoxide') || d.includes('combustion'),
+        ),
+      ).toBe(true);
     }
   });
 
   it('is completely deterministic: identical inputs produce identical plans', () => {
     const snapshot = createSnapshot(85);
-    const planA = buildDeterministicPlan(PRIYA_PROFILE, snapshot, { generatedAt: '2026-11-20T10:00:00Z' });
-    const planB = buildDeterministicPlan(PRIYA_PROFILE, snapshot, { generatedAt: '2026-11-20T10:00:00Z' });
+    const planA = buildDeterministicPlan(PRIYA_PROFILE, snapshot, {
+      generatedAt: '2026-11-20T10:00:00Z',
+    });
+    const planB = buildDeterministicPlan(PRIYA_PROFILE, snapshot, {
+      generatedAt: '2026-11-20T10:00:00Z',
+    });
 
     expect(planA).toEqual(planB);
   });

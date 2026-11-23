@@ -82,4 +82,3 @@ describe('Air Quality Normalization', () => {
     expect(snapshot.aqi).toBeUndefined();
   });
 });
-

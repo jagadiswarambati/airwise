@@ -69,4 +69,3 @@ describe('Household Risk Radar Engine', () => {
     expect(radar.score).toBeGreaterThan(0);
   });
 });
-

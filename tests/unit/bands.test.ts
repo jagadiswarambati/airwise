@@ -66,4 +66,3 @@ describe('Risk Bands and Boundary Values', () => {
     expect(US_EPA_BANDS.bands).toHaveLength(5);
   });
 });
-

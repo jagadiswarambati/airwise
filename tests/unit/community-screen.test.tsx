@@ -68,7 +68,9 @@ describe('CommunityScreen Component (SSR)', () => {
     expect(html).toContain('&lt;12');
     expect(html).toContain('9');
     expect(html).toContain('Respiratory');
-    expect(html).toContain('displays aggregated, non-identifying counts only to preserve neighbor privacy');
+    expect(html).toContain(
+      'displays aggregated, non-identifying counts only to preserve neighbor privacy',
+    );
   });
 
   it('renders aggregate community vehicle-km avoided (Formula C1)', () => {

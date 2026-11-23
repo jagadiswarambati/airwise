@@ -92,7 +92,11 @@ describe('Serverless API Handlers Contract & Safety Tests', () => {
     });
 
     it('/api/plan rejects non-JSON body and schema-violating payload', async () => {
-      const resNotJson = await handlePlanCore('not-json', { 'content-type': 'application/json' }, 'POST');
+      const resNotJson = await handlePlanCore(
+        'not-json',
+        { 'content-type': 'application/json' },
+        'POST',
+      );
       expect(resNotJson.status).toBe(400);
       expect(asError(resNotJson.body).error.code).toBe('ValidationError');
 
@@ -194,8 +198,16 @@ describe('Serverless API Handlers Contract & Safety Tests', () => {
     it('returns 429 with Retry-After when rate limit exceeded', async () => {
       const testIp = '203.0.113.42';
       // Drain plan bucket (burst 2)
-      await handlePlanCore('{}', { 'x-forwarded-for': testIp, 'content-type': 'application/json' }, 'POST');
-      await handlePlanCore('{}', { 'x-forwarded-for': testIp, 'content-type': 'application/json' }, 'POST');
+      await handlePlanCore(
+        '{}',
+        { 'x-forwarded-for': testIp, 'content-type': 'application/json' },
+        'POST',
+      );
+      await handlePlanCore(
+        '{}',
+        { 'x-forwarded-for': testIp, 'content-type': 'application/json' },
+        'POST',
+      );
 
       // 3rd request should hit rate limit
       const res = await handlePlanCore(

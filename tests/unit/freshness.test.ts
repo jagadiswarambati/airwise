@@ -42,4 +42,3 @@ describe('Data Freshness Engine', () => {
     expect(determineFreshness(futureTime, sampleHourly, baseTime)).toBe('none');
   });
 });
-

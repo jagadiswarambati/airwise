@@ -43,7 +43,9 @@ describe('ImpactScreen Component (SSR)', () => {
     const html = renderToString(<ImpactScreen profile={zeroCommuteProfile} snapshot={snapshot} />);
 
     expect(html).toContain('0 vehicle-km recorded');
-    expect(html).toContain('Profile commute distance is 0 km or no motorized vehicle commute indicated');
+    expect(html).toContain(
+      'Profile commute distance is 0 km or no motorized vehicle commute indicated',
+    );
   });
 
   it('renders community aggregate estimate with Formula C1 and Demo data badge', () => {
