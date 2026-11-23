@@ -2,7 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { renderToString } from 'react-dom/server';
 import fs from 'node:fs';
 import path from 'node:path';
-import { TabBar } from '../../src/ui/components/TabBar';
+import { TopNav } from '../../src/ui/shell/TopNav';
+import { BottomNav } from '../../src/ui/shell/BottomNav';
 import { ActionCard } from '../../src/ui/components/ActionCard';
 import { ActionDetailModal } from '../../src/ui/components/ActionDetailModal';
 import { SevereSmogView } from '../../src/ui/components/SevereSmogView';
@@ -90,14 +91,26 @@ describe('Accessibility & WCAG 2.2 AA Contrast Compliance', () => {
   });
 
   describe('ARIA Landmarks and Semantic Attributes', () => {
-    it('renders TabBar with tablist, tabs, and aria-selected', () => {
-      const html = renderToString(<TabBar currentTab="today" onTabChange={() => {}} />);
+    it('renders TopNav with semantic nav, ul, and aria-current="page"', () => {
+      const html = renderToString(<TopNav currentRoute="today" />);
 
-      expect(html).toContain('aria-label="Main Navigation"');
-      expect(html).toContain('role="tablist"');
-      expect(html).toContain('role="tab"');
-      expect(html).toContain('aria-selected="true"');
-      expect(html).toContain('aria-selected="false"');
+      expect(html).toContain('aria-label="Main"');
+      expect(html).toContain('<ul');
+      expect(html).toContain('aria-current="page"');
+      expect(html).toContain('Today');
+      expect(html).toContain('At home');
+      expect(html).toContain('Travel');
+      expect(html).toContain('Impact');
+      expect(html).toContain('Community');
+    });
+
+    it('renders BottomNav with semantic nav, ul, and aria-current="page"', () => {
+      const html = renderToString(<BottomNav currentRoute="move" />);
+
+      expect(html).toContain('aria-label="Main"');
+      expect(html).toContain('<ul');
+      expect(html).toContain('aria-current="page"');
+      expect(html).toContain('Travel');
     });
 
     it('ensures modal dialogs use role="dialog" and aria-modal="true"', () => {

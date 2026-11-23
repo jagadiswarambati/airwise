@@ -5,6 +5,8 @@ import { evaluateMobilityPolicy } from '../../domain/mobility';
 import { useDailyPlan } from '../hooks/useDailyPlan';
 import { ActionCard } from '../components/ActionCard';
 import { ActionDetailModal } from '../components/ActionDetailModal';
+import { PageHeader } from '../shell/PageHeader';
+import { ROUTE_DESCRIPTIONS } from '../../state/route';
 import { Icon } from '../icons';
 
 interface MoveScreenProps {
@@ -37,6 +39,11 @@ export function MoveScreen({ profile, snapshot }: MoveScreenProps) {
 
   return (
     <div className="move-screen screen-container">
+      <PageHeader
+        title="Travel & Commute Planner"
+        description={ROUTE_DESCRIPTIONS.move}
+      />
+
       {/* Commute Exposure Planner */}
       <section className="card card-callout-exposure" aria-labelledby="commute-planner-heading">
         <h2 id="commute-planner-heading" className="screen-section-title">
@@ -114,3 +121,5 @@ export function MoveScreen({ profile, snapshot }: MoveScreenProps) {
     </div>
   );
 }
+
+export default MoveScreen;

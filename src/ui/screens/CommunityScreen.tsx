@@ -10,6 +10,8 @@ import {
 } from '../../data/community';
 import { useCommunityPledge } from '../../state/communityStore';
 import { useDailyPlan } from '../hooks/useDailyPlan';
+import { PageHeader } from '../shell/PageHeader';
+import { ROUTE_DESCRIPTIONS } from '../../state/route';
 import { Icon } from '../icons';
 
 interface CommunityScreenProps {
@@ -63,6 +65,11 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ profile, snaps
 
   return (
     <div className="community-screen screen-container">
+      <PageHeader
+        title="Community Action & Briefing"
+        description={ROUTE_DESCRIPTIONS.community}
+      />
+
       {/* Demo Data Header Banner */}
       <section
         className="card card-callout-exposure"
@@ -271,3 +278,5 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ profile, snaps
     </div>
   );
 };
+
+export default CommunityScreen;

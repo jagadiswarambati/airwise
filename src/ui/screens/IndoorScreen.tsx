@@ -4,6 +4,8 @@ import { decideVentilation } from '../../domain/ventilation';
 import { useDailyPlan } from '../hooks/useDailyPlan';
 import { ActionCard } from '../components/ActionCard';
 import { ActionDetailModal } from '../components/ActionDetailModal';
+import { PageHeader } from '../shell/PageHeader';
+import { ROUTE_DESCRIPTIONS } from '../../state/route';
 import { Icon } from '../icons';
 
 interface IndoorScreenProps {
@@ -36,6 +38,11 @@ export function IndoorScreen({ profile, snapshot }: IndoorScreenProps) {
 
   return (
     <div className="indoor-screen screen-container">
+      <PageHeader
+        title="At Home Clean-Air Guide"
+        description={ROUTE_DESCRIPTIONS.indoor}
+      />
+
       {/* Smart Ventilation Advisor */}
       <section className="card card-callout-primary" aria-labelledby="vent-heading">
         <h2 id="vent-heading" className="screen-section-title">
@@ -140,3 +147,5 @@ export function IndoorScreen({ profile, snapshot }: IndoorScreenProps) {
     </div>
   );
 }
+
+export default IndoorScreen;

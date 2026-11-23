@@ -81,6 +81,7 @@
 
   /* Elevated Surface Sheet Shadow */
   --shadow-sheet: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --dialog-backdrop: rgba(0, 0, 0, 0.5);
 
   /* Transitions */
   --transition-fast: 150ms ease-in-out;
@@ -120,6 +121,7 @@
 
     --focus-ring: 3px solid var(--accent);
     --shadow-sheet: 0 2px 4px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.3);
+    --dialog-backdrop: rgba(0, 0, 0, 0.7);
   }
 }
 
@@ -156,6 +158,43 @@
 
   --focus-ring: 3px solid var(--accent);
   --shadow-sheet: 0 2px 4px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.3);
+  --dialog-backdrop: rgba(0, 0, 0, 0.7);
+}
+
+[data-theme="light"] {
+  --paper: #f8fafc;
+  --surface: #ffffff;
+  --ink: #0f172a;
+  --ink-2: #334155;
+  --line: #64748b;
+  --line-strong: #334155;
+
+  --accent: #0369a1;
+  --on-accent: #ffffff;
+
+  /* Haze Ramp (Levels 0-4) */
+  --haze-0-bg: #ecfdf5;
+  --haze-0-ink: #065f46;
+  --haze-1-bg: #fefce8;
+  --haze-1-ink: #713f12;
+  --haze-2-bg: #fff7ed;
+  --haze-2-ink: #7c2d12;
+  --haze-3-bg: #fef2f2;
+  --haze-3-ink: #991b1b;
+  --haze-4-bg: #faf5ff;
+  --haze-4-ink: #581c87;
+
+  /* Dual-Axis Tokens */
+  --exposure-bg: #eff6ff;
+  --exposure-ink: #1e40af;
+  --exposure-border: #2563eb;
+  --emissions-bg: #f0fdf4;
+  --emissions-ink: #166534;
+  --emissions-border: #16a34a;
+
+  --focus-ring: 3px solid var(--accent);
+  --shadow-sheet: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --dialog-backdrop: rgba(0, 0, 0, 0.5);
 }
 
 /* Severe Theme: High Legibility & Maximum Contrast Mode */
@@ -198,6 +237,7 @@
 
   --focus-ring: 3px solid var(--accent);
   --shadow-sheet: 0 2px 8px rgba(0, 0, 0, 0.5);
+  --dialog-backdrop: rgba(0, 0, 0, 0.8);
 }
 
 /* Reduced Motion Override */

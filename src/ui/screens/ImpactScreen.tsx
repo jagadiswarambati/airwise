@@ -24,6 +24,8 @@ import {
 } from '../../domain/config/impact-copy';
 import { useDailyPlan } from '../hooks/useDailyPlan';
 import { ActionDetailModal } from '../components/ActionDetailModal';
+import { PageHeader } from '../shell/PageHeader';
+import { ROUTE_DESCRIPTIONS } from '../../state/route';
 import { Icon } from '../icons';
 
 interface ImpactScreenProps {
@@ -71,6 +73,11 @@ export const ImpactScreen: React.FC<ImpactScreenProps> = ({ profile, snapshot })
 
   return (
     <div className="impact-screen screen-container">
+      <PageHeader
+        title="Dual-Axis Impact Overview"
+        description={ROUTE_DESCRIPTIONS.impact}
+      />
+
       {/* Dual-Axis Philosophy Banner */}
       <section
         className="card card-callout-primary"
@@ -346,3 +353,5 @@ export const ImpactScreen: React.FC<ImpactScreenProps> = ({ profile, snapshot })
     </div>
   );
 };
+
+export default ImpactScreen;

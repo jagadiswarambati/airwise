@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { HouseholdProfile } from '../../domain/types';
 import { exportProfileJson, importProfileJson } from '../../state/profileStore';
 import { clearAllLocalData } from '../../state/lifecycle';
-import { ScenarioType } from '../../data/fallback-chain';
-import { useSettings } from '../../state/settingsStore';
+import { useSettings, AppTheme } from '../../state/settingsStore';
+import { AppRoute, navigate } from '../../state/route';
+import { Sheet } from './Sheet';
 import { Icon } from '../icons';
 
 interface MenuModalProps {
@@ -13,8 +14,8 @@ interface MenuModalProps {
   onLoadPriya: () => void;
   onEditProfile: () => void;
   onDeleteProfile: () => void;
-  currentScenario: ScenarioType;
-  onSelectScenario: (s: ScenarioType) => void;
+  isManualSevere?: boolean;
+  onToggleSevere?: () => void;
 }
 
 export const MenuModal: React.FC<MenuModalProps> = ({
@@ -24,8 +25,8 @@ export const MenuModal: React.FC<MenuModalProps> = ({
   onLoadPriya,
   onEditProfile,
   onDeleteProfile,
-  currentScenario,
-  onSelectScenario,
+  isManualSevere,
+  onToggleSevere,
 }) => {
   const [importError, setImportError] = useState<string | null>(null);
   const [settings, updateSettings] = useSettings();
@@ -48,8 +49,6 @@ export const MenuModal: React.FC<MenuModalProps> = ({
       isMounted = false;
     };
   }, [isOpen]);
-
-  if (!isOpen) return null;
 
   const handleExport = () => {
     try {
@@ -96,87 +95,135 @@ export const MenuModal: React.FC<MenuModalProps> = ({
     }
   };
 
-  return (
-    <div className="modal-overlay" role="dialog" aria-modal="true" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h2 className="action-modal-title">Menu &amp; Settings</h2>
-          <button type="button" className="btn-icon" onClick={onClose} aria-label="Close menu">
-            <Icon name="close" size={20} aria-hidden="true" />
-          </button>
-        </div>
+  const handleLinkClick = (target: AppRoute) => (e: React.MouseEvent) => {
+    e.preventDefault();
+    onClose();
+    navigate(target);
+  };
 
-        <div className="modal-body">
-          {/* Quick Preset Action */}
-          <div className="menu-preset-box">
-            <div className="menu-preset-title">Evaluation Presets</div>
-            <p className="menu-preset-desc">
-              Load standard testing household (Priya: asthmatic child, elder, low budget, no purifier).
-            </p>
-            <button
-              type="button"
-              className="btn-primary w-full text-sm"
-              onClick={() => {
-                onLoadPriya();
-                onClose();
-              }}
-            >
-              Load Priya's Household Preset
-            </button>
+  return (
+    <Sheet
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Menu & Settings"
+      subtitle="Preferences, evaluation presets, and stored household data"
+    >
+      <div className="aw-menu-content">
+        {/* Appearance & Theme Section */}
+        <section className="aw-menu-section" aria-label="Theme & Appearance">
+          <h3 className="aw-menu-section-title">Appearance</h3>
+          <div className="aw-theme-options" role="radiogroup" aria-label="Select color theme">
+            {(['system', 'light', 'dark'] as AppTheme[]).map((mode) => {
+              const isSelected = settings.theme === mode;
+              const label = mode === 'system' ? 'System' : mode === 'light' ? 'Light' : 'Dark';
+              return (
+                <button
+                  key={mode}
+                  type="button"
+                  role="radio"
+                  aria-checked={isSelected}
+                  className={`aw-theme-btn ${isSelected ? 'aw-theme-btn-selected' : ''}`}
+                  onClick={() => updateSettings({ theme: mode })}
+                >
+                  {label}
+                </button>
+              );
+            })}
           </div>
 
-          {/* AI Personalization Settings Toggle */}
-          <div className="menu-ai-box">
-            <div className="menu-ai-row">
-              <label
-                htmlFor="ai-toggle"
-                className={`menu-ai-label ${isLlmAvailable ? 'cursor-pointer' : 'cursor-disabled'}`}
-              >
-                Personalise plan with AI
+          <div className="aw-toggle-row mt-3">
+            <label htmlFor="sky-toggle" className="aw-toggle-label">
+              Animated sky background
+            </label>
+            <input
+              id="sky-toggle"
+              type="checkbox"
+              checked={settings.animatedSky}
+              onChange={(e) => updateSettings({ animatedSky: e.target.checked })}
+              className="checkbox-input"
+            />
+          </div>
+        </section>
+
+        {/* Severe Mode Manual Override */}
+        {onToggleSevere && (
+          <section className="aw-menu-section" aria-label="Severe Mode Override">
+            <h3 className="aw-menu-section-title">Emergency Mode</h3>
+            <div className="aw-toggle-row">
+              <label htmlFor="severe-toggle" className="aw-toggle-label">
+                Severe Smog Mode
               </label>
               <input
-                id="ai-toggle"
+                id="severe-toggle"
                 type="checkbox"
-                checked={settings.aiEnabled && isLlmAvailable}
-                disabled={!isLlmAvailable}
-                onChange={(e) => updateSettings({ aiEnabled: e.target.checked })}
+                checked={Boolean(isManualSevere)}
+                onChange={onToggleSevere}
                 className="checkbox-input"
               />
             </div>
-            <p className="menu-ai-desc">
-              Age bands, equipment, routine times; no location, names, or health records are sent.
+            <p className="text-muted text-xs mt-1">
+              {isManualSevere
+                ? 'Severe mode active: full-screen emergency guidance.'
+                : 'Preview or activate high-alert emergency guidance.'}
             </p>
-            {!isLlmAvailable && (
-              <span className="menu-ai-disabled-note">
-                (AI service disabled on this deployment)
-              </span>
-            )}
-          </div>
+          </section>
+        )}
 
-          {/* Scenario Switching */}
-          <div className="form-group">
-            <label className="form-label">Active Air Scenario</label>
-            <select
-              value={currentScenario}
-              onChange={(e) => {
-                onSelectScenario(e.target.value as ScenarioType);
-                onClose();
-              }}
-              className="form-select"
+        {/* AI Personalization */}
+        <section className="aw-menu-section" aria-label="AI Personalization">
+          <h3 className="aw-menu-section-title">AI Assistance</h3>
+          <div className="aw-toggle-row">
+            <label
+              htmlFor="ai-toggle"
+              className={`aw-toggle-label ${isLlmAvailable ? 'cursor-pointer' : 'cursor-disabled'}`}
             >
-              <option value="live">Live Air Data (Open-Meteo)</option>
-              <option value="clear">Demo: Clear Air (Level 0)</option>
-              <option value="moderate">Demo: Moderate Air (Level 1)</option>
-              <option value="severe">Demo: Severe Winter Smog (Level 4)</option>
-              <option value="stale">Demo: Stale Feed Degradation</option>
-            </select>
+              Personalise plan with AI
+            </label>
+            <input
+              id="ai-toggle"
+              type="checkbox"
+              checked={settings.aiEnabled && isLlmAvailable}
+              disabled={!isLlmAvailable}
+              onChange={(e) => updateSettings({ aiEnabled: e.target.checked })}
+              className="checkbox-input"
+            />
           </div>
+          <p className="text-muted text-xs mt-1">
+            Reorders approved actions to match routine windows. No location coordinates or
+            health specifics are ever shared.
+          </p>
+          {!isLlmAvailable && (
+            <span className="text-muted text-xs italic block mt-1">
+              (AI service is currently not connected on this deployment)
+            </span>
+          )}
+        </section>
 
-          {/* Profile Actions */}
-          <div className="menu-actions-group">
+        {/* Testing Presets */}
+        <section className="aw-menu-section" aria-label="Testing Presets">
+          <h3 className="aw-menu-section-title">Evaluation Presets</h3>
+          <p className="text-muted text-xs mb-2">
+            Load standard testing household (Priya: asthmatic child, elder, low budget, no purifier).
+          </p>
+          <button
+            type="button"
+            className="aw-btn aw-btn-secondary w-full"
+            onClick={() => {
+              onLoadPriya();
+              onClose();
+            }}
+          >
+            Load Priya's Household Preset
+          </button>
+        </section>
+
+        {/* Profile Management */}
+        <section className="aw-menu-section" aria-label="Profile Data">
+          <h3 className="aw-menu-section-title">Household Profile</h3>
+          <div className="aw-menu-btn-stack">
             <button
               type="button"
-              className="btn-secondary"
+              className="aw-btn aw-btn-secondary"
               onClick={() => {
                 onEditProfile();
                 onClose();
@@ -187,12 +234,16 @@ export const MenuModal: React.FC<MenuModalProps> = ({
 
             {profile && (
               <>
-                <button type="button" className="btn-secondary" onClick={handleExport}>
-                  Export Profile (JSON)
+                <button
+                  type="button"
+                  className="aw-btn aw-btn-secondary"
+                  onClick={handleExport}
+                >
+                  Export my data (JSON)
                 </button>
 
-                <label className="btn-secondary text-center cursor-pointer">
-                  Import Profile (JSON)
+                <label className="aw-btn aw-btn-secondary text-center cursor-pointer">
+                  Import data (JSON)
                   <input
                     type="file"
                     accept=".json"
@@ -202,37 +253,61 @@ export const MenuModal: React.FC<MenuModalProps> = ({
                 </label>
 
                 {importError && (
-                  <div className="text-warning text-xs">
-                    {importError}
-                  </div>
+                  <div className="text-warning text-xs">{importError}</div>
                 )}
 
                 <button
                   type="button"
-                  className="menu-delete-btn"
+                  className="aw-btn aw-btn-quiet text-danger"
                   onClick={confirmDelete}
                 >
                   Delete all data
                 </button>
-                <div className="menu-delete-note">
-                  Stored in this browser only. No server-side copy exists.
-                </div>
+                <p className="text-muted text-xs italic">
+                  Stored strictly in your local browser storage. No server-side copy exists.
+                </p>
               </>
             )}
           </div>
+        </section>
 
-          {/* About */}
-          <div className="menu-about-box">
-            <p>
-              <strong>AirWise</strong> is an AI-powered household clean-air decision assistant.
-            </p>
-            <p className="mt-1">
-              Phase B build: Pure TypeScript deterministic core with live &amp; demo data layers.
-              No health claims or medical advice provided.
-            </p>
-          </div>
-        </div>
+        {/* Documentation Links */}
+        <section className="aw-menu-section" aria-label="Information & Legal">
+          <h3 className="aw-menu-section-title">Information</h3>
+          <ul className="aw-menu-nav-list">
+            <li>
+              <a
+                href="#/about"
+                className="aw-menu-nav-link"
+                onClick={handleLinkClick('about')}
+              >
+                <span>About AirWise</span>
+                <Icon name="chevron" size={16} aria-hidden="true" />
+              </a>
+            </li>
+            <li>
+              <a
+                href="#/privacy"
+                className="aw-menu-nav-link"
+                onClick={handleLinkClick('privacy')}
+              >
+                <span>Privacy Policy</span>
+                <Icon name="chevron" size={16} aria-hidden="true" />
+              </a>
+            </li>
+            <li>
+              <a
+                href="#/terms"
+                className="aw-menu-nav-link"
+                onClick={handleLinkClick('terms')}
+              >
+                <span>Terms of Use</span>
+                <Icon name="chevron" size={16} aria-hidden="true" />
+              </a>
+            </li>
+          </ul>
+        </section>
       </div>
-    </div>
+    </Sheet>
   );
 };
