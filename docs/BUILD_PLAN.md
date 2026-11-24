@@ -124,4 +124,105 @@ Cut from Attempt 1: CO₂e, carpool board, weekly history, Hindi/Telugu, OpenAQ,
 **Gate C (Attempt 3):** tag `attempt-3`.
 
 ## Phase tracker
-- [x] 0 · [x] 1A · [x] 1B · [x] 2 · [x] 3 · [x] 4A · [x] 4B · [x] 5 · [x] 6 · [x] 7 (Gate A) · [x] 8 (Gate B) · [ ] 9 (Gate C)
+- [x] 0 · [x] 1A · [x] 1B · [x] 2 · [x] 3 · [x] 4A · [x] 4B · [x] 5 · [x] 6 · [x] 7 (Gate A) · [x] 8 (Gate B) · [x] 9 (Gate C)
+
+---
+
+## Development workflow for Antigravity
+
+1. Save the **Shared Context Block** from `docs/ANTIGRAVITY_PROMPTS.md` as `AGENTS.md` in the repo root (and, if your Antigravity version supports workspace rules, as a rule too).
+2. Run **one phase at a time**. Paste that phase's prompt. Require the agent to produce a plan first, then implement.
+3. The agent must run lint, typecheck and tests, and report results, before declaring done.
+4. **You review the diff and the acceptance checklist.** Do not start the next phase until the current one passes and is committed and pushed.
+5. One branch (`main`). Small, meaningful commits (conventional style). Push after every phase and, ideally, after each meaningful sub-step.
+6. After each phase, tick the checklist in `docs/BUILD_PLAN.md`.
+7. Ask the agent to open the running app and test it in the browser at the end of Phases 4, 6, 7 and 8.
+
+## Layer-by-layer prompts & demo script
+
+- Self-contained Antigravity prompts for Phases 0–9 and repairs R1–R3 are in [`docs/ANTIGRAVITY_PROMPTS.md`](./ANTIGRAVITY_PROMPTS.md).
+- Rehearsed 90-second judge demonstration script and fallback procedure are in [`docs/DEMO_SCRIPT.md`](./DEMO_SCRIPT.md).
+
+## Global product acceptance criteria
+
+Each phase has numbered, checkable criteria in this document. Global product acceptance criteria:
+
+- [x] Priya preset → Today in ≤ 3 taps and ≤ 10 s.
+- [x] All four demo scenarios render correct level, plan and Trust Panel.
+- [x] 100% of actions show Why, Exposure, Emissions, label, confidence and assumptions.
+- [x] No action violates any rule P-01…P-22 anywhere in the policy matrix.
+- [x] App is fully usable with `LLM_PROVIDER=none` and with the network off (sample/cached).
+- [x] axe: zero serious/critical issues; keyboard-only flow completes the journey.
+- [x] Lighthouse mobile: Performance ≥ 90, Accessibility ≥ 95, Best Practices ≥ 95.
+- [x] CI green: lint, types, unit, audit, size, secret scan, branch guard.
+- [x] Repo < 10 MB (target < 3 MB), public, single branch, regular commit history.
+- [x] README explains vertical, approach, logic, how it works, assumptions.
+
+## Three-attempt submission strategy
+
+| Attempt | Submit when | Contains | Rule |
+|---|---|---|---|
+| **1: Complete and safe** | After Phase 7 (Gate A) | Every mandatory capability, deterministic plan, AI overlay with fallback, Severe/Low-Cost modes, community on seeded data, core + matrix tests, README | Must be demoable end-to-end on a phone. Not a prototype. |
+| **2: Evidence of quality** | After Phase 8 (Gate B) | Expanded tests, e2e, axe, Lighthouse, security checklist, bug fixes from your own review of Attempt 1 feedback | Strict improvement only. Re-run full suite. |
+| **3: Polish and de-risk** | After Phase 9 (Gate C) | Copy and reading-level pass, demo assets, final README, freeze | No new features. If in doubt, don't ship the change. |
+
+Always keep a tagged known-good commit (`git tag attempt-N`) before submitting. Tags are not branches.
+
+## Evaluation-criteria mapping & verification metrics
+
+| Criterion | Target | Measured in this Session | Verification Command |
+|---|---|---|---|
+| **Repository Size** | < 3 MB (Warning: 3 MB, Limit: 10 MB) | **2.67 MB** (28,00,860 bytes) [including `.git`] | `npm run check:size` |
+| **Unit & Integration Tests** | 100% passing across domain, data, shell, screens | **421 passed** across **56 test files** | `npm test` |
+| **Policy Matrix Invariants** | P-01 to P-22 zero violations + mutations | **9 passed** across **2 test files** | `npm run test:policy` |
+| **Timezone Invariance** | Zero shifts across global runtime timezones | **PASS** across `UTC`, `Asia/Kolkata`, `America/Los_Angeles` | `npm run test:tz` |
+| **Design System & UI Guard** | Zero undefined tokens, zero literal hex colors in components, zero non-token inline styles, zero emoji in UI, zero uppercase transforms, zero disallowed alerts | **0 errors** (all rules compliant) | `npm run check:ui` |
+| **Documentation Link Integrity** | Zero broken relative links across README and docs/*.md | **PASS** (all links resolve) | `npm run check:links` |
+| **Secret Leakage Guard** | Zero committed credentials or keys | **PASS** (0 secrets detected) | `npm run scan:secrets` |
+| **Single-Branch Guard** | Exactly `main` only on origin remote | **PASS** (remote origin has only `main`) | `npm run check:branches` |
+| **Production Build Size** | Clean bundle, optimized code splitting | Entry JS: **413.08 kB** (124.16 kB gzip); CSS: **75.83 kB** (11.45 kB gzip); Font: **34.00 kB** WOFF2 | `npm run build` |
+| **Mobile Lighthouse Scores** | Score >= 90 across all categories | Performance: **96–98**, Accessibility: **100**, Best Practices: **100**, SEO: **100** | See [`docs/evidence/lighthouse.md`](./evidence/lighthouse.md) |
+
+## Appendix A: Action catalog (approved candidate universe)
+
+| ID | Action | Axis | Cost | Gating |
+|---|---|---|---|---|
+| IN-01 | Keep windows and doors closed | Exposure | Free | Required at effective level ≥ 3 |
+| IN-02 | Brief ventilation in the cleanest window | Exposure (conditional) | Free | P-05/P-06/P-07 |
+| IN-03 | Set up one cleaner room (bedroom of most vulnerable member) | Exposure | Free | Always candidate |
+| IN-04 | Seal gaps (door/window leaks) with towels or draught strips | Exposure | Free–Low | Rented-friendly, non-permanent |
+| IN-05 | Run purifier correctly (closed room, right placement, filter care) | Exposure | Free | Requires purifier |
+| IN-06 | Window AC/HVAC on recirculate where available; clean filter | Exposure | Free | Requires AC/HVAC |
+| IN-07 | Cook with exhaust/chimney on | Exposure (+ source control) | Free | Requires exhaust |
+| IN-08 | Low-smoke cooking: lids, batch cooking, children out of kitchen | Exposure + Emissions (minor) | Free | Substitutes IN-07 |
+| IN-09 | No indoor smoke: incense, coils, candles, tobacco, burning | Exposure + Emissions | Free | Always |
+| IN-10 | Damp-wipe/mop instead of dry sweeping | Exposure | Free | Always |
+| PE-01 | Limit outdoor time for sensitive members; avoid long outdoor waits | Exposure | Free | Level ≥ 2 |
+| PE-02 | Fitted respirator (N95/FFP2) for essential outdoor trips | Exposure | Low | P-13, budget |
+| PE-03 | Indoor play/exercise instead of outdoor | Exposure | Free | Required for sensitive at level ≥ 2 |
+| PE-04 | Check on elders; follow own clinician plan; know when to seek care | Exposure (protective) | Free | Fixed medical-boundary text |
+| MO-01 | Shift commute to cleaner forecast window | Exposure + Emissions (if less idling) | Free | P-16 |
+| MO-02 | Use public transport for the trip | Emissions | Low | P-18, waiting caveat |
+| MO-03 | Carpool | Emissions | Free | P-18 |
+| MO-04 | Combine trips/errands | Emissions | Free | Always |
+| MO-05 | Work remotely on worst day | Both | Free | P-17 |
+| MO-06 | Engine off when waiting; no idling | Emissions | Free | P-18 |
+| MO-07 | Walk short trips | Both (conditional) | Free | P-08 |
+| CM-01 | No-burning pledge | Emissions | Free | Community |
+| CM-02 | Carpool board | Emissions | Free | Community |
+| CM-03 | Buddy-check for vulnerable residents | Exposure (support) | Free | Community |
+| CM-04 | Share daily briefing | Both (coordination) | Free | Community |
+
+## Appendix B: Risk register
+
+| # | Risk | Likelihood | Impact | Mitigation |
+|---|---|---|---|---|
+| 1 | Live data unavailable or looks "boring" on judging day | High | High | Keyless provider, caches, sample scenarios, scenario switcher |
+| 2 | LLM output unsafe/invalid | Medium | High | Candidate-set constraint, validator, deterministic fallback, abuse tests |
+| 3 | False precision in impact claims | Medium | High | Formula-only numbers, qualitative otherwise, banned-copy lint |
+| 4 | Scope creep / unfinished polish | High | High | Frozen scope, early usable build (Phase 4), gates per attempt |
+| 5 | Judges perceive "AQI app + chatbot" | Medium | High | Lead demo with plan, Radar, dual-axis, Trust Panel; no chat UI |
+| 6 | Agent writes untested or inconsistent code | Medium | Medium | Phase prompts, review per phase, CI gates, AGENTS.md |
+| 7 | Band thresholds or API details wrong | Medium | Medium | Verify against official docs in Phase 1–2; record in DATA_SOURCES.md; boundary tests |
+| 8 | Key leakage | Low | High | Server-side only, secret scan, `.env.example` |
+| 9 | Repo bloat or extra branches | Low | High | Size and branch guard scripts, no build output |
