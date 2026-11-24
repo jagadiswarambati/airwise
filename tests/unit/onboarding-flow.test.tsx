@@ -10,11 +10,7 @@ describe('OnboardingFlow Accessible Form (F6)', () => {
     const onCancel = vi.fn();
 
     const html = renderToString(
-      <OnboardingFlow
-        onLoadPriya={onLoadPriya}
-        onComplete={onComplete}
-        onCancel={onCancel}
-      />,
+      <OnboardingFlow onLoadPriya={onLoadPriya} onComplete={onComplete} onCancel={onCancel} />,
     );
 
     // 1. Layout & Stepper
@@ -29,7 +25,9 @@ describe('OnboardingFlow Accessible Form (F6)', () => {
 
     // 3. Demo household button with plain explanation (no child name)
     expect(html).toContain('Try a demo household');
-    expect(html).toContain('Explore AirWise immediately using a pre-configured multi-generational household');
+    expect(html).toContain(
+      'Explore AirWise immediately using a pre-configured multi-generational household',
+    );
 
     // 4. Geocode search input with proper Field label
     expect(html).toContain('Search city or town');
@@ -64,11 +62,7 @@ describe('OnboardingFlow Accessible Form (F6)', () => {
 
   it('renders with initialProfile pre-populated', () => {
     const html = renderToString(
-      <OnboardingFlow
-        initialProfile={PRIYA_PRESET}
-        onLoadPriya={() => {}}
-        onComplete={() => {}}
-      />,
+      <OnboardingFlow initialProfile={PRIYA_PRESET} onLoadPriya={() => {}} onComplete={() => {}} />,
     );
 
     expect(html).toContain('value="Hyderabad, India"');
@@ -77,12 +71,7 @@ describe('OnboardingFlow Accessible Form (F6)', () => {
   });
 
   it('ensures all interactive inputs in Step 1 have associated labels', () => {
-    const html = renderToString(
-      <OnboardingFlow
-        onLoadPriya={() => {}}
-        onComplete={() => {}}
-      />,
-    );
+    const html = renderToString(<OnboardingFlow onLoadPriya={() => {}} onComplete={() => {}} />);
 
     // Verify all input elements have IDs that match a label's htmlFor
     const inputMatches = html.matchAll(/<input[^>]+id="([^"]+)"/g);
