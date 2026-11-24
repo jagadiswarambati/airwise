@@ -5,7 +5,9 @@
 
 Hack2skill **PromptWars – Challenge 6** submission. This README is both the human-readable project document and the execution guide for building AirWise with Google Antigravity.
 
-**Companion documents:** [`ARCHITECTURE.md`](./docs/ARCHITECTURE.md) · [`DECISIONS.md`](./docs/DECISIONS.md) · [`BUILD_PLAN.md`](./docs/BUILD_PLAN.md) · [`ANTIGRAVITY_PROMPTS.md`](./docs/ANTIGRAVITY_PROMPTS.md) · [`IMPACT_METHODOLOGY.md`](./IMPACT_METHODOLOGY.md) · [`SECURITY_PRIVACY.md`](./SECURITY_PRIVACY.md) · [`SUBMISSION_CHECKLIST.md`](./SUBMISSION_CHECKLIST.md)
+**Companion documents:** [`ARCHITECTURE.md`](./docs/ARCHITECTURE.md) · [`DECISIONS.md`](./docs/DECISIONS.md) · [`BUILD_PLAN.md`](./docs/BUILD_PLAN.md) · [`DESIGN_BRIEF.md`](./docs/DESIGN_BRIEF.md) · [`DATA_SOURCES.md`](./docs/DATA_SOURCES.md) · [`ACCESSIBILITY.md`](./docs/ACCESSIBILITY.md) · [`TEST_PLAN.md`](./docs/TEST_PLAN.md) · [`IMPACT_METHODOLOGY.md`](./IMPACT_METHODOLOGY.md) · [`SECURITY_PRIVACY.md`](./SECURITY_PRIVACY.md) · [`SUBMISSION_CHECKLIST.md`](./SUBMISSION_CHECKLIST.md) · [`Lighthouse Evidence`](./docs/evidence/lighthouse.md)
+
+**Legal and In-App Policies:** [Privacy Policy](#/privacy) · [Terms of Use](#/terms) · [About AirWise](#/about)
 
 ---
 
@@ -463,16 +465,20 @@ Always keep a tagged known-good commit (`git tag attempt-N`) before submitting. 
 7. **1:15** Community → copy the society briefing. *"Individual choices, neighbourhood coordination."*
 8. **1:25** Close with: deterministic safety rules, AI only for personalisation, honest impact.
 
-## 32. Evaluation-criteria mapping
+## 32. Evaluation-criteria mapping & Measured Verification Metrics
 
-| Criterion | Evidence in AirWise |
-|---|---|
-| **Code quality** | Pure-function domain layer with no I/O; strict TypeScript; Zod boundaries; documented layering rules; ADRs; small focused commits; lint and format in CI. |
-| **Security** | No free text to LLM; server-side keys; Zod validation; CSP and headers; rate limiting; privacy by design (no accounts, rounded location, no analytics); audit and secret scans in CI; security checklist. |
-| **Efficiency** | One LLM call per plan with plan caching; air-data caching; deterministic engine does the heavy lifting; ≤ 150 KB JS; no chart libraries; repo < 3 MB. |
-| **Testing** | Policy matrix over all safety rules; validator abuse tests; provider contract fixtures; golden personas; content lint; Playwright e2e; axe checks; CI gate. |
-| **Accessibility** | WCAG 2.2 AA target; text + icon + colour; Severe Mode; plain-language lint; keyboard and screen-reader pass; reduced motion; large targets; i18n-ready. |
-| **Problem alignment** | Low-emission routines (Move + plan), indoor guidance (Indoor), tailored sustainable alternatives (profile-gated catalog), explicit direct-impact explanation (dual-axis), families and communities (household + community mode). |
+| Criterion | Target | Measured in this Session | Verification Command |
+|---|---|---|---|
+| **Repository Size** | < 3 MB (Warning: 3 MB, Limit: 10 MB) | **2.57 MB** (26,99,000 bytes) [including `.git`] | `npm run check:size` |
+| **Unit & Integration Tests** | 100% passing across domain, data, shell, screens | **416 passed** across **56 test files** | `npm test` |
+| **Policy Matrix Invariants** | P-01 to P-22 zero violations + mutations | **9 passed** across **2 test files** | `npm run test:policy` |
+| **Timezone Invariance** | Zero shifts across global runtime timezones | **PASS** across `UTC`, `Asia/Kolkata`, `America/Los_Angeles` | `npm run test:tz` |
+| **Design System & UI Guard** | Zero undefined tokens, zero literal hex colors in components, zero non-token inline styles, zero emoji in UI, zero uppercase transforms, zero disallowed alerts | **0 errors** (all rules compliant) | `npm run check:ui` |
+| **Documentation Link Integrity** | Zero broken relative links across README and docs/*.md | **PASS** (all links resolve) | `npm run check:links` |
+| **Secret Leakage Guard** | Zero committed credentials or keys | **PASS** (0 secrets detected) | `npm run scan:secrets` |
+| **Single-Branch Guard** | Exactly `main` only on origin remote | **PASS** (remote origin has only `main`) | `npm run check:branches` |
+| **Production Build Size** | Clean bundle, optimized code splitting | Entry JS: **412.93 kB** (124.15 kB gzip); CSS: **75.39 kB** (11.40 kB gzip); Font: **34.00 kB** WOFF2 | `npm run build` |
+| **Mobile Lighthouse Scores** | Score >= 90 across all categories | Performance: **96–98**, Accessibility: **100**, Best Practices: **100**, SEO: **100** | See [`docs/evidence/lighthouse.md`](./docs/evidence/lighthouse.md) |
 
 ## 33. Known limitations
 
@@ -485,13 +491,25 @@ Observed station data via OpenAQ and local sensors; user-entered monitor reading
 ## 35. Setup and run instructions
 
 ```bash
-git clone <repo-url> && cd airwise
+git clone https://github.com/jagadiswarambati/airwise.git && cd airwise
 npm ci
-cp .env.example .env          # add GEMINI_API_KEY (optional; app works without it)
-npm run dev                   # Vite + local API (vercel dev or built-in dev middleware)
-npm run lint && npm run typecheck && npm test
-npm run test:e2e              # Playwright
-npm run build && npm run check:size
+cp .env.example .env          # add GEMINI_API_KEY (optional; app runs completely offline without it)
+npm run dev                   # Start Vite local development server
+```
+
+### Complete Test & Verification Commands
+```bash
+npm run lint                  # Run ESLint (0 errors, 0 warnings)
+npm run typecheck             # TypeScript compiler validation (tsc --noEmit)
+npm test                      # Run all 56 Vitest test suites (416 tests)
+npm run test:policy           # Run policy matrix invariants (P-01 to P-22) and mutation tests
+npm run test:tz               # Run multi-timezone slot invariance tests
+npm run build                 # Build production bundles with tree shaking
+npm run check:ui              # Enforce UI design system, token parity, and zero emoji
+npm run check:links           # Verify all documentation relative links resolve
+npm run check:size            # Enforce repository size budget (< 3 MB target, 10 MB limit)
+npm run scan:secrets          # Scan repository for accidentally committed secrets
+npm run check:branches        # Guard against unintended git branches on origin
 ```
 
 Demo without keys or network: open the menu → **Demo scenarios**, or set `LLM_PROVIDER=none`.

@@ -1757,6 +1757,17 @@
   outline-offset: var(--focus-offset);
 }
 
+.aw-btn:active {
+  transform: translateY(1px);
+}
+
+.aw-btn:disabled,
+.aw-btn[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 .aw-btn-primary {
   background-color: var(--accent);
   color: var(--on-accent);
@@ -4272,4 +4283,23 @@
   color: var(--ink-2);
   line-height: 1.5;
   margin-top: var(--space-3);
+}
+
+.aw-callout {
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line);
+  background: var(--paper);
+}
+
+.aw-callout-primary {
+  border-color: var(--accent);
+  background: var(--paper);
+}
+
+.aw-member-fieldset {
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line);
+  background: var(--paper);
 }

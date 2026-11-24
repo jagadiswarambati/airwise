@@ -78,8 +78,8 @@ export function MoveScreen({ profile, snapshot }: MoveScreenProps) {
             </h2>
 
             <div className="commute-meta-text mb-3">
-              Usual departure: <strong>{profile.routine.leave}</strong> · Return:{' '}
-              <strong>{profile.routine.returnHome}</strong> · Modes:{' '}
+              Usual departure: <strong>{profile.routine.leave}</strong>, return:{' '}
+              <strong>{profile.routine.returnHome}</strong>, modes:{' '}
               <strong>{profile.travel.modes.join(', ')}</strong>
             </div>
 

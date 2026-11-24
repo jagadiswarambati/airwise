@@ -7,6 +7,8 @@ interface PageHeaderProps {
   description: string;
   isLowCostMode?: boolean;
   chips?: React.ReactNode;
+  h1Ref?: React.Ref<HTMLHeadingElement>;
+  meta?: React.ReactNode;
 }
 
 /**
@@ -19,14 +21,17 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
   description,
   isLowCostMode,
   chips,
+  h1Ref,
+  meta,
 }) => {
   return (
     <header className="aw-page-header">
       <div className="aw-page-header-text">
-        <h1 tabIndex={-1} className="aw-page-title">
+        <h1 ref={h1Ref} tabIndex={-1} className="aw-page-title">
           {title}
         </h1>
-        <p className="aw-page-description">{description}</p>
+        {description && <p className="aw-page-description">{description}</p>}
+        {meta && <div className="aw-page-meta">{meta}</div>}
       </div>
 
       {(isLowCostMode || chips) && (

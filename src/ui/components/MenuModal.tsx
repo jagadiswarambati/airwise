@@ -164,7 +164,7 @@ export const MenuModal: React.FC<MenuModalProps> = ({
             <p className="text-muted text-xs mt-1">
               {isManualSevere
                 ? 'Severe mode active: full-screen emergency guidance.'
-                : 'Preview or activate high-alert emergency guidance.'}
+                : 'Preview or activate severe emergency guidance.'}
             </p>
           </section>
         )}
@@ -203,7 +203,7 @@ export const MenuModal: React.FC<MenuModalProps> = ({
         <section className="aw-menu-section" aria-label="Testing Presets">
           <h3 className="aw-menu-section-title">Evaluation Presets</h3>
           <p className="text-muted text-xs mb-2">
-            Load standard testing household (Priya: asthmatic child, elder, low budget, no purifier).
+            Load standard testing household (3-member multi-generational family: asthmatic child, elder, low budget, no purifier).
           </p>
           <button
             type="button"
@@ -212,8 +212,9 @@ export const MenuModal: React.FC<MenuModalProps> = ({
               onLoadPriya();
               onClose();
             }}
+            aria-label="Load demo household preset: 3-member family"
           >
-            Load Priya's Household Preset
+            Load demo household preset
           </button>
         </section>
 

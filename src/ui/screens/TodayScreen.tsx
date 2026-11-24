@@ -143,15 +143,15 @@ export const TodayScreen: React.FC<TodayScreenProps> = ({
             {error || 'Network or service timeout. Check your connection or retry in a few moments.'}
           </p>
           <div className="aw-btn-row justify-center">
-            <button type="button" className="aw-btn aw-btn-primary" onClick={onRetry}>
-              Retry forecast
-            </button>
             <button
               type="button"
               className="aw-btn aw-btn-secondary"
               onClick={() => onSelectScenario('moderate')}
             >
               Use demo data
+            </button>
+            <button type="button" className="aw-btn aw-btn-primary" onClick={onRetry}>
+              Retry forecast
             </button>
           </div>
         </div>

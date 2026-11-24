@@ -420,7 +420,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
               </p>
 
               {/* Demo Household Shortcut Button */}
-              <div className="card card-callout-primary mb-4">
+              <div className="aw-callout aw-callout-primary mb-4">
                 <div className="flex-between flex-wrap gap-2">
                   <div>
                     <h2 className="text-sm font-bold">Try a demo household</h2>
@@ -624,15 +624,13 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
                     You can permanently remove all stored profile data at any time from Settings or
                     by clearing your browser site data.
                   </p>
-                  <div className="flex-row-center gap-3 mt-2 font-semibold">
+                  <div className="flex-row-center flex-wrap gap-4 mt-2 font-semibold">
                     <a href="#/privacy" className="aw-inline-link">
                       Privacy Policy
                     </a>
-                    <span>·</span>
                     <a href="#/terms" className="aw-inline-link">
                       Terms of Use
                     </a>
-                    <span>·</span>
                     <a href="#/about" className="aw-inline-link">
                       About AirWise
                     </a>
@@ -686,7 +684,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
                   <Fieldset
                     key={m.id}
                     legend={`Member ${idx + 1}: ${m.roleLabel}`}
-                    className="card mb-3"
+                    className="aw-member-fieldset mb-3"
                   >
                     <div className="flex-between mb-3">
                       <span className="text-sm font-semibold text-accent">{m.roleLabel}</span>

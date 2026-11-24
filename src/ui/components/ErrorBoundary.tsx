@@ -57,17 +57,17 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
           <div className="aw-btn-row mt-4">
             <button
               type="button"
-              className="aw-btn aw-btn-primary"
-              onClick={this.handleReload}
-            >
-              Reload this tab
-            </button>
-            <button
-              type="button"
               className="aw-btn aw-btn-secondary"
               onClick={this.handleReset}
             >
               Try again
+            </button>
+            <button
+              type="button"
+              className="aw-btn aw-btn-primary"
+              onClick={this.handleReload}
+            >
+              Reload this tab
             </button>
           </div>
         </div>

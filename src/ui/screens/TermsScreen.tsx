@@ -1,5 +1,6 @@
 import React from 'react';
 import { Prose } from '../components/Prose';
+import { PageHeader } from '../shell/PageHeader';
 import {
   OWNER_NAME,
   CONTACT_EMAIL,
@@ -42,16 +43,11 @@ export const TermsScreen: React.FC = () => {
 
   return (
     <div className="aw-screen aw-screen-terms">
-      <header className="aw-page-header">
-        <h1 tabIndex={-1} className="aw-page-title">
-          Terms of Use
-        </h1>
-        <p className="aw-page-description">
-          Please read these terms carefully before using AirWise. AirWise is an informational
-          decision assistant, not a healthcare provider or emergency alert system.
-        </p>
-        <p className="text-muted text-xs mt-2">Last updated: {LAST_UPDATED}</p>
-      </header>
+      <PageHeader
+        title="Terms of Use"
+        description="Please read these terms carefully before using AirWise. AirWise is an informational decision assistant, not a healthcare provider or emergency alert system."
+        meta={<p className="text-muted text-xs mt-2">Last updated: {LAST_UPDATED}</p>}
+      />
 
       <div className="aw-legal-layout">
         {/* Table of Contents for Desktop (>=1024px) */}

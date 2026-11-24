@@ -4,6 +4,7 @@ import { FeatureRow, FeatureItem } from '../components/FeatureRow';
 import { StepList, StepItem } from '../components/StepList';
 import { AudienceList, AudienceItem } from '../components/AudienceList';
 import { SiteAtmosphere } from '../components/SiteAtmosphere';
+import { PageHeader } from '../shell/PageHeader';
 import { navigate } from '../../state/route';
 import { loadPriyaPreset } from '../../state/profileStore';
 import { setScenario } from '../../state/scenarioStore';
@@ -127,19 +128,19 @@ export const AboutScreen: React.FC<AboutScreenProps> = ({
       <div className="aw-btn-row aw-about-btn-row">
         <button
           type="button"
-          className="aw-btn aw-btn-primary aw-btn-cta"
-          onClick={handleStartOnboarding}
-        >
-          <span>Set up my household</span>
-          <span className="text-xs opacity-80">(Takes 2 minutes)</span>
-        </button>
-        <button
-          type="button"
           className="aw-btn aw-btn-secondary aw-btn-cta"
           onClick={handleTryDemo}
         >
           <span>Try a demo household</span>
           <span className="text-xs opacity-80">(Instant preview)</span>
+        </button>
+        <button
+          type="button"
+          className="aw-btn aw-btn-primary aw-btn-cta"
+          onClick={handleStartOnboarding}
+        >
+          <span>Set up my household</span>
+          <span className="text-xs opacity-80">(Takes 2 minutes)</span>
         </button>
       </div>
 
@@ -182,16 +183,10 @@ export const AboutScreen: React.FC<AboutScreenProps> = ({
       <SiteAtmosphere />
 
       {/* Main Single H1 Landmark */}
-      <header className="aw-page-header">
-        <h1 tabIndex={-1} className="aw-page-title">
-          Clean-air advice for your household, every morning.
-        </h1>
-        <p className="aw-page-description">
-          AirWise converts urban air forecasts and your daily living reality into one
-          honest, prioritized clean-air plan. No accounts, no medical claims, and no
-          invented numbers.
-        </p>
-      </header>
+      <PageHeader
+        title="Clean-air advice for your household, every morning."
+        description="AirWise converts urban air forecasts and your daily living reality into one honest, prioritized clean-air plan. No accounts, no medical claims, and no invented numbers."
+      />
 
       {/* Top CTA Row */}
       {renderCtaBlock()}

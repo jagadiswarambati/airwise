@@ -1,5 +1,6 @@
 import React from 'react';
 import { Prose } from '../components/Prose';
+import { PageHeader } from '../shell/PageHeader';
 import {
   STORAGE_KEY_PROFILE,
   STORAGE_KEY_SCENARIO,
@@ -48,16 +49,11 @@ export const PrivacyScreen: React.FC = () => {
     <div className="aw-screen aw-screen-privacy">
       {/* Have this reviewed before commercial use. */}
 
-      <header className="aw-page-header">
-        <h1 tabIndex={-1} className="aw-page-title">
-          Privacy Policy
-        </h1>
-        <p className="aw-page-description">
-          AirWise is built on a privacy-by-design foundation. Your household profile stays
-          strictly in your browser. We collect no accounts, set zero cookies, and never track you.
-        </p>
-        <p className="text-muted text-xs mt-2">Last updated: {LAST_UPDATED}</p>
-      </header>
+      <PageHeader
+        title="Privacy Policy"
+        description="AirWise is built on a privacy-by-design foundation. Your household profile stays strictly in your browser. We collect no accounts, set zero cookies, and never track you."
+        meta={<p className="text-muted text-xs mt-2">Last updated: {LAST_UPDATED}</p>}
+      />
 
       <div className="aw-legal-layout">
         {/* Table of Contents for Desktop (>=1024px) */}

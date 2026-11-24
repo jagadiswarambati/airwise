@@ -135,7 +135,7 @@ export const LevelHero: React.FC<LevelHeroProps> = ({
           <span className="aw-level-hero-data-type">({dataTypeLabel})</span>
           {aqiText && (
             <span className="aw-level-hero-aqi">
-              · {aqiText}
+              ({aqiText})
             </span>
           )}
         </div>
