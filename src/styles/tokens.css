@@ -66,6 +66,7 @@
   --streak-duration: 4s;
   --streak-delay: 0s;
   --bar-width: 50%;
+  --stepper-progress: 20%;
 
   /* Spacing Scale (4px base) */
   --space-1: 0.25rem;

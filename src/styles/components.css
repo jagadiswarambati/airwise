@@ -4029,3 +4029,247 @@
   flex-wrap: wrap;
   gap: var(--space-2);
 }
+
+
+/* ==========================================================================
+   F6 Onboarding and Profile Accessible Form Primitives
+   ========================================================================== */
+
+.aw-onboarding-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.aw-onboarding-container {
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+  text-align: left;
+}
+
+.aw-onboarding-heading {
+  font-size: var(--text-2xl);
+  font-weight: var(--font-bold);
+  color: var(--ink);
+  margin: 0 0 var(--space-2) 0;
+}
+
+.aw-onboarding-heading:focus {
+  outline: none;
+}
+
+.aw-stepper {
+  width: 100%;
+  margin-bottom: var(--space-4);
+}
+
+.aw-stepper-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-1);
+}
+
+.aw-stepper-label {
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--ink);
+}
+
+.aw-stepper-track {
+  width: 100%;
+  height: 6px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.aw-stepper-fill {
+  width: var(--stepper-progress, 20%);
+  height: 100%;
+  background: var(--accent);
+  transition: width var(--transition-fast);
+}
+
+.aw-btn-row {
+  display: flex;
+  gap: var(--space-3);
+  justify-content: flex-end;
+  align-items: center;
+  margin-top: var(--space-4);
+}
+
+.aw-btn-row .aw-btn {
+  min-height: var(--target-min);
+}
+
+@media (max-width: 640px) {
+  .aw-btn-row {
+    flex-direction: column-reverse;
+    width: 100%;
+  }
+
+  .aw-btn-row .aw-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+.aw-field {
+  margin-bottom: var(--space-3);
+}
+
+.aw-field-label {
+  display: block;
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--ink);
+  margin-bottom: var(--space-1);
+}
+
+.aw-field-required {
+  color: var(--haze-3-ink);
+}
+
+.aw-field-helper {
+  font-size: var(--text-xs);
+  color: var(--ink-2);
+  margin: 0 0 var(--space-1) 0;
+}
+
+.aw-field-error {
+  font-size: var(--text-xs);
+  color: var(--haze-3-ink);
+  font-weight: var(--font-semibold);
+  margin-top: var(--space-1);
+}
+
+.aw-field-has-error .form-input,
+.aw-field-has-error .form-select {
+  border-color: var(--haze-3-ink);
+}
+
+.aw-fieldset {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.aw-legend {
+  font-size: var(--text-sm);
+  font-weight: var(--font-bold);
+  color: var(--ink);
+  padding: 0 var(--space-1);
+}
+
+.aw-fieldset-helper {
+  font-size: var(--text-xs);
+  color: var(--ink-2);
+  margin-bottom: var(--space-2);
+}
+
+.aw-fieldset-error {
+  font-size: var(--text-xs);
+  color: var(--haze-3-ink);
+  font-weight: var(--font-semibold);
+  margin-top: var(--space-1);
+}
+
+.aw-choice-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.aw-choice-label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--target-min);
+  cursor: pointer;
+  font-size: var(--text-sm);
+  color: var(--ink);
+}
+
+.aw-choice-input {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.aw-choice-title {
+  font-weight: var(--font-medium);
+}
+
+.aw-choice-desc {
+  font-size: var(--text-xs);
+  color: var(--ink-2);
+  display: block;
+}
+
+.aw-city-results-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: var(--space-2);
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.aw-city-result-btn {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: var(--target-min);
+  padding: var(--space-2);
+  border: none;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  color: var(--ink);
+}
+
+.aw-city-result-btn:hover {
+  background: var(--surface);
+}
+
+.aw-error-summary {
+  border: 2px solid var(--haze-3-ink);
+  background: var(--haze-3-bg);
+  color: var(--haze-3-ink);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+}
+
+.aw-error-summary:focus {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
+}
+
+.aw-error-summary-list {
+  list-style: disc;
+  padding-left: var(--space-4);
+  margin: 0;
+}
+
+.aw-error-summary-link {
+  color: var(--haze-3-ink);
+  text-decoration: underline;
+  font-weight: var(--font-semibold);
+}
+
+.aw-onboarding-privacy-notice {
+  font-size: var(--text-xs);
+  color: var(--ink-2);
+  line-height: 1.5;
+  margin-top: var(--space-3);
+}

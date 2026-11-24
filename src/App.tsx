@@ -164,6 +164,7 @@ export function App() {
               initialProfile={profile}
               onComplete={handleOnboardingComplete}
               onLoadPriya={handleLoadPriyaPreset}
+              onCancel={() => setIsEditing(false)}
             />
           </div>
         </main>
