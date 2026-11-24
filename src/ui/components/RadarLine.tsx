@@ -1,5 +1,5 @@
 import React from 'react';
-import { HouseholdProfile, RiskRadarResult } from '../../domain/types';
+import { type HouseholdProfile, type RiskRadarResult } from '../../domain/types';
 import { Icon } from '../icons';
 
 export interface RadarLineProps {

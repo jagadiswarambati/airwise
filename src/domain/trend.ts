@@ -1,4 +1,4 @@
-import { HourlyPoint, Trend } from './types';
+import { type HourlyPoint, type Trend } from './types';
 import { TREND_CHANGE_MIN_PERCENT, TREND_CHANGE_MIN_UGM3 } from './config/thresholds';
 import { parseLocalTimeToUtcEpoch } from './time';
 

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { validateAIPlanOutput } from '../../src/ai/validator';
-import { AIPlanInput, AIPlanOutput } from '../../src/ai/schema';
+import { type AIPlanInput, type AIPlanOutput } from '../../src/ai/schema';
 
 describe('Validator Abuse & Adversarial Suite (TEST_PLAN Section 4)', () => {
   const sampleInput: AIPlanInput = {

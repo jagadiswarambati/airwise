@@ -1,11 +1,11 @@
 import {
-  AirSnapshot,
-  HouseholdProfile,
-  HourlyPoint,
-  Member,
-  RiskRadarResult,
-  SlotId,
-  TimeSlot,
+  type AirSnapshot,
+  type HouseholdProfile,
+  type HourlyPoint,
+  type Member,
+  type RiskRadarResult,
+  type SlotId,
+  type TimeSlot,
 } from './types';
 import { getBandForPm25 } from './config/bands';
 import {

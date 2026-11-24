@@ -1,6 +1,6 @@
 import React from 'react';
-import { ActionCandidate } from '../../domain/types';
-import { Icon, IconName } from '../icons';
+import { type ActionCandidate } from '../../domain/types';
+import { Icon, type IconName } from '../icons';
 
 export interface ActionRowProps {
   candidate: ActionCandidate & { mustInclude?: boolean };

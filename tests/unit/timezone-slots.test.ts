@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { deriveTimeSlots } from '../../src/domain/radar';
 import { buildDeterministicPlan } from '../../src/domain/plan-builder';
-import { HourlyPoint } from '../../src/domain/types';
+import { type HourlyPoint } from '../../src/domain/types';
 import { PRIYA_PROFILE } from '../fixtures/sample-profiles';
 import { getSampleScenarioSnapshot } from '../../src/data/fallback-chain';
 

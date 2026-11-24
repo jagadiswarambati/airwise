@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { HouseholdProfile, HouseholdProfileSchema, roleLabelFor } from '../domain/types';
+import { type HouseholdProfile, HouseholdProfileSchema, roleLabelFor } from '../domain/types';
 import { STORAGE_KEY_PROFILE } from './keys';
-import { getSettings, setSettings, AirWiseSettings } from './settingsStore';
+import { getSettings, setSettings, type AirWiseSettings } from './settingsStore';
+import { warn as logWarn } from '../lib/logger';
 
 export const PROFILE_STORAGE_KEY = STORAGE_KEY_PROFILE;
 
@@ -73,7 +74,7 @@ export function getProfile(): HouseholdProfile | null {
       inMemoryProfile = normalised;
       return normalised;
     } else {
-      console.warn('Stored profile corrupted, resetting storage:', validated.error);
+      logWarn('Stored profile corrupted, resetting storage', validated.error.name);
       deleteProfile();
       return null;
     }
@@ -98,7 +99,8 @@ export function saveProfile(profile: HouseholdProfile): void {
       window.localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(validated));
     }
   } catch (error) {
-    console.warn('Failed to save profile to localStorage:', error);
+    const errorName = error instanceof Error ? error.name : 'StorageError';
+    logWarn('Failed to save profile to localStorage', errorName);
   }
 
   notifyListeners();

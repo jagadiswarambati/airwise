@@ -1,16 +1,17 @@
 import React from 'react';
 import {
-  AirSnapshot,
-  HouseholdProfile,
-  Plan,
-  RiskLevel,
-  RiskRadarResult,
+  type AirSnapshot,
+  type HouseholdProfile,
+  type Plan,
+  type RiskLevel,
+  type RiskRadarResult,
 } from '../../domain/types';
 import { LEVEL_NAMES, getLevelHeadline } from '../../domain/levels';
 import { Atmosphere } from '../atmosphere/Atmosphere';
 import { HazeBand } from './HazeBand';
-import { Icon, IconName } from '../icons';
+import { Icon, type IconName } from '../icons';
 import { parseLocalTime } from '../../domain/time';
+import { type Clock, systemClock } from '../../lib/clock';
 
 export interface LevelHeroProps {
   snapshot: AirSnapshot;
@@ -20,6 +21,7 @@ export interface LevelHeroProps {
   effectiveLevel: RiskLevel;
   animatedSkyEnabled?: boolean;
   isFallback?: boolean;
+  clock?: Clock;
 }
 
 function getIconForLevel(level: RiskLevel): IconName {
@@ -37,7 +39,7 @@ function getIconForLevel(level: RiskLevel): IconName {
   }
 }
 
-function getDataAgeInWords(snapshot: AirSnapshot): string {
+function getDataAgeInWords(snapshot: AirSnapshot, clock: Clock = systemClock): string {
   if (snapshot.source.dataType === 'sample' && !snapshot.fetchedAt) {
     return 'Demo data';
   }
@@ -46,7 +48,7 @@ function getDataAgeInWords(snapshot: AirSnapshot): string {
   }
 
   const fetched = new Date(snapshot.fetchedAt).getTime();
-  const now = Date.now();
+  const now = clock().getTime();
   const diffHours = Math.floor((now - fetched) / (1000 * 60 * 60));
 
   if (diffHours < 1) {
@@ -72,6 +74,7 @@ export const LevelHero: React.FC<LevelHeroProps> = ({
   effectiveLevel,
   animatedSkyEnabled,
   isFallback = false,
+  clock = systemClock,
 }) => {
   const localHour = parseLocalTime(
     snapshot.fetchedAt || snapshot.pm25.hourly[0]?.time || '',
@@ -91,7 +94,7 @@ export const LevelHero: React.FC<LevelHeroProps> = ({
   const dataTypeLabel =
     snapshot.source.dataType === 'sample' ? 'Sample' : 'Modelled';
 
-  const dataAge = getDataAgeInWords(snapshot);
+  const dataAge = getDataAgeInWords(snapshot, clock);
 
   // Validate supported AQI standards from DATA_SOURCES.md
   const aqiText =

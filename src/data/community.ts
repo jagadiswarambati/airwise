@@ -1,6 +1,7 @@
-import { AirSnapshot, HouseholdProfile, RiskLevel } from '../domain/types';
+import { type AirSnapshot, type HouseholdProfile, type RiskLevel } from '../domain/types';
 import { calculateAvoidedVkm } from '../domain/impact';
 import { LEVEL_NAMES } from '../domain/levels';
+import { type Clock, systemClock } from '../lib/clock';
 
 /**
  * Seeded Community Demo Constants (IMPACT_METHODOLOGY.md §9, Decision A-17)
@@ -83,25 +84,27 @@ export function generateShareableBriefing(
   effectiveLevel: number,
   topActionTitles: string[] = [],
   userPledgedNoBurning: boolean = false,
-  injectedDate?: Date | string,
+  injectedDateOrClock: Date | string | Clock = systemClock,
   societyName: string = GREEN_MEADOWS_SOCIETY.name,
 ): string {
   const levelLabel = LEVEL_NAMES[effectiveLevel as RiskLevel] || 'Caution';
   const pm25Now = snapshot.pm25.now !== null ? Math.round(snapshot.pm25.now) : 'Unmeasured';
 
-  const formattedDate = injectedDate
-    ? typeof injectedDate === 'string'
-      ? injectedDate
-      : injectedDate.toLocaleDateString(undefined, {
+  let resolvedDate: Date | string;
+  if (typeof injectedDateOrClock === 'function') {
+    resolvedDate = injectedDateOrClock();
+  } else {
+    resolvedDate = injectedDateOrClock;
+  }
+
+  const formattedDate =
+    typeof resolvedDate === 'string'
+      ? resolvedDate
+      : resolvedDate.toLocaleDateString(undefined, {
           weekday: 'short',
           month: 'short',
           day: 'numeric',
-        })
-    : new Date().toLocaleDateString(undefined, {
-        weekday: 'short',
-        month: 'short',
-        day: 'numeric',
-      });
+        });
 
   const totalPledges = SEEDED_NO_BURNING_PLEDGES + (userPledgedNoBurning ? 1 : 0);
 

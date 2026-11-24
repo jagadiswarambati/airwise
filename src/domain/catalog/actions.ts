@@ -1,4 +1,4 @@
-import { Action } from '../types';
+import { type Action } from '../types';
 
 /**
  * Master catalog of all 24 approved actions for AirWise.

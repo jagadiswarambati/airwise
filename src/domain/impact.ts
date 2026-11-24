@@ -1,11 +1,11 @@
 import {
-  Action,
-  AirSnapshot,
-  Confidence,
-  HouseholdProfile,
-  ImpactDirection,
-  ImpactLabel,
-  ImpactStatement,
+  type Action,
+  type AirSnapshot,
+  type Confidence,
+  type HouseholdProfile,
+  type ImpactDirection,
+  type ImpactLabel,
+  type ImpactStatement,
 } from './types';
 import { calculateExposureConfidence, calculateEmissionsConfidence } from './confidence';
 import {

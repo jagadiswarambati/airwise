@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { ApiResponse, createErrorResponse, ApiErrorBody } from './errors';
+import { type ApiResponse, createErrorResponse, type ApiErrorBody } from './errors';
 
 // Latitude (-90..90) and Longitude (-180..180) schemas with server-side 2dp rounding
 export const LatSchema = z.coerce

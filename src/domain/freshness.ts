@@ -1,4 +1,4 @@
-import { DataFreshness, HourlyPoint } from './types';
+import { type DataFreshness, type HourlyPoint } from './types';
 import {
   FRESH_THRESHOLD_HOURS,
   AGING_THRESHOLD_HOURS,

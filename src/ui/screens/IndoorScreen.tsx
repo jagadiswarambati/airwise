@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { HouseholdProfile, AirSnapshot, ActionCandidate } from '../../domain/types';
+import { type HouseholdProfile, type AirSnapshot, type ActionCandidate } from '../../domain/types';
 import { decideVentilation } from '../../domain/ventilation';
 import { useDailyPlan } from '../hooks/useDailyPlan';
 import { ActionRow } from '../components/ActionRow';

@@ -3,7 +3,7 @@ import zlib from 'node:zlib';
 import path from 'node:path';
 
 function crc32(buf) {
-  let table = [];
+  const table = [];
   for (let i = 0; i < 256; i++) {
     let c = i;
     for (let k = 0; k < 8; k++) {

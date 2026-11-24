@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { Confidence, RiskLevel, AgeGroup, BudgetTier } from '../domain/types';
+import { type Confidence, type RiskLevel, type AgeGroup, type BudgetTier } from '../domain/types';
 
 /**
  * Strict schema for AI-personalized clean-air plan output.

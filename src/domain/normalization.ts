@@ -1,11 +1,11 @@
 import {
-  AirSnapshot,
-  AQIReading,
-  AQIStandard,
-  DataFreshness,
-  DataSourceMetadata,
-  HourlyPoint,
-  Trend,
+  type AirSnapshot,
+  type AQIReading,
+  type AQIStandard,
+  type DataFreshness,
+  type DataSourceMetadata,
+  type HourlyPoint,
+  type Trend,
 } from './types';
 import { determineFreshness } from './freshness';
 import { calculateTrend } from './trend';

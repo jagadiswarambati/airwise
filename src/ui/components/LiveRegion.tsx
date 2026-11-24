@@ -1,11 +1,8 @@
-/* eslint-disable react-refresh/only-export-components */
 import React, { useState, useEffect } from 'react';
 import {
   subscribeLiveRegion,
   getCurrentAnnouncement,
 } from './liveRegionAnnouncer';
-
-export { announce } from './liveRegionAnnouncer';
 
 /**
  * Global polite live region component for screen reader announcements.

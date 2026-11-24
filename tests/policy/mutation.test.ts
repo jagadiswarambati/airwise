@@ -1,9 +1,14 @@
 import { describe, it, expect } from 'vitest';
-import { evaluatePolicy, PolicyEvaluationResult } from '../../src/domain/policy';
+import { evaluatePolicy, type PolicyEvaluationResult } from '../../src/domain/policy';
 import { buildDeterministicPlan } from '../../src/domain/plan-builder';
 import { deriveTimeSlots } from '../../src/domain/radar';
 import { ACTION_CATALOG } from '../../src/domain/catalog/actions';
-import { HouseholdProfile, AirSnapshot, TimeSlot, Plan } from '../../src/domain/types';
+import {
+  type HouseholdProfile,
+  type AirSnapshot,
+  type TimeSlot,
+  type Plan,
+} from '../../src/domain/types';
 import { generateHourlySeries } from '../fixtures/sample-profiles';
 import { assertAllPolicyInvariants } from './predicates';
 

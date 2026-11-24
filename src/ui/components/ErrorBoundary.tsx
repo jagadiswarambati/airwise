@@ -1,5 +1,6 @@
-import { Component, ReactNode, ErrorInfo } from 'react';
+import { Component, type ReactNode, type ErrorInfo } from 'react';
 import { Icon } from '../icons';
+import { error as logError } from '../../lib/logger';
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -21,9 +22,9 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     return { hasError: true, error };
   }
 
-  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+  componentDidCatch(error: Error, _errorInfo: ErrorInfo) {
     if (process.env.NODE_ENV !== 'test') {
-      console.error('ErrorBoundary caught an error:', error, errorInfo);
+      logError('ErrorBoundary caught an error', error.name);
     }
   }
 

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ScenarioType } from '../data/fallback-chain';
+import { type ScenarioType } from '../data/fallback-chain';
 
 export const SCENARIO_STORAGE_KEY = 'airwise_scenario_v1';
 

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { buildDeterministicPlan } from '../../src/domain/plan-builder';
 import { getSampleScenarioSnapshot } from '../../src/data/fallback-chain';
-import { HouseholdProfile, AirSnapshot } from '../../src/domain/types';
+import { type HouseholdProfile, type AirSnapshot } from '../../src/domain/types';
 import { evaluatePolicy } from '../../src/domain/policy';
 import { deriveTimeSlots, computeRiskRadar } from '../../src/domain/radar';
 import { PRIYA_PROFILE } from '../fixtures/sample-profiles';

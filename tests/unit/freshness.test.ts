@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { determineFreshness } from '../../src/domain/freshness';
-import { HourlyPoint } from '../../src/domain/types';
+import { type HourlyPoint } from '../../src/domain/types';
 
 describe('Data Freshness Engine', () => {
   const baseTime = new Date('2026-11-20T12:00:00Z');

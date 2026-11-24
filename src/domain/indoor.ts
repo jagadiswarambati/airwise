@@ -1,4 +1,4 @@
-import { HouseholdProfile, RiskLevel } from './types';
+import { type HouseholdProfile, type RiskLevel } from './types';
 import { COMBUSTION_SAFETY_CAVEAT } from './templates';
 
 export interface IndoorPolicyResult {

@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
-  ActionCandidate,
-  AirSnapshot,
-  HouseholdProfile,
-  Plan,
+  type ActionCandidate,
+  type AirSnapshot,
+  type HouseholdProfile,
+  type Plan,
 } from '../../domain/types';
 import { useDailyPlan } from '../hooks/useDailyPlan';
-import { buildTrustModel, TrustModel } from '../../data/trust';
-import { ScenarioType } from '../../data/fallback-chain';
+import { buildTrustModel, type TrustModel } from '../../data/trust';
+import { type ScenarioType } from '../../data/fallback-chain';
 import { useSettings } from '../../state/settingsStore';
 import { usePersonalizedPlan } from '../hooks/usePersonalizedPlan';
 import { ROUTE_DESCRIPTIONS } from '../../state/route';

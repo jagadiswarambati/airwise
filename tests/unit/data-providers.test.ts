@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { parseApiAirResponse, ApiAirResponse } from '../../src/data/providers/apiAir';
+import { parseApiAirResponse, type ApiAirResponse } from '../../src/data/providers/apiAir';
 import { airCache } from '../../src/data/cache';
 import { getAirSnapshot, getSampleScenarioSnapshot } from '../../src/data/fallback-chain';
 import { buildTrustModel } from '../../src/data/trust';
-import { Location } from '../../src/domain/types';
+import { type Location } from '../../src/domain/types';
 
 describe('Data Providers & Fallback Chain', () => {
   const testLocation: Location = {

@@ -1,3 +1,5 @@
+import { type Clock, systemClock } from '../../src/lib/clock';
+
 interface Bucket {
   tokens: number;
   lastRefill: number;
@@ -38,8 +40,9 @@ export interface RateLimitResult {
 export function checkRateLimit(
   ip: string,
   endpoint: 'general' | 'plan' = 'general',
-  now: number = Date.now(),
+  nowOrClock: number | Clock = systemClock,
 ): RateLimitResult {
+  const now = typeof nowOrClock === 'function' ? nowOrClock().getTime() : nowOrClock;
   const ratePerMin =
     endpoint === 'plan'
       ? 6

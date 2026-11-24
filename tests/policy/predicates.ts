@@ -1,5 +1,11 @@
-import { HouseholdProfile, AirSnapshot, TimeSlot, RiskLevel, Plan } from '../../src/domain/types';
-import { PolicyEvaluationResult } from '../../src/domain/policy';
+import {
+  type HouseholdProfile,
+  type AirSnapshot,
+  type TimeSlot,
+  type RiskLevel,
+  type Plan,
+} from '../../src/domain/types';
+import { type PolicyEvaluationResult } from '../../src/domain/policy';
 import { hasSensitiveMembers } from '../../src/domain/levels';
 import { COMBUSTION_SAFETY_CAVEAT } from '../../src/domain/templates';
 

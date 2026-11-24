@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { roleLabelFor, HouseholdProfile } from '../../src/domain/types';
+import { roleLabelFor, type HouseholdProfile } from '../../src/domain/types';
 import { getProfile } from '../../src/state/profileStore';
 import { PRIYA_PROFILE } from '../fixtures/sample-profiles';
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Dialog, DialogProps } from './Dialog';
+import { Dialog, type DialogProps } from './Dialog';
 import { Icon } from '../icons';
 
 export interface SheetProps extends Omit<DialogProps, 'children'> {

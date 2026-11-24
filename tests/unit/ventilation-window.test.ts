@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { decideVentilation } from '../../src/domain/ventilation';
-import { AirSnapshot, TimeSlot } from '../../src/domain/types';
+import { type AirSnapshot, type TimeSlot } from '../../src/domain/types';
 
 describe('Ventilation Decision Engine: Window Qualification & Band Thresholds', () => {
   const baseSlots: TimeSlot[] = [

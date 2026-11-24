@@ -1,5 +1,5 @@
 import React from 'react';
-import { ActionCandidate } from '../../domain/types';
+import { type ActionCandidate } from '../../domain/types';
 
 interface ActionCardProps {
   candidate: ActionCandidate;

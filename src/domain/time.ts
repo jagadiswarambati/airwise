@@ -13,6 +13,9 @@ export interface LocalTimeComponents {
   minuteOfDay: number;
 }
 
+/**
+ * Resolves the integer hour of day (0..23) in location-local time.
+ */
 export function getLocalHour(timeStr: string, utcOffsetSeconds?: number): number {
   return parseLocalTime(timeStr, utcOffsetSeconds).hour;
 }

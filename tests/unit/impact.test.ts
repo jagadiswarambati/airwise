@@ -6,7 +6,7 @@ import {
 } from '../../src/domain/confidence';
 import { ACTION_CATALOG } from '../../src/domain/catalog/actions';
 import { PRIYA_PROFILE, createSnapshot } from '../fixtures/sample-profiles';
-import { HouseholdProfile } from '../../src/domain/types';
+import { type HouseholdProfile } from '../../src/domain/types';
 
 describe('Dual-Axis Impact Engine', () => {
   it('returns both Exposure and Emissions axes independently for every action', () => {

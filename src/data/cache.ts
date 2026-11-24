@@ -1,5 +1,6 @@
-import { AirSnapshot } from '../domain/types';
+import { type AirSnapshot } from '../domain/types';
 import { determineFreshness } from '../domain/freshness';
+import { type Clock, systemClock } from '../lib/clock';
 
 export interface CacheEntry {
   snapshot: AirSnapshot;
@@ -44,12 +45,13 @@ class ClientAirCache {
    * Checks whether the cache entry is expired or missing.
    * TTL is only used to determine whether a refetch is needed.
    */
-  isExpired(lat: number, lon: number, now: number = Date.now()): boolean {
+  isExpired(lat: number, lon: number, clockOrNow: Clock | number = systemClock): boolean {
     const entry = this.loadEntry(lat, lon);
     if (!entry) {
       return true;
     }
-    return entry.expiresAt <= now;
+    const nowMs = typeof clockOrNow === 'function' ? clockOrNow().getTime() : clockOrNow;
+    return entry.expiresAt <= nowMs;
   }
 
   /**
@@ -57,17 +59,18 @@ class ClientAirCache {
    * Per Decision A-06 & A-32, returns the last real reading even after TTL expiration,
    * with data freshness recomputed against the current clock from fetchedAt.
    */
-  get(lat: number, lon: number, now: number = Date.now()): AirSnapshot | null {
+  get(lat: number, lon: number, clockOrNow: Clock | number = systemClock): AirSnapshot | null {
     const entry = this.loadEntry(lat, lon);
     if (!entry) {
       return null;
     }
 
+    const now = typeof clockOrNow === 'function' ? clockOrNow() : new Date(clockOrNow);
     const effectiveOffset = entry.snapshot.utcOffsetSeconds ?? entry.utcOffsetSeconds;
     const recomputedFreshness = determineFreshness(
       entry.snapshot.fetchedAt,
       entry.snapshot.pm25.hourly,
-      new Date(now),
+      now,
       effectiveOffset,
     );
 
@@ -78,9 +81,9 @@ class ClientAirCache {
     };
   }
 
-  set(lat: number, lon: number, snapshot: AirSnapshot): void {
+  set(lat: number, lon: number, snapshot: AirSnapshot, clock: Clock = systemClock): void {
     const key = this.getKey(lat, lon);
-    const now = Date.now();
+    const now = clock().getTime();
     const entry: CacheEntry = {
       snapshot,
       cachedAt: now,

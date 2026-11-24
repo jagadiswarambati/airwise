@@ -1,11 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import path from 'path';
 import fs from 'fs';
-// @ts-expect-error script module without types
 import { checkBranches } from '../../scripts/check-branches.mjs';
-// @ts-expect-error script module without types
 import { scanFile, shouldIgnore, SECRET_PATTERNS } from '../../scripts/scan-secrets.mjs';
-// @ts-expect-error script module without types
 import { getDirSizeBytes } from '../../scripts/check-size.mjs';
 
 describe('Guards Unit Tests: Fail-Closed Behavior & Path Anchoring', () => {

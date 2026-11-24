@@ -1,9 +1,9 @@
 import React from 'react';
 import {
-  AirSnapshot,
-  HouseholdProfile,
-  RiskLevel,
-  RiskRadarResult,
+  type AirSnapshot,
+  type HouseholdProfile,
+  type RiskLevel,
+  type RiskRadarResult,
 } from '../../domain/types';
 import { parseLocalTime, parseTimeToMinutes, formatMinutesToTime } from '../../domain/time';
 import { computeBaseLevel, LEVEL_NAMES } from '../../domain/levels';

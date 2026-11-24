@@ -1,4 +1,4 @@
-import { Member, RiskLevel } from './types';
+import { type Member, type RiskLevel } from './types';
 import { getBandForPm25 } from './config/bands';
 import { DEFAULT_FALLBACK_RISK_LEVEL } from './config/thresholds';
 
@@ -46,6 +46,9 @@ export function computeEffectiveLevel(baseLevel: RiskLevel, members: Member[]): 
   return Math.min(4, Math.max(0, adjusted)) as RiskLevel;
 }
 
+/**
+ * Produces an actionable, sentence-case summary banner headline tailored to the effective risk level.
+ */
 export function getLevelHeadline(effectiveLevel: RiskLevel): string {
   switch (effectiveLevel) {
     case 0:
@@ -61,6 +64,9 @@ export function getLevelHeadline(effectiveLevel: RiskLevel): string {
   }
 }
 
+/**
+ * Explains whether an extra vulnerability buffer was added to the base level to protect sensitive members.
+ */
 export function getLevelExplanation(effectiveLevel: RiskLevel, hasSensitive: boolean): string {
   const levelName = LEVEL_NAMES[effectiveLevel];
   if (hasSensitive && effectiveLevel > 0) {

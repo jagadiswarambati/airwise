@@ -1,5 +1,5 @@
 import React from 'react';
-import { AirSnapshot, RiskLevel } from '../../domain/types';
+import { type AirSnapshot, type RiskLevel } from '../../domain/types';
 import { RiskBadge } from './RiskBadge';
 import { Badge } from '../primitives';
 

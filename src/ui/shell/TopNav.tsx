@@ -1,5 +1,5 @@
 import React from 'react';
-import { AppRoute } from '../../state/route';
+import { type AppRoute } from '../../state/route';
 import { Icon } from '../icons';
 import { MAIN_NAV_ITEMS } from './nav-items';
 

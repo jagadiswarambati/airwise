@@ -4,7 +4,7 @@ import { airCache } from '../../src/data/cache';
 import { buildDeterministicPlan } from '../../src/domain/plan-builder';
 import { evaluatePolicy } from '../../src/domain/policy';
 import { PRIYA_PROFILE } from '../fixtures/sample-profiles';
-import { Location } from '../../src/domain/types';
+import { type Location } from '../../src/domain/types';
 
 describe('Fallback Chain & Honest Offline Behaviour (Decision A-32)', () => {
   const offlineLocation: Location = {

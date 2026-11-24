@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { QuickCheckResult } from '../../domain/quickchecks';
+import { type QuickCheckResult } from '../../domain/quickchecks';
 import { Sheet } from './Sheet';
 
 export interface QuickChecksCardProps {

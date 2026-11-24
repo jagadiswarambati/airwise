@@ -1,9 +1,9 @@
 import {
-  ActionCandidate,
-  AirSnapshot,
-  HouseholdProfile,
-  Plan,
-  TimelineSlot,
+  type ActionCandidate,
+  type AirSnapshot,
+  type HouseholdProfile,
+  type Plan,
+  type TimelineSlot,
 } from './types';
 import { deriveTimeSlots } from './radar';
 import { evaluatePolicy } from './policy';

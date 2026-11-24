@@ -1,6 +1,7 @@
-import { HouseholdProfile, AirSnapshot } from '../domain/types';
-import { AIPlanInput, AIPlanOutput } from './schema';
+import { type HouseholdProfile, type AirSnapshot } from '../domain/types';
+import { type AIPlanInput, type AIPlanOutput } from './schema';
 import { PROMPT_VERSION } from './prompts/planPrompt';
+import { type Clock, systemClock } from '../lib/clock';
 
 const planMemoryCache = new Map<string, { plan: AIPlanOutput; expiresAt: number }>();
 
@@ -29,6 +30,9 @@ function hashProfile(profile: HouseholdProfile): string {
   return simpleStringHash(JSON.stringify(normalized));
 }
 
+/**
+ * Computes a fast, non-cryptographic 32-bit hex digest for payload deduplication.
+ */
 export function simpleStringHash(str: string): string {
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
@@ -49,6 +53,7 @@ export function simpleStringHash(str: string): string {
 export function buildPlanCacheKey(
   inputOrProfile: AIPlanInput | HouseholdProfile,
   snapshot: AirSnapshot,
+  clock: Clock = systemClock,
 ): string {
   let payloadHash: string;
   if ('approvedCandidateIds' in inputOrProfile) {
@@ -57,29 +62,43 @@ export function buildPlanCacheKey(
     payloadHash = hashProfile(inputOrProfile);
   }
 
-  const hourBucket = new Date().toISOString().slice(0, 13); // e.g. "2026-11-22T10"
+  const hourBucket = clock().toISOString().slice(0, 13); // e.g. "2026-11-22T10"
   const pm25Value = snapshot.pm25.now !== null ? Math.round(snapshot.pm25.now) : 'null';
   const dataSig = `${pm25Value}_${snapshot.freshness}`;
   return `${payloadHash}_${hourBucket}_${dataSig}_v${PROMPT_VERSION}`;
 }
 
-export function getCachedPlan(key: string): AIPlanOutput | null {
+/**
+ * Retrieves an unexpired personalized plan matching the given cache key.
+ */
+export function getCachedPlan(key: string, clock: Clock = systemClock): AIPlanOutput | null {
   const entry = planMemoryCache.get(key);
   if (!entry) return null;
-  if (Date.now() > entry.expiresAt) {
+  if (clock().getTime() > entry.expiresAt) {
     planMemoryCache.delete(key);
     return null;
   }
   return entry.plan;
 }
 
-export function setCachedPlan(key: string, plan: AIPlanOutput, ttlMs: number = 60 * 60 * 1000): void {
+/**
+ * Stores a personalized plan in the in-memory cache with an hourly expiration TTL.
+ */
+export function setCachedPlan(
+  key: string,
+  plan: AIPlanOutput,
+  ttlMs: number = 60 * 60 * 1000,
+  clock: Clock = systemClock,
+): void {
   planMemoryCache.set(key, {
     plan,
-    expiresAt: Date.now() + ttlMs,
+    expiresAt: clock().getTime() + ttlMs,
   });
 }
 
+/**
+ * Evicts all cached personalized plans from memory.
+ */
 export function clearPlanCache(): void {
   planMemoryCache.clear();
 }

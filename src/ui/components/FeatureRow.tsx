@@ -1,5 +1,5 @@
 import React from 'react';
-import { Icon, IconName } from '../icons';
+import { Icon, type IconName } from '../icons';
 
 export interface FeatureItem {
   icon: IconName;

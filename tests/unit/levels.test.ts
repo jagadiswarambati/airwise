@@ -5,7 +5,7 @@ import {
   hasSensitiveMembers,
   LEVEL_NAMES,
 } from '../../src/domain/levels';
-import { Member } from '../../src/domain/types';
+import { type Member } from '../../src/domain/types';
 
 describe('Risk Levels & Vulnerability Engine (Rule P-02)', () => {
   const healthyAdults: Member[] = [

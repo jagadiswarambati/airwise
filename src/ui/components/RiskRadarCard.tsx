@@ -1,5 +1,5 @@
 import React from 'react';
-import { RiskRadarResult } from '../../domain/types';
+import { type RiskRadarResult } from '../../domain/types';
 import { Icon } from '../icons';
 
 interface RiskRadarCardProps {

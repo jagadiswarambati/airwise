@@ -1,10 +1,10 @@
 import {
-  ActionCandidate,
-  AirSnapshot,
-  HouseholdProfile,
-  RiskLevel,
-  SlotId,
-  TimeSlot,
+  type ActionCandidate,
+  type AirSnapshot,
+  type HouseholdProfile,
+  type RiskLevel,
+  type SlotId,
+  type TimeSlot,
 } from './types';
 import { ACTION_CATALOG } from './catalog/actions';
 import { computeBaseLevel, computeEffectiveLevel, hasSensitiveMembers } from './levels';

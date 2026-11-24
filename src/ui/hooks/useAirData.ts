@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { AirSnapshot, HouseholdProfile } from '../../domain/types';
-import { getAirSnapshot, ScenarioType } from '../../data/fallback-chain';
+import { type AirSnapshot, type HouseholdProfile } from '../../domain/types';
+import { getAirSnapshot, type ScenarioType } from '../../data/fallback-chain';
 
 export interface AirDataState {
   snapshot: AirSnapshot | null;

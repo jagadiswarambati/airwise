@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   parseApiAirResponse,
-  ApiAirResponse,
+  type ApiAirResponse,
   OPEN_METEO_ATTRIBUTION,
 } from '../../src/data/providers/apiAir';
 import { normalizeAirQuality } from '../../src/domain/normalization';

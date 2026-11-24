@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { HouseholdProfile } from '../../domain/types';
+import { type HouseholdProfile } from '../../domain/types';
 import { exportProfileJson, importProfileJson } from '../../state/profileStore';
 import { clearAllLocalData } from '../../state/lifecycle';
-import { useSettings, AppTheme } from '../../state/settingsStore';
-import { AppRoute, navigate } from '../../state/route';
+import { useSettings, type AppTheme } from '../../state/settingsStore';
+import { type AppRoute, navigate } from '../../state/route';
 import { Sheet } from './Sheet';
 import { Icon } from '../icons';
+import { type Clock, systemClock } from '../../lib/clock';
 
 interface MenuModalProps {
   isOpen: boolean;
@@ -16,6 +17,7 @@ interface MenuModalProps {
   onDeleteProfile: () => void;
   isManualSevere?: boolean;
   onToggleSevere?: () => void;
+  clock?: Clock;
 }
 
 export const MenuModal: React.FC<MenuModalProps> = ({
@@ -27,6 +29,7 @@ export const MenuModal: React.FC<MenuModalProps> = ({
   onDeleteProfile,
   isManualSevere,
   onToggleSevere,
+  clock = systemClock,
 }) => {
   const [importError, setImportError] = useState<string | null>(null);
   const [settings, updateSettings] = useSettings();
@@ -57,7 +60,7 @@ export const MenuModal: React.FC<MenuModalProps> = ({
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `airwise-profile-${new Date().toISOString().slice(0, 10)}.json`;
+      a.download = `airwise-profile-${clock().toISOString().slice(0, 10)}.json`;
       a.click();
       URL.revokeObjectURL(url);
     } catch (e: unknown) {

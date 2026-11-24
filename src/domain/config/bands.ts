@@ -1,4 +1,4 @@
-import { RiskLevel } from '../types';
+import { type RiskLevel } from '../types';
 
 export interface BandBreakpoint {
   max: number; // Upper bound (inclusive)
@@ -59,10 +59,16 @@ export const US_EPA_BANDS: RegionBandProfile = {
   ],
 };
 
+/**
+ * Returns the risk band configuration associated with the target geographic standard.
+ */
 export function getBandProfile(region: 'IN' | 'US' = 'IN'): RegionBandProfile {
   return region === 'US' ? US_EPA_BANDS : INDIA_CPCB_BANDS;
 }
 
+/**
+ * Maps a raw PM2.5 concentration (µg/m³) into its corresponding discrete risk band index.
+ */
 export function getBandForPm25(pm25: number, region: 'IN' | 'US' = 'IN'): RiskLevel {
   if (pm25 < 0) {
     return 0; // Safeguard negative sensor glitches to clean baseline
@@ -76,6 +82,9 @@ export function getBandForPm25(pm25: number, region: 'IN' | 'US' = 'IN'): RiskLe
   return 4;
 }
 
+/**
+ * Retrieves boundary metadata and official agency category labels for a given risk band level.
+ */
 export function getBandBreakpointInfo(level: RiskLevel, region: 'IN' | 'US' = 'IN'): BandBreakpoint {
   const profile = getBandProfile(region);
   const found = profile.bands.find((b) => b.level === level);

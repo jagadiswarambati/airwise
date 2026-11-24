@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { RiskLevel } from '../../domain/types';
+import { type RiskLevel } from '../../domain/types';
 import { computeAtmosphereModel } from './model';
 import './atmosphere.css';
 

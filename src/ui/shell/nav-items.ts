@@ -1,5 +1,5 @@
-import { AppRoute } from '../../state/route';
-import { IconName } from '../icons';
+import { type AppRoute } from '../../state/route';
+import { type IconName } from '../icons';
 
 export interface NavItem {
   id: AppRoute;

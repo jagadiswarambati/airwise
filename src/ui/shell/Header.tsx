@@ -1,6 +1,6 @@
 import React from 'react';
-import { AppRoute } from '../../state/route';
-import { ScenarioType } from '../../data/fallback-chain';
+import { type AppRoute } from '../../state/route';
+import { type ScenarioType } from '../../data/fallback-chain';
 import { Icon } from '../icons';
 import { TopNav } from './TopNav';
 

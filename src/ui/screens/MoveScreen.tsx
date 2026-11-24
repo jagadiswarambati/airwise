@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { HouseholdProfile, AirSnapshot, ActionCandidate } from '../../domain/types';
+import { type HouseholdProfile, type AirSnapshot, type ActionCandidate } from '../../domain/types';
 import { hasSensitiveMembers } from '../../domain/levels';
 import { evaluateMobilityPolicy } from '../../domain/mobility';
 import { calculateAvoidedVkm } from '../../domain/impact';

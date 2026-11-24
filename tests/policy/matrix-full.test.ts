@@ -5,15 +5,15 @@ import { evaluatePolicy } from '../../src/domain/policy';
 import { buildDeterministicPlan } from '../../src/domain/plan-builder';
 import { deriveTimeSlots } from '../../src/domain/radar';
 import {
-  HouseholdProfile,
-  AirSnapshot,
-  Mode,
-  CookingFuel,
-  BudgetTier,
-  DataFreshness,
-  Member,
-  HomeHeating,
-  RiskLevel,
+  type HouseholdProfile,
+  type AirSnapshot,
+  type Mode,
+  type CookingFuel,
+  type BudgetTier,
+  type DataFreshness,
+  type Member,
+  type HomeHeating,
+  type RiskLevel,
 } from '../../src/domain/types';
 import { generateHourlySeries } from '../fixtures/sample-profiles';
 import { assertAllPolicyInvariants } from './predicates';
@@ -288,8 +288,6 @@ describe('Full Cartesian Policy Matrix (691,200 Cases + P-22 Submatrix)', () => 
       'STATUS: PASS (100% invariant satisfaction, zero violations)',
       '================================================================================',
     ].join('\n');
-
-    console.log(logSummary);
 
     const docPath = path.join(process.cwd(), 'docs', 'matrix-run.txt');
     fs.writeFileSync(docPath, logSummary + '\n', 'utf-8');

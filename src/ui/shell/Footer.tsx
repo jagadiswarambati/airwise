@@ -1,5 +1,5 @@
 import React from 'react';
-import { AppRoute } from '../../state/route';
+import { type AppRoute } from '../../state/route';
 import { REPO_URL, DISCLAIMER_TEXT } from '../../config/site';
 import { Icon } from '../icons';
 

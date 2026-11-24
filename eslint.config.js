@@ -34,7 +34,41 @@ export default tsPlugin.config(
           caughtErrorsIgnorePattern: '^_',
         },
       ],
-      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-explicit-any': 'error',
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports', fixStyle: 'inline-type-imports' },
+      ],
+      'no-console': 'error',
+      eqeqeq: ['error', 'always'],
+      'prefer-const': 'error',
+      'no-nested-ternary': 'warn',
+      complexity: ['warn', 12],
+    },
+  },
+  // Allow console in logger abstraction and standalone maintenance scripts
+  {
+    files: ['src/lib/logger.ts', 'scripts/**/*.{js,mjs,ts}'],
+    rules: {
+      'no-console': 'off',
+    },
+  },
+  // Code length guidelines (skip tests and catalog/sample data files)
+  {
+    files: ['src/**/*.{ts,tsx}', 'api/**/*.{ts,tsx}'],
+    ignores: ['**/*.test.{ts,tsx}', '**/tests/**'],
+    rules: {
+      'max-lines-per-function': [
+        'warn',
+        { max: 80, skipBlankLines: true, skipComments: true, IIFEs: true },
+      ],
+    },
+  },
+  {
+    files: ['src/**/*.{ts,tsx}', 'api/**/*.{ts,tsx}'],
+    ignores: ['**/*.test.{ts,tsx}', '**/tests/**', 'src/domain/catalog/**', 'src/data/samples/**'],
+    rules: {
+      'max-lines': ['warn', { max: 300, skipBlankLines: true, skipComments: true }],
     },
   },
   // Boundary rule: domain must be pure TypeScript and never import from UI, data, state, ai, or external frameworks

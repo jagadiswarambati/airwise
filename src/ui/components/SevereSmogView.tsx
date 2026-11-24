@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ActionCandidate, AirSnapshot, Plan } from '../../domain/types';
+import { type ActionCandidate, type AirSnapshot, type Plan } from '../../domain/types';
 import { ActionDetailModal } from './ActionDetailModal';
 import { announce } from './liveRegionAnnouncer';
 import { Icon } from '../icons';

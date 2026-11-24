@@ -1,5 +1,6 @@
-import { AirSnapshot } from '../../domain/types';
-import { normalizeAirQuality, RawAirDataInput } from '../../domain/normalization';
+import { type AirSnapshot } from '../../domain/types';
+import { normalizeAirQuality, type RawAirDataInput } from '../../domain/normalization';
+import { type Clock, systemClock } from '../../lib/clock';
 
 export interface ApiAirResponse {
   currentPm25: number | null;
@@ -48,8 +49,10 @@ export const OPEN_METEO_ATTRIBUTION =
  */
 export function parseApiAirResponse(
   json: ApiAirResponse,
-  fetchedAt: string = new Date().toISOString(),
+  fetchedAtOrClock: string | Clock = systemClock,
 ): RawAirDataInput {
+  const fetchedAt =
+    typeof fetchedAtOrClock === 'function' ? fetchedAtOrClock().toISOString() : fetchedAtOrClock;
   return {
     currentPm25: json.currentPm25,
     hourly: json.hourly,
@@ -77,6 +80,7 @@ export async function fetchApiAir(
   lat: number,
   lon: number,
   options?: { timeoutMs?: number; country?: string },
+  clock: Clock = systemClock,
 ): Promise<AirSnapshot> {
   const timeoutMs = options?.timeoutMs || 6000;
   const targetRegion = options?.country === 'IN' ? 'IN' : 'US';
@@ -103,8 +107,8 @@ export async function fetchApiAir(
     }
 
     const data: ApiAirResponse = await response.json();
-    const rawInput = parseApiAirResponse(data);
-    const snapshot = normalizeAirQuality(rawInput, new Date(), targetRegion);
+    const rawInput = parseApiAirResponse(data, clock);
+    const snapshot = normalizeAirQuality(rawInput, clock(), targetRegion);
 
     // Attach weather and daylight from API response
     snapshot.daylight = data.daylight || data.weather?.daylight;

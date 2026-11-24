@@ -11,7 +11,7 @@ import { SkipLink } from './ui/shell/SkipLink';
 import { MenuModal } from './ui/components/MenuModal';
 import { ErrorBoundary } from './ui/components/ErrorBoundary';
 import { Skeleton } from './ui/components/Skeleton';
-import { HouseholdProfile } from './domain/types';
+import { type HouseholdProfile } from './domain/types';
 import { Icon } from './ui/icons';
 
 // Lazy loaded secondary screens

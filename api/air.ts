@@ -1,8 +1,9 @@
-import { createErrorResponse, ApiResponse, ApiErrorBody } from './_lib/errors';
+import { createErrorResponse, type ApiResponse, type ApiErrorBody } from './_lib/errors';
 import { getSecurityHeaders } from './_lib/headers';
 import { validateCorsOrigin } from './_lib/cors';
 import { checkRateLimit, getClientIp } from './_lib/rateLimit';
 import { parseQuery, AirQuerySchema, validatePayloadSize } from './_lib/validate';
+import { type Clock, systemClock } from '../src/lib/clock';
 
 interface UpstreamAirQualityResponse {
   current?: {
@@ -93,6 +94,7 @@ export async function handleAirCore(
   headers: Record<string, string | string[] | undefined> = {},
   method: string = 'GET',
   bodyBytes: number = 0,
+  clock: Clock = systemClock,
 ): Promise<ApiResponse<ApiAirResponseData | ApiErrorBody>> {
   // 1. Method check
   if (method !== 'GET' && method !== 'HEAD') {
@@ -118,7 +120,7 @@ export async function handleAirCore(
 
   // 4. Rate limit check
   const ip = getClientIp(headers);
-  const rateLimit = checkRateLimit(ip, 'general');
+  const rateLimit = checkRateLimit(ip, 'general', clock);
   if (!rateLimit.allowed) {
     return createErrorResponse(429, 'RateLimited', 'Too many requests. Please try again later.', {
       'Retry-After': String(rateLimit.retryAfterSeconds || 30),
@@ -133,8 +135,8 @@ export async function handleAirCore(
   const { lat, lon } = parsed.data;
 
   // 6. Cache lookup (10-minute TTL)
-  const now = Date.now();
-  const dateHour = new Date(now).toISOString().slice(0, 13); // e.g. "2026-11-22T04"
+  const now = clock().getTime();
+  const dateHour = clock().toISOString().slice(0, 13); // e.g. "2026-11-22T04"
   const cacheKey = `${lat},${lon}_${dateHour}`;
 
   const cached = serverAirCache.get(cacheKey);
@@ -181,7 +183,7 @@ export async function handleAirCore(
   }
 
   // 8. Normalization
-  const fetchedAt = new Date().toISOString();
+  const fetchedAt = clock().toISOString();
   const currentPm25 = typeof airJson?.current?.pm2_5 === 'number' ? airJson.current.pm2_5 : null;
 
   const hourlyTimes: string[] = Array.isArray(airJson?.hourly?.time) ? airJson.hourly.time : [];
@@ -281,7 +283,7 @@ export async function handleAirCore(
  * Vercel Serverless Function entry point.
  */
 export default {
-  async fetch(request: Request): Promise<Response> {
+  async fetch(request: Request, clock: Clock = systemClock): Promise<Response> {
     const url = new URL(request.url);
     const query: Record<string, string> = {};
     url.searchParams.forEach((value, key) => {
@@ -293,7 +295,7 @@ export default {
       headers[key.toLowerCase()] = value;
     });
 
-    const res = await handleAirCore(query, headers, request.method);
+    const res = await handleAirCore(query, headers, request.method, 0, clock);
     return new Response(JSON.stringify(res.body), {
       status: res.status,
       headers: res.headers,

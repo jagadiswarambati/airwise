@@ -1,8 +1,8 @@
 import {
-  AirSnapshot,
-  RiskLevel,
-  TimeSlot,
-  VentilationDecision,
+  type AirSnapshot,
+  type RiskLevel,
+  type TimeSlot,
+  type VentilationDecision,
 } from './types';
 import { getLevel1Threshold } from './config/bands';
 import { isMinuteInSlot, parseLocalHour, parseTimeToMinutes } from './time';

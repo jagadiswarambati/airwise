@@ -1,4 +1,4 @@
-import { ActionEvidence, Confidence, DataFreshness, DataType } from './types';
+import { type ActionEvidence, type Confidence, type DataFreshness, type DataType } from './types';
 
 const CONFIDENCE_VALUES: Record<Confidence, number> = {
   low: 1,
@@ -77,6 +77,9 @@ export function calculateConfidence(
   return calculateEmissionsConfidence(evidence, inputTier);
 }
 
+/**
+ * Generates a user-facing explanation describing why confidence was scored or downgraded.
+ */
 export function getConfidenceExplanation(
   confidence: Confidence,
   freshness: DataFreshness,

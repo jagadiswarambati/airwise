@@ -1,17 +1,17 @@
 import { useMemo } from 'react';
 import {
-  AirSnapshot,
-  HouseholdProfile,
-  Plan,
-  RiskLevel,
-  RiskRadarResult,
-  TimeSlot,
+  type AirSnapshot,
+  type HouseholdProfile,
+  type Plan,
+  type RiskLevel,
+  type RiskRadarResult,
+  type TimeSlot,
 } from '../../domain/types';
-import { PolicyEvaluationResult, evaluatePolicy } from '../../domain/policy';
+import { type PolicyEvaluationResult, evaluatePolicy } from '../../domain/policy';
 import { computeBaseLevel, computeEffectiveLevel } from '../../domain/levels';
 import { deriveTimeSlots, computeRiskRadar } from '../../domain/radar';
 import { buildDeterministicPlan } from '../../domain/plan-builder';
-import { evaluateQuickChecks, QuickCheckResult } from '../../domain/quickchecks';
+import { evaluateQuickChecks, type QuickCheckResult } from '../../domain/quickchecks';
 
 export interface DailyPlanResult {
   baseLevel: RiskLevel;

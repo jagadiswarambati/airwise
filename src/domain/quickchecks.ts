@@ -1,4 +1,4 @@
-import { AirSnapshot, HouseholdProfile, RiskLevel } from './types';
+import { type AirSnapshot, type HouseholdProfile, type RiskLevel } from './types';
 import { computeBaseLevel, computeEffectiveLevel } from './levels';
 import { decideVentilation } from './ventilation';
 import { deriveTimeSlots } from './radar';
@@ -59,6 +59,9 @@ export function checkChildPlayOutside(
   };
 }
 
+/**
+ * Deterministically evaluates whether window opening is safe, brief, or prohibited based on inversion forecasts.
+ */
 export function checkOpenWindow(
   profile: HouseholdProfile,
   snapshot: AirSnapshot,
@@ -98,6 +101,9 @@ export function checkOpenWindow(
   };
 }
 
+/**
+ * Evaluates outdoor walking safety based on pollution levels, active travel guidelines, and data freshness.
+ */
 export function checkWalkToSchoolOrWork(
   snapshot: AirSnapshot,
   effectiveLevel: RiskLevel,
@@ -139,6 +145,9 @@ export function checkWalkToSchoolOrWork(
   };
 }
 
+/**
+ * Evaluates air purifier utilization recommendations based on equipment availability and pollution severity.
+ */
 export function checkRunPurifier(
   profile: HouseholdProfile,
   effectiveLevel: RiskLevel,
@@ -172,6 +181,9 @@ export function checkRunPurifier(
   };
 }
 
+/**
+ * Aggregates all four deterministic quick checks for the household's current air conditions.
+ */
 export function evaluateQuickChecks(
   profile: HouseholdProfile,
   snapshot: AirSnapshot,

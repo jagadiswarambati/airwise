@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { TrustModel } from '../../data/trust';
+import { type TrustModel } from '../../data/trust';
 import { Icon } from '../icons';
 
 interface TrustPanelProps {

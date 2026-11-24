@@ -8,7 +8,7 @@ import { buildDeterministicPlan } from '../../src/domain/plan-builder';
 import { decideVentilation } from '../../src/domain/ventilation';
 import { evaluateMobilityPolicy } from '../../src/domain/mobility';
 import { PRIYA_PROFILE } from '../fixtures/sample-profiles';
-import { HouseholdProfile } from '../../src/domain/types';
+import { type HouseholdProfile } from '../../src/domain/types';
 import { getProfile, saveProfile, deleteProfile, PRIYA_PRESET } from '../../src/state/profileStore';
 
 describe('Deterministic Pipeline Integration Suite (Part 1)', () => {

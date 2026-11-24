@@ -3,7 +3,7 @@ import { renderToString } from 'react-dom/server';
 import { ImpactScreen } from '../../src/ui/screens/ImpactScreen';
 import { getSampleScenarioSnapshot } from '../../src/data/fallback-chain';
 import { PRIYA_PROFILE } from '../fixtures/sample-profiles';
-import { HouseholdProfile } from '../../src/domain/types';
+import { type HouseholdProfile } from '../../src/domain/types';
 
 describe('ImpactScreen Component (SSR)', () => {
   const snapshot = getSampleScenarioSnapshot('moderate');

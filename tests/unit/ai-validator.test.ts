@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { validateAIPlanOutput } from '../../src/ai/validator';
-import { AIPlanInput, AIPlanOutput } from '../../src/ai/schema';
+import { type AIPlanInput, type AIPlanOutput } from '../../src/ai/schema';
 import { applyAIOverlay } from '../../src/ai/overlay';
 import { buildDeterministicPlan } from '../../src/domain/plan-builder';
 import { getSampleScenarioSnapshot } from '../../src/data/fallback-chain';

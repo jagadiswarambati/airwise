@@ -3,15 +3,15 @@ import { buildDeterministicPlan } from '../../src/domain/plan-builder';
 import { deriveTimeSlots } from '../../src/domain/radar';
 import { evaluatePolicy } from '../../src/domain/policy';
 import {
-  HouseholdProfile,
-  AirSnapshot,
-  Mode,
-  CookingFuel,
-  BudgetTier,
-  DataFreshness,
-  Member,
-  HomeHeating,
-  RiskLevel,
+  type HouseholdProfile,
+  type AirSnapshot,
+  type Mode,
+  type CookingFuel,
+  type BudgetTier,
+  type DataFreshness,
+  type Member,
+  type HomeHeating,
+  type RiskLevel,
 } from '../../src/domain/types';
 import { generateHourlySeries } from '../fixtures/sample-profiles';
 import { assertAllPolicyInvariants } from './predicates';

@@ -1,7 +1,7 @@
 import React from 'react';
-import { RiskLevel } from '../../domain/types';
+import { type RiskLevel } from '../../domain/types';
 import { LEVEL_NAMES } from '../../domain/levels';
-import { Icon, IconName } from '../icons';
+import { Icon, type IconName } from '../icons';
 
 interface RiskBadgeProps {
   level: RiskLevel;

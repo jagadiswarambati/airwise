@@ -1,4 +1,4 @@
-import { Daylight, DataFreshness, HouseholdProfile, RiskLevel, TimeSlot } from './types';
+import { type Daylight, type DataFreshness, type HouseholdProfile, type RiskLevel, type TimeSlot } from './types';
 import { COMMUTE_DIFF_MIN_PERCENT, COMMUTE_DIFF_MIN_UGM3 } from './config/thresholds';
 import { getNowInLocation, parseLocalMinuteOfDay } from './time';
 

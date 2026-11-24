@@ -1,7 +1,7 @@
 import React from 'react';
 import { Sheet } from './Sheet';
-import { ScenarioType } from '../../data/fallback-chain';
-import { Icon, IconName } from '../icons';
+import { type ScenarioType } from '../../data/fallback-chain';
+import { Icon, type IconName } from '../icons';
 
 interface DemoSheetProps {
   isOpen: boolean;

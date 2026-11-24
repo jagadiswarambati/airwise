@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { AirSnapshot, HouseholdProfile, Plan, TimeSlot } from '../../domain/types';
-import { PolicyEvaluationResult } from '../../domain/policy';
+import { type AirSnapshot, type HouseholdProfile, type Plan, type TimeSlot } from '../../domain/types';
+import { type PolicyEvaluationResult } from '../../domain/policy';
 import { getPersonalizedPlan } from '../../ai/client';
 
 export interface UsePersonalizedPlanResult {

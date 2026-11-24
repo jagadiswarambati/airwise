@@ -1,24 +1,24 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
-  AgeGroup,
-  BudgetTier,
-  CookingFuel,
-  Flag,
-  HomeHeating,
-  HouseholdProfile,
+  type AgeGroup,
+  type BudgetTier,
+  type CookingFuel,
+  type Flag,
+  type HomeHeating,
+  type HouseholdProfile,
   HouseholdProfileSchema,
-  HousingType,
-  Member,
-  Mode,
-  Tenure,
+  type HousingType,
+  type Member,
+  type Mode,
+  type Tenure,
   roleLabelFor,
 } from '../../domain/types';
 import citiesData from '../../data/samples/cities.json';
-import { searchCities, GeocodeResult } from '../../data/providers/geocodeClient';
+import { searchCities, type GeocodeResult } from '../../data/providers/geocodeClient';
 import { announce } from '../components/liveRegionAnnouncer';
 import { Field } from '../primitives/Field';
 import { Fieldset } from '../primitives/Fieldset';
-import { ErrorSummary, ErrorItem } from '../primitives/ErrorSummary';
+import { ErrorSummary, type ErrorItem } from '../primitives/ErrorSummary';
 import { Stepper } from '../primitives/Stepper';
 import { Disclosure } from '../primitives/Disclosure';
 import { Icon } from '../icons';

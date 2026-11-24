@@ -1,10 +1,10 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import healthHandler, { handleHealthCore } from '../../api/health';
 import geocodeHandler, { handleGeocodeCore } from '../../api/geocode';
-import airHandler, { handleAirCore, clearAirCache, ApiAirResponseData } from '../../api/air';
+import airHandler, { handleAirCore, clearAirCache, type ApiAirResponseData } from '../../api/air';
 import planHandler, { handlePlanCore } from '../../api/plan';
 import { resetRateLimiter } from '../../api/_lib/rateLimit';
-import { ApiErrorBody } from '../../api/_lib/errors';
+import { type ApiErrorBody } from '../../api/_lib/errors';
 
 function asError(body: unknown): ApiErrorBody {
   return body as ApiErrorBody;

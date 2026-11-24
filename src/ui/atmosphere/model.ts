@@ -1,4 +1,4 @@
-import { RiskLevel } from '../../domain/types';
+import { type RiskLevel } from '../../domain/types';
 
 export type DayPhase = 'day' | 'dusk' | 'night';
 export type CelestialType = 'sun' | 'moon';

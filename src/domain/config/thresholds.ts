@@ -1,4 +1,4 @@
-import { RiskLevel } from '../types';
+import { type RiskLevel } from '../types';
 
 /**
  * Data freshness time windows in hours

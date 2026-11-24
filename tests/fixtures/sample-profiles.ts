@@ -1,4 +1,4 @@
-import { HouseholdProfile, AirSnapshot } from '../../src/domain/types';
+import { type HouseholdProfile, type AirSnapshot } from '../../src/domain/types';
 
 /**
  * Persona: Priya, 34

@@ -1,4 +1,4 @@
-import { AgeGroup, Flag, Mode, SlotId } from '../types';
+import { type AgeGroup, type Flag, type Mode, type SlotId } from '../types';
 
 /**
  * Member age vulnerability weights

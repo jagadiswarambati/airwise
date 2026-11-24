@@ -1,5 +1,5 @@
 import React from 'react';
-import { TrustModel } from '../../data/trust';
+import { type TrustModel } from '../../data/trust';
 import { OPEN_METEO_ATTRIBUTION } from '../../config/site';
 import { Icon } from '../icons';
 

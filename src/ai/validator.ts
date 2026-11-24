@@ -1,5 +1,5 @@
-import { AIPlanInput, AIPlanOutput, AIPlanOutputSchema } from './schema';
-import { Confidence } from '../domain/types';
+import { type AIPlanInput, type AIPlanOutput, AIPlanOutputSchema } from './schema';
+import { type Confidence } from '../domain/types';
 
 export interface ValidationSuccess {
   valid: true;

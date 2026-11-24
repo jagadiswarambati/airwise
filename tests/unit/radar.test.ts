@@ -5,7 +5,7 @@ import {
   findMostVulnerableMember,
 } from '../../src/domain/radar';
 import { PRIYA_PROFILE, HEALTHY_ADULT_PROFILE, createSnapshot } from '../fixtures/sample-profiles';
-import { Member } from '../../src/domain/types';
+import { type Member } from '../../src/domain/types';
 
 describe('Household Risk Radar Engine', () => {
   it('correctly identifies the most vulnerable member using max(ageWeight, ...flagWeights) per A-27', () => {

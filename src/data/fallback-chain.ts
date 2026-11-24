@@ -1,7 +1,8 @@
-import { AirSnapshot, Location } from '../domain/types';
+import { type AirSnapshot, type Location } from '../domain/types';
 import { getNowInLocation, parseLocalHour } from '../domain/time';
 import { airCache } from './cache';
 import { fetchApiAir } from './providers/apiAir';
+import { type Clock, systemClock } from '../lib/clock';
 
 // Bundled scenario imports
 import clearScenario from './samples/clear.json';
@@ -29,8 +30,9 @@ export interface AirDataResult {
  */
 export function getSampleScenarioSnapshot(
   scenario: 'clear' | 'moderate' | 'severe' | 'stale',
-  now: Date = new Date(),
+  clockOrDate: Clock | Date = systemClock,
 ): AirSnapshot {
+  const now = typeof clockOrDate === 'function' ? clockOrDate() : clockOrDate;
   let template: AirSnapshot;
   switch (scenario) {
     case 'clear':
@@ -120,16 +122,19 @@ export function getSampleScenarioSnapshot(
  *   is returned so Rule P-04 (cautious Level 2 defaults) applies.
  * - NEVER silently substitute sample data for live failures.
  */
-export async function getAirSnapshot(options: {
-  location: Location;
-  scenario?: ScenarioType;
-  forceRefresh?: boolean;
-}): Promise<AirDataResult> {
+export async function getAirSnapshot(
+  options: {
+    location: Location;
+    scenario?: ScenarioType;
+    forceRefresh?: boolean;
+  },
+  clock: Clock = systemClock,
+): Promise<AirDataResult> {
   const { location, scenario = 'live', forceRefresh = false } = options;
 
   // 1. Explicit Demo Scenario Mode
   if (scenario !== 'live') {
-    const snapshot = getSampleScenarioSnapshot(scenario);
+    const snapshot = getSampleScenarioSnapshot(scenario, clock);
     return {
       snapshot,
       sourceTier: 'sample',
@@ -138,8 +143,8 @@ export async function getAirSnapshot(options: {
   }
 
   // 2. Check Client Cache first unless forceRefresh is true
-  if (!forceRefresh && !airCache.isExpired(location.lat, location.lon)) {
-    const cachedSnapshot = airCache.get(location.lat, location.lon);
+  if (!forceRefresh && !airCache.isExpired(location.lat, location.lon, clock)) {
+    const cachedSnapshot = airCache.get(location.lat, location.lon, clock);
     if (cachedSnapshot) {
       return {
         snapshot: cachedSnapshot,
@@ -151,12 +156,17 @@ export async function getAirSnapshot(options: {
 
   // 3. Attempt Live Primary Fetch (/api/air)
   try {
-    const liveSnapshot = await fetchApiAir(location.lat, location.lon, {
-      country: location.country,
-      timeoutMs: 5000,
-    });
+    const liveSnapshot = await fetchApiAir(
+      location.lat,
+      location.lon,
+      {
+        country: location.country,
+        timeoutMs: 5000,
+      },
+      clock,
+    );
     // Store successful live snapshot in cache
-    airCache.set(location.lat, location.lon, liveSnapshot);
+    airCache.set(location.lat, location.lon, liveSnapshot, clock);
     return {
       snapshot: liveSnapshot,
       sourceTier: 'live',
@@ -166,7 +176,7 @@ export async function getAirSnapshot(options: {
     const errorMsg = error instanceof Error ? error.message : 'Network error';
 
     // 4. Try Expired or Stale Cache if available (Decision A-06 & A-32)
-    const cachedSnapshot = airCache.get(location.lat, location.lon);
+    const cachedSnapshot = airCache.get(location.lat, location.lon, clock);
     if (cachedSnapshot) {
       return {
         snapshot: cachedSnapshot,
@@ -186,8 +196,8 @@ export async function getAirSnapshot(options: {
         hourly: [],
       },
       trend: 'unknown',
-      observedAt: new Date().toISOString(),
-      fetchedAt: new Date().toISOString(),
+      observedAt: clock().toISOString(),
+      fetchedAt: clock().toISOString(),
       source: {
         id: 'fallback-none',
         name: 'Service Unavailable',

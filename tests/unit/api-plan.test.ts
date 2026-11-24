@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { handlePlanCore } from '../../api/plan';
 import { resetRateLimiter } from '../../api/_lib/rateLimit';
-import { ApiErrorBody } from '../../api/_lib/errors';
-import { AIPlanInput } from '../../src/ai/schema';
+import { type ApiErrorBody } from '../../api/_lib/errors';
+import { type AIPlanInput } from '../../src/ai/schema';
 
 function asError(body: unknown): ApiErrorBody {
   return body as ApiErrorBody;

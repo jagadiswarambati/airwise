@@ -1,12 +1,12 @@
 import {
-  AirSnapshot,
-  HouseholdProfile,
-  Plan,
-  TimeSlot,
+  type AirSnapshot,
+  type HouseholdProfile,
+  type Plan,
+  type TimeSlot,
 } from '../domain/types';
-import { PolicyEvaluationResult } from '../domain/policy';
+import { type PolicyEvaluationResult } from '../domain/policy';
 import { computeRiskRadar, findMostVulnerableMember } from '../domain/radar';
-import { AIPlanInput } from './schema';
+import { type AIPlanInput } from './schema';
 import { validateAIPlanOutput } from './validator';
 import { buildPlanCacheKey, getCachedPlan, setCachedPlan } from './plan-cache';
 import { applyAIOverlay } from './overlay';

@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { buildDeterministicPlan } from '../../src/domain/plan-builder';
 import { getSampleScenarioSnapshot } from '../../src/data/fallback-chain';
 import { PRIYA_PROFILE, HEALTHY_ADULT_PROFILE } from '../fixtures/sample-profiles';
-import { HouseholdProfile } from '../../src/domain/types';
+import { type HouseholdProfile } from '../../src/domain/types';
 
 describe('Low-Cost Protection Mode (Decision A-13)', () => {
   it('activates low-cost mode for Priya (low budget + no purifier)', () => {

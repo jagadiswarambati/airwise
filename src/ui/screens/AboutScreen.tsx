@@ -1,8 +1,8 @@
 import React from 'react';
 import { Prose } from '../components/Prose';
-import { FeatureRow, FeatureItem } from '../components/FeatureRow';
-import { StepList, StepItem } from '../components/StepList';
-import { AudienceList, AudienceItem } from '../components/AudienceList';
+import { FeatureRow, type FeatureItem } from '../components/FeatureRow';
+import { StepList, type StepItem } from '../components/StepList';
+import { AudienceList, type AudienceItem } from '../components/AudienceList';
 import { SiteAtmosphere } from '../components/SiteAtmosphere';
 import { PageHeader } from '../shell/PageHeader';
 import { navigate } from '../../state/route';

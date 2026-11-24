@@ -1,4 +1,4 @@
-import { AIPlanInput } from '../schema';
+import { type AIPlanInput } from '../schema';
 
 export const PROMPT_VERSION = '1.1.0';
 

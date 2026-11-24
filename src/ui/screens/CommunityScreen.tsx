@@ -1,5 +1,5 @@
 import React from 'react';
-import { HouseholdProfile, AirSnapshot, RiskLevel } from '../../domain/types';
+import { type HouseholdProfile, type AirSnapshot, type RiskLevel } from '../../domain/types';
 import { LEVEL_NAMES } from '../../domain/levels';
 import {
   GREEN_MEADOWS_SOCIETY,

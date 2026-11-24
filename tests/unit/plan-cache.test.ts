@@ -7,7 +7,7 @@ import {
 } from '../../src/ai/plan-cache';
 import { PRIYA_PROFILE } from '../fixtures/sample-profiles';
 import { getSampleScenarioSnapshot } from '../../src/data/fallback-chain';
-import { AIPlanOutput } from '../../src/ai/schema';
+import { type AIPlanOutput } from '../../src/ai/schema';
 
 describe('AI Plan Cache (Decision A-29)', () => {
   beforeEach(() => {

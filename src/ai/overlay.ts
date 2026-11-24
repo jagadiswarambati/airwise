@@ -1,5 +1,5 @@
-import { Plan, ActionCandidate, TimelineSlot } from '../domain/types';
-import { AIPlanOutput } from './schema';
+import { type Plan, type ActionCandidate, type TimelineSlot } from '../domain/types';
+import { type AIPlanOutput } from './schema';
 
 /**
  * Merges a strictly validated AI response onto the deterministic clean-air plan.

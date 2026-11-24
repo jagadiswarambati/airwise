@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { calculateTrend } from '../../src/domain/trend';
-import { HourlyPoint } from '../../src/domain/types';
+import { type HourlyPoint } from '../../src/domain/types';
 
 describe('Trend Engine', () => {
   it('detects rising trend when concentration increases by >= 5 µg/m³ and >= 10%', () => {

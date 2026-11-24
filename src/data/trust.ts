@@ -1,4 +1,4 @@
-import { AirSnapshot, Confidence } from '../domain/types';
+import { type AirSnapshot, type Confidence } from '../domain/types';
 
 export interface TrustModel {
   sourceName: string;
