@@ -50,7 +50,7 @@
   --sky-dusk: #fed7aa;
   --sky-night: #0f172a;
 
-  /* Atmosphere dynamic layer token defaults */
+  /* Atmosphere dynamic properties defaults */
   --sun-x: 50%;
   --sun-y: 20%;
   --ring-opacity: 0.75;
@@ -228,7 +228,7 @@
   --sky-dusk: #fed7aa;
   --sky-night: #0f172a;
 
-  /* Atmosphere dynamic layer token defaults */
+  /* Atmosphere dynamic properties defaults */
   --sun-x: 50%;
   --sun-y: 20%;
   --ring-opacity: 0.75;

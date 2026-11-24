@@ -4,7 +4,7 @@ export const SITE_URL = 'https://airwise-five.vercel.app';
 export const REPO_URL = 'https://github.com/jagadiswarambati/airwise';
 export const OWNER_NAME = 'AMBATI JAGADISWAR REDDY';
 export const CONTACT_EMAIL = 'ambatijagadiswarreddy@gmail.com';
-export const TERMS_JURISDICTION = '[[JURISDICTION]]';
+export const TERMS_JURISDICTION = 'India';
 export const LAST_UPDATED = '2026-11-23';
 
 export const OPEN_METEO_ATTRIBUTION =

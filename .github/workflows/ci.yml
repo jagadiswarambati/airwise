@@ -37,6 +37,9 @@ jobs:
       - name: UI design tokens and style checks
         run: npm run check:ui
 
+      - name: Broken link check
+        run: npm run check:links
+
       - name: Run unit & contract tests
         run: npm test
 

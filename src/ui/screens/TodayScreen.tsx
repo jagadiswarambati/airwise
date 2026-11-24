@@ -184,7 +184,7 @@ export const TodayScreen: React.FC<TodayScreenProps> = ({
           plan={plan}
           onExitSevereView={() => setDismissSevereView(true)}
           isManualOverride={isManualSevere}
-          onToggleManualOverride={onToggleSevere || (() => {})}
+          onToggleManualOverride={onToggleSevere || (() => { })}
         />
         {selectedAction && (
           <ActionDetailModal

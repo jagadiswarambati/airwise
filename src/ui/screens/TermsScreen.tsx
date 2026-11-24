@@ -77,12 +77,12 @@ export const TermsScreen: React.FC = () => {
         </aside>
 
         {/* Main Terms Prose */}
-        <main className="aw-legal-content">
+        <div className="aw-legal-content">
           <Prose>
             {/* 1. Not Medical Advice */}
             <section id="medical-boundary" tabIndex={-1} className="aw-prose-section">
               <h2>1. Informational Purpose Only — Not Medical Advice</h2>
-              <div className="banner banner-warning mb-4" role="alert">
+              <div className="banner banner-warning mb-4">
                 <p className="font-semibold">
                   {EMERGENCY_NOTICE}
                 </p>
@@ -194,7 +194,7 @@ export const TermsScreen: React.FC = () => {
                 (CC BY 4.0).
               </p>
               <p>
-                <strong>Source code licence:</strong> see the repository.
+                <strong>Source code licence:</strong> MIT.
               </p>
             </section>
 
@@ -237,7 +237,7 @@ export const TermsScreen: React.FC = () => {
               </button>
             </div>
           </Prose>
-        </main>
+        </div>
       </div>
     </div>
   );

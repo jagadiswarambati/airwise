@@ -85,7 +85,7 @@ export function IndoorScreen({ profile, snapshot }: IndoorScreenProps) {
         {/* P-22 Combustion Safety Warning */}
         {isCombustionRisk && (
           <div
-            role="alert"
+            role="status"
             className="combustion-alert"
           >
             <div className="flex-row-center gap-1">

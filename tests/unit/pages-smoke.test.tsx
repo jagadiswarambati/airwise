@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { renderToString } from 'react-dom/server';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -142,10 +142,11 @@ describe('Public Pages & Metadata Smoke Tests (F3)', () => {
 
       // Source code licence
       expect(html).toContain('Source code licence:');
-      expect(html).toContain('see the repository');
+      expect(html).toContain('MIT');
 
-      // Governing law unresolved token
+      // Governing law jurisdiction token
       expect(html).toContain(TERMS_JURISDICTION);
+      expect(TERMS_JURISDICTION).toBe('India');
 
       // Back to top button
       expect(html).toContain('Back to top');
@@ -159,16 +160,7 @@ describe('Public Pages & Metadata Smoke Tests (F3)', () => {
       expect(CONTACT_EMAIL).toBe('ambatijagadiswarreddy@gmail.com');
       expect(SITE_URL).toBe('https://airwise-five.vercel.app');
       expect(REPO_URL).toBe('https://github.com/jagadiswarambati/airwise');
-
-      // Token check: [[JURISDICTION]] should be reported as unresolved
-      if (TERMS_JURISDICTION.includes('[[') && TERMS_JURISDICTION.includes(']]')) {
-        const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-        console.warn(
-          `[Site Config] Unresolved configuration token detected: TERMS_JURISDICTION = "${TERMS_JURISDICTION}". Provide legal jurisdiction before commercial distribution.`,
-        );
-        expect(warnSpy).toHaveBeenCalled();
-        warnSpy.mockRestore();
-      }
+      expect(TERMS_JURISDICTION).toBe('India');
     });
   });
 

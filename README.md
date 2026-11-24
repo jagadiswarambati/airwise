@@ -5,7 +5,7 @@
 
 Hack2skill **PromptWars – Challenge 6** submission. This README is both the human-readable project document and the execution guide for building AirWise with Google Antigravity.
 
-**Companion documents:** [`ARCHITECTURE.md`](./ARCHITECTURE.md) · [`DECISIONS.md`](./DECISIONS.md) · [`docs/BUILD_PLAN.md`](./docs/BUILD_PLAN.md) · [`docs/ANTIGRAVITY_PROMPTS.md`](./docs/ANTIGRAVITY_PROMPTS.md)
+**Companion documents:** [`ARCHITECTURE.md`](./docs/ARCHITECTURE.md) · [`DECISIONS.md`](./docs/DECISIONS.md) · [`BUILD_PLAN.md`](./docs/BUILD_PLAN.md) · [`ANTIGRAVITY_PROMPTS.md`](./docs/ANTIGRAVITY_PROMPTS.md) · [`IMPACT_METHODOLOGY.md`](./IMPACT_METHODOLOGY.md) · [`SECURITY_PRIVACY.md`](./SECURITY_PRIVACY.md) · [`SUBMISSION_CHECKLIST.md`](./SUBMISSION_CHECKLIST.md)
 
 ---
 
@@ -513,7 +513,7 @@ No secret is ever prefixed `VITE_`.
 
 ## 37. License and credits
 
-MIT License. Air-quality and weather data by [Open-Meteo.com](https://open-meteo.com/) (attribution displayed in-app, per their terms), air-quality data derived from Copernicus Atmosphere Monitoring Service information. Health guidance informed by WHO air-quality guidelines and public-health advisories; content is informational and not medical advice. Built for Hack2skill PromptWars – Challenge 6.
+Source code licence: MIT. Air-quality and weather data by [Open-Meteo.com](https://open-meteo.com/) (attribution displayed in-app, per their terms), air-quality data derived from Copernicus Atmosphere Monitoring Service information. Health guidance informed by WHO air-quality guidelines and public-health advisories; content is informational and not medical advice. Built for Hack2skill PromptWars – Challenge 6.
 
 ---
 
@@ -563,5 +563,3 @@ MIT License. Air-quality and weather data by [Open-Meteo.com](https://open-meteo
 | 10 | Accessibility regressions late | Medium | Medium | axe in CI from Phase 3, manual pass in Phase 8 |
 | 11 | Serverless cold start / rate limit hurts demo | Medium | Medium | Deterministic plan renders first; AI overlay swaps in; preload on launch |
 | 12 | Health advice challenged | Low | High | Medical boundary, fixed text, respirator fit caveats, informational disclaimer |
-#   a i r w i s e  
- 

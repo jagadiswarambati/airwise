@@ -193,19 +193,96 @@ describe('Content Lint & Safety Audit', () => {
     }
   });
 
-  it('verifies no text-transform: uppercase in atmosphere.css or components.css LevelHero/ActionRow', () => {
-    const atmosphereCss = fs.readFileSync(path.resolve('src/ui/atmosphere/atmosphere.css'), 'utf8');
-    expect(atmosphereCss).not.toContain('text-transform: uppercase');
+  it('verifies no text-transform: uppercase across all CSS files in src/', () => {
+    function getCssFiles(dir: string): string[] {
+      let list: string[] = [];
+      for (const item of fs.readdirSync(dir, { withFileTypes: true })) {
+        const full = path.join(dir, item.name);
+        if (item.isDirectory()) {
+          list = list.concat(getCssFiles(full));
+        } else if (item.isFile() && item.name.endsWith('.css')) {
+          list.push(full);
+        }
+      }
+      return list;
+    }
 
-    const componentsCss = fs.readFileSync(path.resolve('src/styles/components.css'), 'utf8');
-    // Neither LevelHero nor ActionRow should use uppercase text transform
-    const levelHeroBlock = componentsCss.match(/\.aw-level-hero[\s\S]*?(?=\n\.[a-z]|\n\/\*|$)/);
-    if (levelHeroBlock) {
-      expect(levelHeroBlock[0]).not.toContain('text-transform: uppercase');
+    const cssFiles = getCssFiles(path.resolve('src'));
+    expect(cssFiles.length).toBeGreaterThan(0);
+
+    for (const file of cssFiles) {
+      const content = fs.readFileSync(file, 'utf8');
+      expect(content, `File ${file} contains text-transform: uppercase`).not.toMatch(
+        /text-transform\s*:\s*uppercase/i,
+      );
     }
-    const actionRowBlock = componentsCss.match(/\.aw-action-row[\s\S]*?(?=\n\.[a-z]|\n\/\*|$)/);
-    if (actionRowBlock) {
-      expect(actionRowBlock[0]).not.toContain('text-transform: uppercase');
+  });
+
+  it('ensures zero NUL bytes across all markdown files in the repository', () => {
+    function getMdFiles(dir: string): string[] {
+      let list: string[] = [];
+      for (const item of fs.readdirSync(dir, { withFileTypes: true })) {
+        if (item.name === 'node_modules' || item.name === '.git' || item.name === 'dist') continue;
+        const full = path.join(dir, item.name);
+        if (item.isDirectory()) {
+          list = list.concat(getMdFiles(full));
+        } else if (item.isFile() && item.name.endsWith('.md')) {
+          list.push(full);
+        }
+      }
+      return list;
     }
+
+    const mdFiles = getMdFiles(path.resolve('.'));
+    expect(mdFiles.length).toBeGreaterThan(0);
+
+    for (const file of mdFiles) {
+      const buf = fs.readFileSync(file);
+      let nuls = 0;
+      for (const b of buf) {
+        if (b === 0) nuls++;
+      }
+      expect(nuls, `Markdown file ${file} contains ${nuls} NUL byte(s)`).toBe(0);
+    }
+  });
+
+  it('ensures role="alert" is strictly confined to ErrorBoundary and ErrorSummary', () => {
+    function getCodeFiles(dir: string): string[] {
+      let list: string[] = [];
+      for (const item of fs.readdirSync(dir, { withFileTypes: true })) {
+        const full = path.join(dir, item.name);
+        if (item.isDirectory()) {
+          list = list.concat(getCodeFiles(full));
+        } else if (item.isFile() && /\.(tsx|ts)$/.test(item.name)) {
+          list.push(full);
+        }
+      }
+      return list;
+    }
+
+    const codeFiles = getCodeFiles(path.resolve('src'));
+    for (const file of codeFiles) {
+      const normalized = file.replace(/\\/g, '/');
+      if (normalized.endsWith('ErrorBoundary.tsx') || normalized.endsWith('ErrorSummary.tsx')) {
+        continue;
+      }
+      const content = fs.readFileSync(file, 'utf8');
+      const lines = content.split('\n');
+      lines.forEach((line, idx) => {
+        const trimmed = line.trim();
+        if (trimmed.startsWith('//') || trimmed.startsWith('/*') || trimmed.startsWith('*')) return;
+        expect(
+          line,
+          `Disallowed role="alert" in ${file}:${idx + 1}. Interrupts screen readers on page load.`,
+        ).not.toMatch(/role=["']alert["']/);
+      });
+    }
+  });
+
+  it('confirms Terms page renders jurisdiction as India and source code licence as MIT', () => {
+    const html = renderToString(React.createElement(TermsScreen));
+    expect(html).toContain('India');
+    expect(html).toContain('Source code licence:');
+    expect(html).toContain('MIT');
   });
 });

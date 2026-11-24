@@ -14,16 +14,15 @@ export interface RadarLineProps {
 export const RadarLine: React.FC<RadarLineProps> = ({ radar, profile }) => {
   // Format approximate time based on slot and profile routine
   let timeClause = '';
-  const routine = profile?.routine;
-  if (routine) {
-    if (radar.slotId === 'commute-out' && routine.leave) {
-      timeClause = `around ${routine.leave} on the `;
-    } else if (radar.slotId === 'commute-back' && routine.returnHome) {
-      timeClause = `around ${routine.returnHome} on the `;
-    } else if (radar.slotId === 'early-morning' && routine.wake) {
-      timeClause = `around ${routine.wake} in the `;
-    } else if (radar.slotId === 'evening' && routine.returnHome) {
-      timeClause = `around ${routine.returnHome} in the `;
+  if (profile) {
+    if (radar.slotId === 'commute-out') {
+      timeClause = `around ${profile.routine.leave} on the `;
+    } else if (radar.slotId === 'commute-back') {
+      timeClause = `around ${profile.routine.returnHome} on the `;
+    } else if (radar.slotId === 'early-morning') {
+      timeClause = `around ${profile.routine.wake} in the `;
+    } else if (radar.slotId === 'evening') {
+      timeClause = `around ${profile.routine.returnHome} in the `;
     }
   }
 
@@ -42,3 +41,4 @@ export const RadarLine: React.FC<RadarLineProps> = ({ radar, profile }) => {
     </div>
   );
 };
+

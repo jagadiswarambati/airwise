@@ -83,7 +83,7 @@ export const PrivacyScreen: React.FC = () => {
         </aside>
 
         {/* Main Privacy Prose */}
-        <main className="aw-legal-content">
+        <div className="aw-legal-content">
           <Prose>
             {/* 1. What AirWise Does */}
             <section id="overview" tabIndex={-1} className="aw-prose-section">
@@ -358,7 +358,7 @@ export const PrivacyScreen: React.FC = () => {
               </button>
             </div>
           </Prose>
-        </main>
+        </div>
       </div>
     </div>
   );

@@ -110,13 +110,44 @@ for (const file of uiFiles) {
   });
 }
 
+// 6. Scan src/**/*.css for disallowed text-transform: uppercase
+const cssFiles = scanFiles('src', (f) => f.endsWith('.css'));
+for (const file of cssFiles) {
+  const content = fs.readFileSync(file, 'utf8');
+  const lines = content.split('\n');
+  lines.forEach((line, idx) => {
+    if (/text-transform\s*:\s*uppercase/i.test(line)) {
+      errors.push(`Disallowed 'text-transform: uppercase' found in ${file}:${idx + 1}`);
+    }
+  });
+}
+
+// 7. Scan src/ for role="alert" outside ErrorBoundary and ErrorSummary
+for (const file of codeFiles) {
+  const normalized = file.replace(/\\/g, '/');
+  if (normalized.endsWith('ErrorBoundary.tsx') || normalized.endsWith('ErrorSummary.tsx')) {
+    continue;
+  }
+  const content = fs.readFileSync(file, 'utf8');
+  const lines = content.split('\n');
+  lines.forEach((line, idx) => {
+    const trimmed = line.trim();
+    if (trimmed.startsWith('//') || trimmed.startsWith('/*') || trimmed.startsWith('*')) return;
+    if (/role=["']alert["']/.test(line)) {
+      errors.push(
+        `Disallowed role="alert" found in ${file}:${idx + 1}. Page-load alerts interrupt screen readers; reserve for real blocking errors.`,
+      );
+    }
+  });
+}
+
 if (errors.length > 0) {
   console.error(`UI check failed with ${errors.length} error(s):`);
   errors.forEach((e) => console.error(' - ' + e));
   process.exit(1);
 } else {
   console.log(
-    'UI checks passed: 0 undefined tokens, 0 literal colors in code, 0 non-custom-prop inline styles, 0 emojis in UI.',
+    'UI checks passed: 0 undefined tokens, 0 literal colors in code, 0 non-custom-prop inline styles, 0 emojis in UI, 0 uppercase transforms, 0 disallowed alerts.',
   );
   process.exit(0);
 }
