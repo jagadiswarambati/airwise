@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { handleHealthCore } from '../../api/health';
-import { handleGeocodeCore } from '../../api/geocode';
-import { handleAirCore, clearAirCache, ApiAirResponseData } from '../../api/air';
-import { handlePlanCore } from '../../api/plan';
+import healthHandler, { handleHealthCore } from '../../api/health';
+import geocodeHandler, { handleGeocodeCore } from '../../api/geocode';
+import airHandler, { handleAirCore, clearAirCache, ApiAirResponseData } from '../../api/air';
+import planHandler, { handlePlanCore } from '../../api/plan';
 import { resetRateLimiter } from '../../api/_lib/rateLimit';
 import { ApiErrorBody } from '../../api/_lib/errors';
 
@@ -261,6 +261,115 @@ describe('Serverless API Handlers Contract & Safety Tests', () => {
       expect(asAir(res2.body).currentPm25).toBe(35.5);
       // Upstream fetch was NOT called again
       expect(mockFetch.mock.calls.length).toBe(initialFetchCount);
+    });
+  });
+
+  describe('Vercel Default Export .fetch(request) Signature', () => {
+    it('exports an object with a fetch method for all endpoints', () => {
+      expect(typeof healthHandler).toBe('object');
+      expect(typeof healthHandler.fetch).toBe('function');
+
+      expect(typeof geocodeHandler).toBe('object');
+      expect(typeof geocodeHandler.fetch).toBe('function');
+
+      expect(typeof airHandler).toBe('object');
+      expect(typeof airHandler.fetch).toBe('function');
+
+      expect(typeof planHandler).toBe('object');
+      expect(typeof planHandler.fetch).toBe('function');
+    });
+
+    it('healthHandler.fetch handles Request and returns Response with status 200 and JSON body', async () => {
+      const req = new Request('http://localhost/api/health');
+      const res = await healthHandler.fetch(req);
+      expect(res).toBeInstanceOf(Response);
+      expect(res.status).toBe(200);
+      const json = (await res.json()) as { status: string; llmEnabled: boolean };
+      expect(json.status).toBe('ok');
+      expect(typeof json.llmEnabled).toBe('boolean');
+    });
+
+    it('airHandler.fetch handles valid query with fetch mocked and returns Response with status 200', async () => {
+      const mockFetch = vi.fn().mockImplementation((url: string) => {
+        if (url.includes('air-quality')) {
+          return Promise.resolve({
+            ok: true,
+            json: () =>
+              Promise.resolve({
+                current: { time: '2026-11-22T10:00:00Z', pm2_5: 35.5 },
+                hourly: { time: ['2026-11-22T10:00:00Z'], pm2_5: [35.5], us_aqi: [99] },
+                timezone: 'Asia/Kolkata',
+                utc_offset_seconds: 19800,
+              }),
+          });
+        }
+        return Promise.resolve({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              daily: { sunrise: ['2026-11-22T06:15:00Z'], sunset: ['2026-11-22T17:45:00Z'] },
+              hourly: { time: ['2026-11-22T10:00:00Z'], temperature_2m: [25] },
+            }),
+        });
+      });
+      vi.stubGlobal('fetch', mockFetch);
+
+      const req = new Request('http://localhost/api/air?lat=17.38&lon=78.49');
+      const res = await airHandler.fetch(req);
+      expect(res).toBeInstanceOf(Response);
+      expect(res.status).toBe(200);
+      const json = (await res.json()) as ApiAirResponseData;
+      expect(json.currentPm25).toBe(35.5);
+    });
+
+    it('geocodeHandler.fetch handles valid query with fetch mocked and returns Response with status 200', async () => {
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValue({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              results: [
+                {
+                  name: 'Delhi',
+                  latitude: 28.61,
+                  longitude: 77.23,
+                  country_code: 'IN',
+                  admin1: 'Delhi',
+                  timezone: 'Asia/Kolkata',
+                },
+              ],
+            }),
+        }),
+      );
+
+      const req = new Request('http://localhost/api/geocode?q=Delhi');
+      const res = await geocodeHandler.fetch(req);
+      expect(res).toBeInstanceOf(Response);
+      expect(res.status).toBe(200);
+      const json = (await res.json()) as Array<{ name: string }>;
+      expect(Array.isArray(json)).toBe(true);
+      expect(json[0].name).toBe('Delhi');
+    });
+
+    it('planHandler.fetch handles Request and returns Response with status and JSON body', async () => {
+      const req405 = new Request('http://localhost/api/plan', { method: 'GET' });
+      const res405 = await planHandler.fetch(req405);
+      expect(res405).toBeInstanceOf(Response);
+      expect(res405.status).toBe(405);
+      const json405 = (await res405.json()) as ApiErrorBody;
+      expect(json405.error.code).toBe('MethodNotAllowed');
+
+      const req400 = new Request('http://localhost/api/plan', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: 'invalid-json',
+      });
+      const res400 = await planHandler.fetch(req400);
+      expect(res400).toBeInstanceOf(Response);
+      expect(res400.status).toBe(400);
+      const json400 = (await res400.json()) as ApiErrorBody;
+      expect(json400.error.code).toBe('ValidationError');
     });
   });
 });

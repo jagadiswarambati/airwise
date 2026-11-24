@@ -49,15 +49,17 @@ export async function handleHealthCore(
 /**
  * Vercel Serverless Function entry point.
  */
-export default async function handler(request: Request): Promise<Response> {
-  const headers: Record<string, string> = {};
-  request.headers.forEach((value, key) => {
-    headers[key.toLowerCase()] = value;
-  });
+export default {
+  async fetch(request: Request): Promise<Response> {
+    const headers: Record<string, string> = {};
+    request.headers.forEach((value, key) => {
+      headers[key.toLowerCase()] = value;
+    });
 
-  const res = await handleHealthCore(headers, request.method);
-  return new Response(JSON.stringify(res.body), {
-    status: res.status,
-    headers: res.headers,
-  });
-}
+    const res = await handleHealthCore(headers, request.method);
+    return new Response(JSON.stringify(res.body), {
+      status: res.status,
+      headers: res.headers,
+    });
+  },
+};

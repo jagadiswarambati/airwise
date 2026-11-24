@@ -259,16 +259,18 @@ async function callGeminiJsonMode(prompt: string, apiKey: string): Promise<unkno
 /**
  * Vercel Serverless Function entry point.
  */
-export default async function handler(request: Request): Promise<Response> {
-  const headers: Record<string, string> = {};
-  request.headers.forEach((value, key) => {
-    headers[key.toLowerCase()] = value;
-  });
+export default {
+  async fetch(request: Request): Promise<Response> {
+    const headers: Record<string, string> = {};
+    request.headers.forEach((value, key) => {
+      headers[key.toLowerCase()] = value;
+    });
 
-  const rawBody = await request.text();
-  const res = await handlePlanCore(rawBody, headers, request.method);
-  return new Response(JSON.stringify(res.body), {
-    status: res.status,
-    headers: res.headers,
-  });
-}
+    const rawBody = await request.text();
+    const res = await handlePlanCore(rawBody, headers, request.method);
+    return new Response(JSON.stringify(res.body), {
+      status: res.status,
+      headers: res.headers,
+    });
+  },
+};

@@ -117,21 +117,23 @@ export async function handleGeocodeCore(
 /**
  * Vercel Serverless Function entry point.
  */
-export default async function handler(request: Request): Promise<Response> {
-  const url = new URL(request.url);
-  const query: Record<string, string> = {};
-  url.searchParams.forEach((value, key) => {
-    query[key] = value;
-  });
+export default {
+  async fetch(request: Request): Promise<Response> {
+    const url = new URL(request.url);
+    const query: Record<string, string> = {};
+    url.searchParams.forEach((value, key) => {
+      query[key] = value;
+    });
 
-  const headers: Record<string, string> = {};
-  request.headers.forEach((value, key) => {
-    headers[key.toLowerCase()] = value;
-  });
+    const headers: Record<string, string> = {};
+    request.headers.forEach((value, key) => {
+      headers[key.toLowerCase()] = value;
+    });
 
-  const res = await handleGeocodeCore(query, headers, request.method);
-  return new Response(JSON.stringify(res.body), {
-    status: res.status,
-    headers: res.headers,
-  });
-}
+    const res = await handleGeocodeCore(query, headers, request.method);
+    return new Response(JSON.stringify(res.body), {
+      status: res.status,
+      headers: res.headers,
+    });
+  },
+};
