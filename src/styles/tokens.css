@@ -67,12 +67,18 @@
   --streak-delay: 0s;
 
   /* Spacing Scale (4px base) */
-  --space-1: 0.25rem;  /* 4px */
-  --space-2: 0.5rem;   /* 8px */
-  --space-3: 0.75rem;  /* 12px */
-  --space-4: 1rem;     /* 16px */
-  --space-5: 1.5rem;   /* 24px */
-  --space-6: 2rem;     /* 32px */
+  --space-1: 0.25rem;
+  /* 4px */
+  --space-2: 0.5rem;
+  /* 8px */
+  --space-3: 0.75rem;
+  /* 12px */
+  --space-4: 1rem;
+  /* 16px */
+  --space-5: 1.5rem;
+  /* 24px */
+  --space-6: 2rem;
+  /* 32px */
 
   /* Radius Scale: 8px / 12px / full */
   --radius-sm: 8px;
@@ -83,12 +89,18 @@
   --font-sans: 'Atkinson Hyperlegible Next', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
 
-  --text-xs: 0.75rem;    /* 12px */
-  --text-sm: 0.875rem;   /* 14px */
-  --text-base: 1rem;     /* 16px */
-  --text-lg: 1.125rem;   /* 18px */
-  --text-xl: 1.25rem;    /* 20px */
-  --text-2xl: 1.5rem;    /* 24px */
+  --text-xs: 0.75rem;
+  /* 12px */
+  --text-sm: 0.875rem;
+  /* 14px */
+  --text-base: 1rem;
+  /* 16px */
+  --text-lg: 1.125rem;
+  /* 18px */
+  --text-xl: 1.25rem;
+  /* 20px */
+  --text-2xl: 1.5rem;
+  /* 24px */
 
   --font-normal: 400;
   --font-medium: 500;
@@ -287,10 +299,14 @@
   --sky-night: #1a0526;
 
   /* High Legibility Scaling (Base >= 20px) */
-  --text-base: 1.25rem;  /* 20px */
-  --text-lg: 1.375rem;   /* 22px */
-  --text-xl: 1.5rem;     /* 24px */
-  --text-2xl: 1.75rem;   /* 28px */
+  --text-base: 1.25rem;
+  /* 20px */
+  --text-lg: 1.375rem;
+  /* 22px */
+  --text-xl: 1.5rem;
+  /* 24px */
+  --text-2xl: 1.75rem;
+  /* 28px */
 
   --focus-ring: 3px solid var(--accent);
   --shadow-sheet: 0 2px 8px rgba(0, 0, 0, 0.5);
