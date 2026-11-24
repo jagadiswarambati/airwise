@@ -80,7 +80,7 @@ export const ActionDetailModal: React.FC<ActionDetailModalProps> = ({ candidate,
           </div>
         </section>
 
-        {/* Transparent Boundaries: What This Action Does NOT Change */}
+        {/* Action Boundaries: What This Action Does NOT Change */}
         <section aria-label="What This Action Does Not Change" className="mb-4">
           <h3 className="modal-section-subtitle mb-1">WHAT THIS DOES NOT CHANGE</h3>
           <div className="card-subtle text-sm">

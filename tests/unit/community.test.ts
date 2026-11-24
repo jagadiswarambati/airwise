@@ -67,8 +67,9 @@ describe('Community Data Layer & Formula C1', () => {
     expect(briefing).toContain('2. Wear fitted respirator');
     expect(briefing).toContain('3. Work remotely');
 
-    // 5. Includes buddy check counts (seniors, children)
-    expect(briefing).toContain('24 seniors and 19 families');
+    // 5. Includes buddy check single count
+    expect(briefing).toContain('Please check on neighbours who may need help today');
+    expect(briefing).toContain('43 households');
 
     // 6. Includes "Demo data" marker and disclaimer
     expect(briefing).toContain('Demo data: Green Meadows Apartments');

@@ -65,6 +65,7 @@
   --streak-top: 30%;
   --streak-duration: 4s;
   --streak-delay: 0s;
+  --bar-width: 50%;
 
   /* Spacing Scale (4px base) */
   --space-1: 0.25rem;

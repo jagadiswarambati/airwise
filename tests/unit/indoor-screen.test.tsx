@@ -11,7 +11,7 @@ describe('IndoorScreen Component (SSR)', () => {
 
     expect(html).toContain('Smart Ventilation Advisor');
     expect(html).toContain('Keep windows closed');
-    expect(html).toContain('Cleaner-Room Sanctuary');
+    expect(html).toContain('Cleaner room');
   });
 
   it('renders Smart Ventilation Advisor with open verdict for clear scenario', () => {

@@ -10,7 +10,7 @@ describe('CommunityScreen Component (SSR)', () => {
   it('renders Demo data banner with Green Meadows Apartments identity', () => {
     const html = renderToString(<CommunityScreen profile={PRIYA_PROFILE} snapshot={snapshot} />);
 
-    expect(html).toContain('Residential Community Mode');
+    expect(html).toContain('For your building');
     expect(html).toContain('Demo data');
     expect(html).toContain('Green Meadows Apartments');
     expect(html).toContain('120');
@@ -28,8 +28,8 @@ describe('CommunityScreen Component (SSR)', () => {
   it('renders shareable plain-text briefing box with copy button', () => {
     const html = renderToString(<CommunityScreen profile={PRIYA_PROFILE} snapshot={snapshot} />);
 
-    expect(html).toContain('WhatsApp / Notice Board Format');
-    expect(html).toContain('Copy Briefing');
+    expect(html).toContain('Message you can paste');
+    expect(html).toContain('Copy briefing');
     expect(html).toContain('Green Meadows Apartments — Daily Clean-Air Briefing');
     expect(html).toContain('Pledge not to burn leaves, garden waste or rubbish');
     expect(html).toContain('[Shared via AirWise — Demo data: Green Meadows Apartments]');

@@ -2,9 +2,11 @@ import { useState } from 'react';
 import { HouseholdProfile, AirSnapshot, ActionCandidate } from '../../domain/types';
 import { decideVentilation } from '../../domain/ventilation';
 import { useDailyPlan } from '../hooks/useDailyPlan';
-import { ActionCard } from '../components/ActionCard';
+import { ActionRow } from '../components/ActionRow';
 import { ActionDetailModal } from '../components/ActionDetailModal';
 import { PageHeader } from '../shell/PageHeader';
+import { VerdictBlock } from '../components/VerdictBlock';
+import { Banner } from '../primitives/Banner';
 import { ROUTE_DESCRIPTIONS } from '../../state/route';
 import { Icon } from '../icons';
 
@@ -13,136 +15,171 @@ interface IndoorScreenProps {
   snapshot: AirSnapshot;
 }
 
+interface IndoorGroup {
+  id: string;
+  title: string;
+  actionIds: string[];
+}
+
+const INDOOR_GROUPS: IndoorGroup[] = [
+  {
+    id: 'cleaner-room',
+    title: 'Cleaner room',
+    actionIds: ['IN-03', 'IN-04', 'IN-10'],
+  },
+  {
+    id: 'cooking',
+    title: 'Cooking',
+    actionIds: ['IN-07', 'IN-08'],
+  },
+  {
+    id: 'equipment',
+    title: 'Equipment steps',
+    actionIds: ['IN-05', 'IN-06'],
+  },
+  {
+    id: 'source-control',
+    title: 'Source control',
+    actionIds: ['IN-01', 'IN-02', 'IN-09'],
+  },
+];
+
 export function IndoorScreen({ profile, snapshot }: IndoorScreenProps) {
   const [selectedAction, setSelectedAction] = useState<ActionCandidate | null>(null);
 
   const targetRegion = profile.location.country === 'IN' ? 'IN' : 'US';
-  const { effectiveLevel, slots, policyResult } = useDailyPlan(profile, snapshot, targetRegion, false);
+  const { effectiveLevel, slots, policyResult } = useDailyPlan(
+    profile,
+    snapshot,
+    targetRegion,
+    false,
+  );
 
   const ventResult = decideVentilation({ snapshot, effectiveLevel, slots, targetRegion });
-  const indoorCandidates =
-    policyResult?.approvedCandidates.filter((c: ActionCandidate) => c.action.category === 'indoor') || [];
+  const approvedIndoor =
+    policyResult?.approvedCandidates.filter(
+      (c: ActionCandidate) => c.action.category === 'indoor',
+    ) || [];
 
   const isCombustionRisk =
     profile.homeHeating === 'combustion' ||
     (profile.cooking.fuel === 'biomass' && !profile.cooking.hasExhaust);
 
-  const hasPurifier = profile.equipment.purifier;
-
-  const ventBadgeClass =
-    ventResult.verdict === 'open'
-      ? 'vent-badge-open'
-      : ventResult.verdict === 'brief'
-        ? 'vent-badge-brief'
-        : 'vent-badge-closed';
-
   return (
     <div className="indoor-screen screen-container">
-      <PageHeader
-        title="At Home Clean-Air Guide"
-        description={ROUTE_DESCRIPTIONS.indoor}
-      />
+      <PageHeader title="At home" description={ROUTE_DESCRIPTIONS.indoor} />
 
-      {/* Smart Ventilation Advisor */}
-      <section className="card card-callout-primary" aria-labelledby="vent-heading">
-        <h2 id="vent-heading" className="screen-section-title">
-          <Icon name="wind" size={22} aria-hidden="true" />
-          <span>Smart Ventilation Advisor</span>
-        </h2>
-
-        <div className={`vent-badge ${ventBadgeClass}`}>
-          {ventResult.verdict === 'open' && (
-            <>
-              <Icon name="check" size={16} aria-hidden="true" />
-              <span>Ventilate freely (Air is clean)</span>
-            </>
-          )}
-          {ventResult.verdict === 'brief' && (
-            <>
-              <Icon name="watch" size={16} aria-hidden="true" />
-              <span>Brief ventilation window</span>
-            </>
-          )}
-          {ventResult.verdict === 'closed' && (
-            <>
-              <Icon name="close" size={16} aria-hidden="true" />
-              <span>Keep windows closed</span>
-            </>
-          )}
-        </div>
-
-        <p className="vent-explanation">
-          {ventResult.explanation}
-        </p>
-
-        {ventResult.atHour !== undefined && (
-          <div className="box-subtle">
-            <strong>Recommended window: </strong>
-            Around {ventResult.atHour}:00
-          </div>
-        )}
-
-        {/* P-22 Combustion Safety Warning */}
-        {isCombustionRisk && (
-          <div
-            role="status"
-            className="combustion-alert"
-          >
-            <div className="flex-row-center gap-1">
-              <Icon name="warning" size={18} aria-hidden="true" />
-              <strong>Carbon Monoxide Safety (Rule P-22):</strong>
-            </div>
-            <p className="mt-1">
-              Your home uses unvented combustion heating or biomass cooking without an exhaust chimney. Never seal air gaps or
-              keep the space 100% airtight. Ensure adequate fresh airflow to prevent lethal carbon monoxide accumulation.
-            </p>
-          </div>
-        )}
-      </section>
-
-      {/* Cleaner Room Sanctuary */}
-      <section className="card" aria-labelledby="cleaner-room-heading">
-        <h2 id="cleaner-room-heading" className="screen-section-title">
-          <Icon name="protect" size={22} aria-hidden="true" />
-          <span>Cleaner-Room Sanctuary</span>
-        </h2>
-        <p className="sanctuary-desc">
-          Even without whole-home filtration, creating one designated cleaner room drastically cuts 8–10 hours of overnight exposure for
-          vulnerable family members.
-        </p>
-        <ul className="cleaner-room-list">
-          <li>Choose a bedroom with the fewest exterior doors and windows.</li>
-          <li>Keep interior doors closed to isolate cooking and outside drafts.</li>
-          {hasPurifier ? (
-            <li>Run your air purifier continuously in this designated room with doors closed.</li>
-          ) : (
-            <li>Damp-wipe surfaces and avoid moving rugs or sweeping in this room during peak smog.</li>
-          )}
-        </ul>
-      </section>
-
-      {/* Recommended Indoor Actions */}
-      <section aria-labelledby="indoor-actions-heading">
-        <h2 id="indoor-actions-heading" className="section-heading mb-3">
-          Household Indoor Recommendations
-        </h2>
-        <div className="actions-stack">
-          {indoorCandidates.map((cand: ActionCandidate) => (
-            <ActionCard
-              key={cand.action.id}
-              candidate={cand}
-              onSelect={(c: ActionCandidate) => setSelectedAction(c)}
+      <div className="aw-screen-layout-grid">
+        {/* Left Column on Desktop / Main Flow */}
+        <div className="aw-screen-layout-main">
+          {/* Top Verdict Block for Mobile (< 1100px) */}
+          <div className="aw-mobile-only mb-4">
+            <VerdictBlock
+              verdict={ventResult.verdict}
+              explanation={ventResult.explanation}
+              atHour={ventResult.atHour}
             />
-          ))}
+          </div>
+
+          {/* P-22 Combustion Safety Warning Banner */}
+          {isCombustionRisk && (
+            <Banner
+              variant="warning"
+              role="status"
+              className="mb-4"
+              icon={<Icon name="warning" size={18} aria-hidden="true" />}
+            >
+              <div>
+                <strong>Carbon Monoxide Safety (Rule P-22):</strong>
+                <p className="mt-1">
+                  Your home uses unvented combustion heating or biomass cooking without an
+                  exhaust chimney. Never seal air gaps or keep the space 100% airtight. Ensure
+                  adequate fresh airflow to prevent carbon monoxide accumulation.
+                </p>
+              </div>
+            </Banner>
+          )}
+
+          {/* Grouped Indoor Actions */}
+          <div className="indoor-groups-stack">
+            {INDOOR_GROUPS.map((group) => {
+              const groupCandidates = approvedIndoor.filter((c) =>
+                group.actionIds.includes(c.action.id),
+              );
+
+              if (groupCandidates.length === 0) return null;
+
+              return (
+                <section
+                  key={group.id}
+                  aria-labelledby={`group-heading-${group.id}`}
+                  className="card mb-4"
+                >
+                  <h2 id={`group-heading-${group.id}`} className="section-heading mb-2">
+                    {group.title}
+                  </h2>
+                  {group.id === 'cleaner-room' && (
+                    <p className="text-xs text-muted mb-3">
+                      Designate a well-sealed sanctuary room. Damp-wipe surfaces and keep interior doors
+                      closed to isolate outdoor drafts and cooking fumes.
+                    </p>
+                  )}
+                  <div className="actions-stack">
+                    {groupCandidates.map((cand) => (
+                      <ActionRow
+                        key={cand.action.id}
+                        candidate={cand}
+                        showEffort
+                        showAxisSummary
+                        onSelect={(c) => setSelectedAction(c)}
+                      />
+                    ))}
+                  </div>
+                </section>
+              );
+            })}
+          </div>
+
+          {/* Fallback if no indoor candidates approved */}
+          {approvedIndoor.length === 0 && (
+            <div className="box-subtle">
+              <p className="text-muted">No specific indoor actions recommended for current conditions.</p>
+            </div>
+          )}
         </div>
-      </section>
+
+        {/* Sticky Aside at >= 1100px */}
+        <aside className="aw-screen-layout-aside" aria-label="Ventilation advisor and advice context">
+          <div className="aw-screen-aside-sticky">
+            {/* Desktop Verdict Block */}
+            <div className="aw-desktop-only mb-4">
+              <VerdictBlock
+                verdict={ventResult.verdict}
+                explanation={ventResult.explanation}
+                atHour={ventResult.atHour}
+              />
+            </div>
+
+            {/* Why this is advice, not a promise */}
+            <div className="card">
+              <h3 className="text-sm font-semibold mb-2 flex-row-center gap-1">
+                <Icon name="info" size={16} aria-hidden="true" />
+                <span>Why this is advice, not a promise</span>
+              </h3>
+              <p className="text-xs text-muted">
+                Air quality varies between neighbourhoods and changes quickly with local wind and
+                temperature inversions. Building tightness, room volume, and household activity
+                mean actual indoor exposure will differ from modelled estimates. Use these actions as
+                practical steps, not absolute guarantees.
+              </p>
+            </div>
+          </div>
+        </aside>
+      </div>
 
       {/* Action Detail Modal */}
       {selectedAction && (
-        <ActionDetailModal
-          candidate={selectedAction}
-          onClose={() => setSelectedAction(null)}
-        />
+        <ActionDetailModal candidate={selectedAction} onClose={() => setSelectedAction(null)} />
       )}
     </div>
   );

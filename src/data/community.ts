@@ -113,7 +113,9 @@ export function generateShareableBriefing(
 
   const actionsToShow = topActionTitles.length >= 3 ? topActionTitles.slice(0, 3) : defaultActions;
 
-  return `*${societyName} — Daily Clean-Air Briefing*
+  const totalVulnerableHouseholds = SEEDED_SENIORS_COUNT + SEEDED_CHILDREN_U12_COUNT;
+
+  return `${societyName} — Daily Clean-Air Briefing
 Date: ${formattedDate}
 Air Quality: ${pm25Now} µg/m³ PM2.5 (${levelLabel} level)
 
@@ -121,7 +123,7 @@ Recommended Community Actions Today:
 1. ${actionsToShow[0]}
 2. ${actionsToShow[1]}
 3. ${actionsToShow[2]}
-4. Buddy Check: Please check on our ${SEEDED_SENIORS_COUNT} seniors and ${SEEDED_CHILDREN_U12_COUNT} families with young children.
+4. Buddy check: Please check on neighbours who may need help today (${totalVulnerableHouseholds} households).
 
 Society Impact Tally:
 • ${totalPledges} / ${SEEDED_TOTAL_HOMES} households pledged to zero-burning.

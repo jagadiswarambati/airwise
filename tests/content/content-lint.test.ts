@@ -10,6 +10,12 @@ import { getSampleScenarioSnapshot } from '../../src/data/fallback-chain';
 import { AboutScreen } from '../../src/ui/screens/AboutScreen';
 import { PrivacyScreen } from '../../src/ui/screens/PrivacyScreen';
 import { TermsScreen } from '../../src/ui/screens/TermsScreen';
+import { IndoorScreen } from '../../src/ui/screens/IndoorScreen';
+import { MoveScreen } from '../../src/ui/screens/MoveScreen';
+import { ImpactScreen } from '../../src/ui/screens/ImpactScreen';
+import { CommunityScreen } from '../../src/ui/screens/CommunityScreen';
+import { BriefingPreview } from '../../src/ui/components/BriefingPreview';
+import { PRIYA_PRESET } from '../../src/state/profileStore';
 
 describe('Content Lint & Safety Audit', () => {
   it('ensures all catalog actions have complete dual-axis impact specifications', () => {
@@ -110,6 +116,7 @@ describe('Content Lint & Safety Audit', () => {
       'prescribe medication',
       'prescribe a dose',
       'take 2 puffs',
+      'drastically',
     ];
 
     // Gather user-facing text corpora
@@ -284,5 +291,51 @@ describe('Content Lint & Safety Audit', () => {
     expect(html).toContain('India');
     expect(html).toContain('Source code licence:');
     expect(html).toContain('MIT');
+  });
+
+  it('verifies BriefingPreview wraps long lines by class and contains no asterisks, emoji, or ages', () => {
+    const snapshot = getSampleScenarioSnapshot('moderate');
+    const briefingText = generateShareableBriefing(snapshot, 2);
+
+    const html = renderToString(
+      React.createElement(BriefingPreview, {
+        briefingText,
+        societyName: 'Green Meadows Apartments',
+      }),
+    );
+
+    // 1. Long lines wrapped by class
+    expect(html).toContain('aw-briefing-preview-text');
+
+    // 2. No markdown asterisks
+    expect(html).not.toContain('*');
+
+    // 3. No emoji code points
+    const emojiRegex =
+      /[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F1E6}-\u{1F1FF}\u{1F600}-\u{1F64F}\u{1F680}-\u{1F6FF}\u{1FA00}-\u{1FAFF}]/u;
+    expect(emojiRegex.test(html)).toBe(false);
+
+    // 4. No individual ages or age labels in the briefing
+    expect(briefingText).not.toMatch(/\bsenior(s)?\b/i);
+    expect(briefingText).not.toMatch(/\bchildren\b/i);
+    expect(briefingText).not.toMatch(/\b\d+\s*yo\b/i);
+    expect(briefingText).toContain('Please check on neighbours who may need help today');
+  });
+
+  it('verifies At Home, Travel, Impact, and Community screens contain no Honest, Transparent, or Residential Community Mode in headings', () => {
+    const snapshot = getSampleScenarioSnapshot('moderate');
+    const profile = PRIYA_PRESET;
+
+    const screensHtml = [
+      renderToString(React.createElement(IndoorScreen, { profile, snapshot })),
+      renderToString(React.createElement(MoveScreen, { profile, snapshot })),
+      renderToString(React.createElement(ImpactScreen, { profile, snapshot })),
+      renderToString(React.createElement(CommunityScreen, { profile, snapshot })),
+    ].join('\n');
+
+    expect(screensHtml).not.toContain('Honest Dual-Axis Impact');
+    expect(screensHtml).not.toContain('Transparent Formulas');
+    expect(screensHtml).not.toContain('Residential Community Mode');
+    expect(screensHtml).not.toContain('drastically');
   });
 });

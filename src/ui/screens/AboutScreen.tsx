@@ -63,7 +63,7 @@ const WHAT_YOU_GET_FEATURES: FeatureItem[] = [
     icon: 'chart',
     title: 'Dual-Axis Impact & Community',
     description:
-      'Honest separation of personal exposure reduction from citywide emissions savings, alongside a shareable neighborhood briefing.',
+      'Clear separation of personal exposure reduction from citywide emissions savings, alongside a shareable neighborhood briefing.',
   },
 ];
 

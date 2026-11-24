@@ -3838,3 +3838,194 @@
   padding: var(--space-3) var(--space-5);
   font-size: var(--text-base);
 }
+
+
+/* ==========================================================================
+   F5 Screen Redesigns: At Home, Travel, Impact, Community
+   ========================================================================== */
+
+.aw-screen-layout-grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+@media (min-width: 1100px) {
+  .aw-screen-layout-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 360px;
+    gap: var(--space-6);
+    align-items: start;
+  }
+}
+
+.aw-screen-aside-sticky {
+  position: sticky;
+  top: var(--space-4);
+}
+
+.aw-mobile-only {
+  display: block;
+}
+
+.aw-desktop-only {
+  display: none;
+}
+
+@media (min-width: 1100px) {
+  .aw-mobile-only {
+    display: none;
+  }
+  .aw-desktop-only {
+    display: block;
+  }
+}
+
+/* CompareBars Component */
+.aw-compare-bars-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+}
+
+.aw-compare-bars-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.aw-compare-bars-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.aw-compare-bar-row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.aw-compare-bar-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--text-xs);
+  color: var(--ink);
+}
+
+.aw-compare-bar-track {
+  width: 100%;
+  height: 8px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.aw-compare-bar-fill {
+  width: var(--bar-width, 50%);
+  height: 100%;
+  border-radius: var(--radius-sm);
+  transition: width var(--transition-fast);
+}
+
+.aw-compare-bar-usual {
+  background: var(--ink-2);
+}
+
+.aw-compare-bar-alt {
+  background: var(--accent);
+}
+
+/* BriefingPreview Component */
+.aw-briefing-preview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.aw-briefing-preview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.aw-briefing-preview-text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-width: 100%;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  color: var(--ink);
+  margin: 0;
+}
+
+.aw-briefing-copy-btn {
+  min-height: var(--target-min);
+}
+
+/* Definition List for Community Statistics */
+.aw-definition-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: var(--space-3);
+  margin: var(--space-2) 0;
+}
+
+.aw-def-item {
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-2);
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+}
+
+.aw-def-label {
+  font-size: var(--text-xs);
+  color: var(--ink-2);
+  order: 2;
+}
+
+.aw-def-val {
+  font-size: var(--text-base);
+  font-weight: var(--font-bold);
+  color: var(--ink);
+  margin: 0 0 var(--space-1) 0;
+  order: 1;
+}
+
+/* ActionRow Expandable Panel & Axis Summary */
+.aw-action-row-axis-summary {
+  font-size: var(--text-xs);
+}
+
+.aw-action-row-expanded-panel {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-top: none;
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+  padding: var(--space-3);
+}
+
+.aw-chevron-rotated {
+  transform: rotate(90deg);
+  transition: transform var(--transition-fast);
+}
+
+.aw-filter-chips-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}

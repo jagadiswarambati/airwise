@@ -71,7 +71,7 @@ describe('Render Smoke Test: Full User Journey & Multi-Tab Life Cycle', () => {
     // 2. Indoor Screen
     const indoorHtml = renderToString(<IndoorScreen profile={profile} snapshot={snapshot} />);
     expect(indoorHtml).toContain('Smart Ventilation Advisor');
-    expect(indoorHtml).toContain('Cleaner-Room Sanctuary');
+    expect(indoorHtml).toContain('Cleaner room');
 
     // 3. Move Screen
     const moveHtml = renderToString(<MoveScreen profile={profile} snapshot={snapshot} />);
@@ -80,18 +80,52 @@ describe('Render Smoke Test: Full User Journey & Multi-Tab Life Cycle', () => {
 
     // 4. Impact Screen
     const impactHtml = renderToString(<ImpactScreen profile={profile} snapshot={snapshot} />);
-    expect(impactHtml).toContain('Honest Dual-Axis Impact');
+    expect(impactHtml).toContain('Dual-Axis Impact');
     expect(impactHtml).toContain('Weekly Household Defensible Tally');
     expect(impactHtml).toContain('Community Aggregate Impact');
-    expect(impactHtml).toContain('Transparent Formulas &amp; Methodology');
+    expect(impactHtml).toContain('How we calculate this');
 
     // 5. Community Screen
     const communityHtml = renderToString(<CommunityScreen profile={profile} snapshot={snapshot} />);
-    expect(communityHtml).toContain('Residential Community Mode');
+    expect(communityHtml).toContain('For your building');
     expect(communityHtml).toContain('Demo data');
     expect(communityHtml).toContain('No-Burning Pledge');
     expect(communityHtml).toContain('Building Carpool Coordination');
     expect(communityHtml).toContain('Vulnerable Resident Buddy Check');
+  });
+
+  it('renders all four redesigned screens across the 4 scenarios with exactly one h1 and present headings', () => {
+    for (const sc of scenarios) {
+      const snap = getSampleScenarioSnapshot(sc);
+
+      // IndoorScreen
+      const indoorHtml = renderToString(<IndoorScreen profile={profile} snapshot={snap} />);
+      const indoorH1Count = (indoorHtml.match(/<h1\b/g) || []).length;
+      expect(indoorH1Count, `IndoorScreen has ${indoorH1Count} h1s in ${sc}`).toBe(1);
+      expect(indoorHtml).toContain('Smart Ventilation Advisor');
+      expect(indoorHtml).toContain('Cleaner room');
+
+      // MoveScreen
+      const moveHtml = renderToString(<MoveScreen profile={profile} snapshot={snap} />);
+      const moveH1Count = (moveHtml.match(/<h1\b/g) || []).length;
+      expect(moveH1Count, `MoveScreen has ${moveH1Count} h1s in ${sc}`).toBe(1);
+      expect(moveHtml).toContain('Commute Exposure Planner');
+      expect(moveHtml).toContain('Walking &amp; Cycling Suitability');
+
+      // ImpactScreen
+      const impactHtml = renderToString(<ImpactScreen profile={profile} snapshot={snap} />);
+      const impactH1Count = (impactHtml.match(/<h1\b/g) || []).length;
+      expect(impactH1Count, `ImpactScreen has ${impactH1Count} h1s in ${sc}`).toBe(1);
+      expect(impactHtml).toContain('Dual-Axis Impact');
+      expect(impactHtml).toContain('What each action changes');
+
+      // CommunityScreen
+      const communityHtml = renderToString(<CommunityScreen profile={profile} snapshot={snap} />);
+      const communityH1Count = (communityHtml.match(/<h1\b/g) || []).length;
+      expect(communityH1Count, `CommunityScreen has ${communityH1Count} h1s in ${sc}`).toBe(1);
+      expect(communityHtml).toContain('For your building');
+      expect(communityHtml).toContain('No-Burning Pledge');
+    }
   });
 
   it('activates Severe Smog Mode correctly and preserves mandatory invariants', () => {

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { HouseholdProfile, AirSnapshot, RiskLevel } from '../../domain/types';
 import { LEVEL_NAMES } from '../../domain/levels';
 import {
@@ -10,6 +10,9 @@ import {
 } from '../../data/community';
 import { useCommunityPledge } from '../../state/communityStore';
 import { useDailyPlan } from '../hooks/useDailyPlan';
+import { BriefingPreview } from '../components/BriefingPreview';
+import { Stat } from '../components/Stat';
+import { Chip } from '../primitives/Chip';
 import { PageHeader } from '../shell/PageHeader';
 import { ROUTE_DESCRIPTIONS } from '../../state/route';
 import { Icon } from '../icons';
@@ -21,7 +24,6 @@ interface CommunityScreenProps {
 
 export const CommunityScreen: React.FC<CommunityScreenProps> = ({ profile, snapshot }) => {
   const [hasPledged, setHasPledged] = useCommunityPledge();
-  const [copyFeedback, setCopyFeedback] = useState<boolean>(false);
 
   const targetRegion = profile.location.country === 'IN' ? 'IN' : 'US';
   const { effectiveLevel, plan } = useDailyPlan(profile, snapshot, targetRegion, true);
@@ -40,241 +42,219 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ profile, snaps
     setHasPledged(!hasPledged);
   };
 
-  const handleCopyBriefing = async () => {
-    try {
-      if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
-        await navigator.clipboard.writeText(shareableText);
-      } else if (typeof document !== 'undefined') {
-        const textarea = document.createElement('textarea');
-        textarea.value = shareableText;
-        document.body.appendChild(textarea);
-        textarea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textarea);
-      }
-      setCopyFeedback(true);
-      setTimeout(() => setCopyFeedback(false), 3000);
-    } catch {
-      // Fallback
-    }
-  };
-
   const totalPledges = society.basePledges.noBurning + (hasPledged ? 1 : 0);
   const pm25Now = snapshot.pm25.now !== null ? Math.round(snapshot.pm25.now) : null;
   const levelName = LEVEL_NAMES[effectiveLevel as RiskLevel] || 'Caution';
 
   return (
     <div className="community-screen screen-container">
-      <PageHeader
-        title="Community Action & Briefing"
-        description={ROUTE_DESCRIPTIONS.community}
-      />
+      <PageHeader title="Community Action & Briefing" description={ROUTE_DESCRIPTIONS.community} />
 
-      {/* Demo Data Header Banner */}
+      {/* For Your Building Header Banner */}
       <section
-        className="card card-callout-exposure"
+        className="card card-callout-exposure mb-4"
         aria-labelledby="community-header-title"
       >
         <div className="section-title-row mb-1">
           <h2 id="community-header-title" className="section-heading flex-row-center gap-1">
             <Icon name="people" size={20} aria-hidden="true" />
-            <span>Residential Community Mode</span>
+            <span>For your building</span>
           </h2>
-          <span className="aw-badge aw-badge-data-type">
-            Demo data
-          </span>
+          <Chip label="Demo data" selected={false} />
         </div>
 
-        <p className="community-header-desc">
-          Demonstrating collective building action at <strong>{society.name}</strong> ({society.totalHomes} homes).
-          Helps housing societies coordinate waste burning bans, morning carpools, and vulnerable resident welfare.
+        <p className="community-header-desc text-sm">
+          Demonstrating collective building action at <strong>{society.name}</strong> (
+          {society.totalHomes} homes). Helps housing societies coordinate waste burning bans, morning
+          carpools, and vulnerable resident welfare.
         </p>
       </section>
 
-      {/* Society Daily Air Briefing Card */}
-      <section className="card" aria-labelledby="society-briefing-title">
-        <div className="society-briefing-header">
-          <div>
-            <span className="society-subtitle">
-              Today's Society Briefing
-            </span>
-            <h3 id="society-briefing-title" className="society-title">
-              {society.name}
-            </h3>
-          </div>
+      <div className="aw-screen-layout-grid">
+        {/* Left Column on Desktop / Main Flow */}
+        <div className="aw-screen-layout-main">
+          {/* Society Daily Air Briefing Status Card */}
+          <section className="card mb-4" aria-labelledby="society-briefing-title">
+            <div className="society-briefing-header flex-between mb-2">
+              <div>
+                <span className="society-subtitle text-xs text-muted block">
+                  Today's Society Briefing
+                </span>
+                <div className="flex-row-center gap-2 mt-1">
+                  <h3 id="society-briefing-title" className="society-title">
+                    {society.name}
+                  </h3>
+                  <Chip label="Demo data" selected={false} />
+                </div>
+              </div>
 
-          <div className={`society-level-badge card-risk-level-${effectiveLevel}`}>
-            <div className="society-level-pm25">
-              {pm25Now !== null ? `${pm25Now} µg/m³` : 'Unmeasured'}
+              {/* Level Shown by Name and Icon, Never "Level 3" */}
+              <div
+                className={`society-level-badge card-risk-level-${effectiveLevel} flex-col-center`}
+              >
+                <div className="society-level-pm25 font-bold">
+                  {pm25Now !== null ? `${pm25Now} µg/m³` : 'Unmeasured'}
+                </div>
+                <div className="society-level-name flex-row-center gap-1 text-xs">
+                  <Icon name="protect" size={12} aria-hidden="true" />
+                  <span>{levelName} level</span>
+                </div>
+              </div>
             </div>
-            <div className="society-level-name">
-              {levelName} level
+
+            <p className="society-briefing-summary text-sm text-muted mb-3">
+              {effectiveLevel >= 3
+                ? `Air is ${levelName} level for most households here. Residents should keep windows sealed and limit outdoor time for children and seniors.`
+                : `Air is ${levelName} level for most households here. Maintain regular ventilation discipline and avoid smoke-generating activities.`}
+            </p>
+
+            {/* Briefing Preview with Copy Button and LiveRegion Announcement */}
+            <BriefingPreview briefingText={shareableText} societyName={society.name} />
+          </section>
+
+          {/* Action CM-01: Zero Open Burning Pledge */}
+          <section className="card mb-4" aria-labelledby="pledge-heading">
+            <div className="pledge-header-row flex-between mb-2">
+              <div>
+                <span className="pledge-subtitle text-emissions text-xs font-semibold block">
+                  Action CM-01 · Clean Air Pledge
+                </span>
+                <h3 id="pledge-heading" className="pledge-title text-base font-bold">
+                  No-Burning Pledge
+                </h3>
+              </div>
+
+              <span className="tag-emissions-pill">
+                {totalPledges} / {society.totalHomes} Pledged
+              </span>
             </div>
-          </div>
-        </div>
 
-        <p className="society-briefing-summary">
-          {effectiveLevel >= 3
-            ? `Air is ${levelName} level for most households here. Residents should keep windows sealed and limit outdoor time for children and seniors.`
-            : `Air is ${levelName} level for most households here. Maintain regular ventilation discipline and avoid smoke-generating activities.`}
-        </p>
+            <p className="pledge-desc text-sm text-muted mb-3">
+              Open burning of leaves, garden waste, or rubbish creates dangerous localized PM2.5
+              spikes.
+            </p>
 
-        {/* Copyable Plain-Text Briefing for WhatsApp / Notice Board (Rule CM-04) */}
-        <div className="shareable-box">
-          <div className="shareable-header">
-            <span className="shareable-title">
-              WhatsApp / Notice Board Format
-            </span>
+            {/* Pledge as Toggle Button with aria-pressed */}
             <button
               type="button"
-              onClick={handleCopyBriefing}
-              className="btn-secondary shareable-copy-btn"
-              aria-label="Copy plain text briefing to clipboard"
+              onClick={handleTogglePledge}
+              className={`pledge-toggle-btn ${hasPledged ? 'pledge-toggle-pledged' : 'pledge-toggle-unpledged'}`}
+              aria-pressed={hasPledged}
+              aria-label={`Zero burning pledge. Currently ${hasPledged ? 'pledged' : 'unpledged'}. Total ${totalPledges} of ${society.totalHomes} pledged.`}
             >
-              <Icon name="copy" size={16} aria-hidden="true" />
-              <span>{copyFeedback ? 'Copied' : 'Copy Briefing'}</span>
+              {hasPledged ? (
+                <>
+                  <Icon name="check" size={18} aria-hidden="true" />
+                  <span>Pledged not to burn leaves, garden waste or rubbish</span>
+                </>
+              ) : (
+                <span>Pledge not to burn leaves, garden waste or rubbish</span>
+              )}
             </button>
-          </div>
+          </section>
 
-          <pre className="code-snippet">
-            {shareableText}
-          </pre>
-        </div>
-
-        {copyFeedback && (
-          <div
-            role="status"
-            className="box-highlight-emissions text-xs font-semibold"
-          >
-            Daily clean-air briefing copied to clipboard. Ready to paste into society chat.
-          </div>
-        )}
-      </section>
-
-      {/* Action CM-01: Zero Open Burning Pledge */}
-      <section className="card" aria-labelledby="pledge-heading">
-        <div className="pledge-header-row">
-          <div>
-            <span className="pledge-subtitle text-emissions">
-              Action CM-01 · Clean Air Pledge
+          {/* Action CM-02: Carpool Coordination Concept */}
+          <section className="card mb-4" aria-labelledby="carpool-heading">
+            <span className="carpool-subtitle text-exposure text-xs font-semibold block mb-1">
+              Action CM-02 · Collective Mobility
             </span>
-            <h3 id="pledge-heading" className="pledge-title">
-              No-Burning Pledge
+            <h3 id="carpool-heading" className="carpool-title text-base font-bold mb-1">
+              Building Carpool Coordination
             </h3>
-          </div>
+            <p className="carpool-desc text-sm text-muted mb-3">
+              {SEEDED_CARPOOL_HOUSEHOLDS} residents at {society.name} coordinate morning departures
+              on common corridor routes.
+            </p>
 
-          <span className="tag-emissions-pill">
-            {totalPledges} / {society.totalHomes} Pledged
-          </span>
+            {/* Carpool Definition List */}
+            <dl className="aw-definition-list" aria-label="Carpool statistics">
+              <div className="aw-def-item">
+                <dt className="aw-def-label">Commuters</dt>
+                <dd className="aw-def-val">{SEEDED_CARPOOL_HOUSEHOLDS}</dd>
+              </div>
+              <div className="aw-def-item">
+                <dt className="aw-def-label">Departure slot</dt>
+                <dd className="aw-def-val">08:30</dd>
+              </div>
+              <div className="aw-def-item">
+                <dt className="aw-def-label">Vehicle-km saved</dt>
+                <dd className="aw-def-val">~{SEEDED_BASELINE_CARPOOL_VKM} vkm/wk</dd>
+              </div>
+            </dl>
+          </section>
+
+          {/* Action CM-03: Buddy-Check List for Vulnerable Neighbors */}
+          <section className="card mb-4" aria-labelledby="buddy-check-heading">
+            <span className="buddy-subtitle text-warning text-xs font-semibold block mb-1">
+              Action CM-03 · Vulnerability Care
+            </span>
+            <h3 id="buddy-check-heading" className="buddy-title text-base font-bold mb-1">
+              Vulnerable Resident Buddy Check
+            </h3>
+            <p className="buddy-desc text-sm text-muted mb-3">
+              Healthy residents check on at-risk households during elevated pollution episodes.
+            </p>
+
+            {/* Buddy-Check Definition List */}
+            <dl className="aw-definition-list" aria-label="Vulnerable resident census">
+              <div className="aw-def-item">
+                <dt className="aw-def-label">Seniors (65+)</dt>
+                <dd className="aw-def-val">{society.vulnerableCensus.seniors}</dd>
+              </div>
+              <div className="aw-def-item">
+                <dt className="aw-def-label">Children (&lt;12)</dt>
+                <dd className="aw-def-val">{society.vulnerableCensus.childrenUnder12}</dd>
+              </div>
+              <div className="aw-def-item">
+                <dt className="aw-def-label">Respiratory</dt>
+                <dd className="aw-def-val">{society.vulnerableCensus.respiratoryFlagged}</dd>
+              </div>
+            </dl>
+
+            <div className="buddy-note text-xs text-muted mt-3">
+              Census displays aggregated, non-identifying counts only to preserve neighbor privacy.
+            </div>
+          </section>
         </div>
 
-        <p className="pledge-desc">
-          Open burning of leaves, garden waste, or rubbish creates dangerous localized PM2.5 spikes.
-        </p>
-
-        <button
-          type="button"
-          onClick={handleTogglePledge}
-          className={`pledge-toggle-btn ${hasPledged ? 'pledge-toggle-pledged' : 'pledge-toggle-unpledged'}`}
-          aria-pressed={hasPledged}
+        {/* Sticky Aside at >= 1100px */}
+        <aside
+          className="aw-screen-layout-aside"
+          aria-label="Community impact tally and coordination details"
         >
-          {hasPledged ? (
-            <>
-              <Icon name="check" size={18} aria-hidden="true" />
-              <span>Pledged not to burn leaves, garden waste or rubbish</span>
-            </>
-          ) : (
-            <span>Pledge not to burn leaves, garden waste or rubbish</span>
-          )}
-        </button>
-      </section>
+          <div className="aw-screen-aside-sticky">
+            {/* Aggregate Community Vehicle-KM Avoided Card */}
+            <section className="card mb-4" aria-labelledby="community-vkm-heading">
+              <h3 id="community-vkm-heading" className="text-sm font-semibold mb-2">
+                Aggregate Community Vehicle-KM Avoided
+              </h3>
+              <Stat
+                value={`~${aggregateVkm}`}
+                unit="vkm avoided this week (Formula C1)"
+                label="Estimated, demo data"
+              />
 
-      {/* Action CM-02: Carpool Coordination Concept */}
-      <section className="card" aria-labelledby="carpool-heading">
-        <span className="carpool-subtitle text-exposure">
-          Action CM-02 · Collective Mobility
-        </span>
-        <h3 id="carpool-heading" className="carpool-title">
-          Building Carpool Coordination
-        </h3>
-        <p className="carpool-desc">
-          {SEEDED_CARPOOL_HOUSEHOLDS} residents at {society.name} coordinate morning departures on common tech corridor routes.
-        </p>
+              <p className="community-vkm-desc text-xs text-muted mt-3">
+                Combines {society.name}'s baseline (432 vkm across{' '}
+                {SEEDED_CARPOOL_HOUSEHOLDS} carpooling residents) with your household's profile
+                contribution.
+              </p>
+            </section>
 
-        <div className="carpool-stats-grid">
-          <div>
-            <div className="carpool-stat-val">{SEEDED_CARPOOL_HOUSEHOLDS}</div>
-            <div className="carpool-stat-label">Commuters</div>
-          </div>
-          <div>
-            <div className="carpool-stat-val">08:30</div>
-            <div className="carpool-stat-label">Departure Slot</div>
-          </div>
-          <div>
-            <div className="carpool-stat-val">~{SEEDED_BASELINE_CARPOOL_VKM}</div>
-            <div className="carpool-stat-label">vkm saved/wk</div>
-          </div>
-        </div>
-      </section>
-
-      {/* Action CM-03: Buddy-Check List for Vulnerable Neighbors */}
-      <section className="card" aria-labelledby="buddy-check-heading">
-        <span className="buddy-subtitle text-warning">
-          Action CM-03 · Vulnerability Care
-        </span>
-        <h3 id="buddy-check-heading" className="buddy-title">
-          Vulnerable Resident Buddy Check
-        </h3>
-        <p className="buddy-desc">
-          Healthy residents check on at-risk households during elevated pollution episodes.
-        </p>
-
-        <div className="buddy-census-grid">
-          <div className="buddy-census-card">
-            <div className="buddy-census-num">
-              {society.vulnerableCensus.seniors}
+            {/* Community Collective Impact Note */}
+            <div className="card">
+              <h3 className="text-sm font-semibold mb-2 flex-row-center gap-1">
+                <Icon name="people" size={16} aria-hidden="true" />
+                <span>Neighbourhood coordination</span>
+              </h3>
+              <p className="text-xs text-muted">
+                Local actions like stopping biomass burning and coordinating vehicle trips prevent
+                hyper-local pollution hotspots right outside your building.
+              </p>
             </div>
-            <div className="buddy-census-label">Seniors (65+)</div>
           </div>
-
-          <div className="buddy-census-card">
-            <div className="buddy-census-num">
-              {society.vulnerableCensus.childrenUnder12}
-            </div>
-            <div className="buddy-census-label">Children (&lt;12)</div>
-          </div>
-
-          <div className="buddy-census-card">
-            <div className="buddy-census-num">
-              {society.vulnerableCensus.respiratoryFlagged}
-            </div>
-            <div className="buddy-census-label">Respiratory</div>
-          </div>
-        </div>
-
-        <div className="buddy-note">
-          Census displays aggregated, non-identifying counts only to preserve neighbor privacy.
-        </div>
-      </section>
-
-      {/* Aggregate Community Vehicle-KM Avoided (Formula C1) */}
-      <section className="card" aria-labelledby="community-vkm-heading">
-        <h3 id="community-vkm-heading" className="community-vkm-title">
-          Aggregate Community Vehicle-KM Avoided
-        </h3>
-        <div className="community-tally-box">
-          <span className="community-tally-num">
-            ~{aggregateVkm}
-          </span>
-          <span className="community-tally-label">
-            vkm avoided this week (Formula C1)
-          </span>
-        </div>
-
-        <p className="community-vkm-desc">
-          Combines {society.name}'s baseline ({SEEDED_BASELINE_CARPOOL_VKM} vkm across {SEEDED_CARPOOL_HOUSEHOLDS} carpooling residents) with your household's profile contribution.
-        </p>
-      </section>
+        </aside>
+      </div>
     </div>
   );
 };

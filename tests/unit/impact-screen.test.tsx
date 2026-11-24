@@ -11,7 +11,7 @@ describe('ImpactScreen Component (SSR)', () => {
   it('renders dual-axis impact overview with distinct Exposure and Emissions pillars', () => {
     const html = renderToString(<ImpactScreen profile={PRIYA_PROFILE} snapshot={snapshot} />);
 
-    expect(html).toContain('Honest Dual-Axis Impact');
+    expect(html).toContain('Dual-Axis Impact');
     expect(html).toContain('Exposure Axis');
     expect(html).toContain('Emissions Axis');
     expect(html).toContain('Protecting yourself from dirty air does not clean the outdoors');
@@ -62,7 +62,7 @@ describe('ImpactScreen Component (SSR)', () => {
   it('renders transparent formulas and methodology section', () => {
     const html = renderToString(<ImpactScreen profile={PRIYA_PROFILE} snapshot={snapshot} />);
 
-    expect(html).toContain('Transparent Formulas &amp; Methodology');
+    expect(html).toContain('How we calculate this');
     expect(html).toContain('Formula E1 — Avoided Vehicle-Kilometers (vkm):');
     expect(html).toContain('Formula X1 — Commute Exposure Delta:');
     expect(html).toContain('Formula C1 — Community Aggregate Vehicle-Kilometers:');
@@ -71,10 +71,10 @@ describe('ImpactScreen Component (SSR)', () => {
   it('renders per-action dual-axis cards with boundary disclosures and assumptions', () => {
     const html = renderToString(<ImpactScreen profile={PRIYA_PROFILE} snapshot={snapshot} />);
 
-    expect(html).toContain('Per-Action Dual-Axis Verification');
+    expect(html).toContain('What each action changes');
     expect(html).toContain('Exposure');
     expect(html).toContain('Emissions');
-    expect(html).toContain('Boundary:');
+    expect(html).toContain('Does not change:');
     expect(html).toContain('Assumptions:');
     expect(html).toContain('Recommended');
   });
