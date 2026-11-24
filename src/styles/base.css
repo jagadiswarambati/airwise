@@ -1,9 +1,8 @@
-/* ==========================================================================
-   AirWise Base Styles
-   Minimal reset, accessible defaults, and system typography.
-   ========================================================================== */
+/* AirWise Base Styles: minimal reset, accessible defaults, and system typography. */
 
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -38,13 +37,18 @@ body {
 }
 
 /* Accessible touch targets for interactive controls (excluding checkboxes, radios, range sliders) */
-button, a, input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea {
+button,
+a,
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+select,
+textarea {
   min-height: var(--target-min);
   font: inherit;
   color: inherit;
 }
 
-input[type="checkbox"], input[type="radio"] {
+input[type="checkbox"],
+input[type="radio"] {
   min-width: 1.25rem;
   min-height: 1.25rem;
   cursor: pointer;
@@ -58,7 +62,9 @@ button {
 
 /* High contrast & reduced motion support */
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;

@@ -1,0 +1,36 @@
+/* AirWise At Home Screen: indoor air management, ventilation guidance, and room-level cleaner air spaces. */
+
+.vent-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
+  font-weight: var(--font-bold);
+}
+
+.vent-badge-open {
+  background-color: var(--haze-0-bg);
+  color: var(--haze-0-ink);
+  border: 1px solid var(--line);
+}
+
+.vent-badge-brief {
+  background-color: var(--haze-2-bg);
+  color: var(--haze-2-ink);
+  border: 1px solid var(--line);
+}
+
+.vent-badge-closed {
+  background-color: var(--haze-3-bg);
+  color: var(--haze-3-ink);
+  border: 1px solid var(--line);
+}
+
+.vent-explanation {
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+  line-height: 1.5;
+  margin-top: var(--space-2);
+}

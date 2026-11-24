@@ -157,7 +157,7 @@ The project includes automated verification guards for testing, code quality, ac
 
 | Script | Purpose & Scope |
 |---|---|
-| `npm run validate` | Runs full pre-commit pipeline: lint, typecheck, test, UI, links, size, secrets, format |
+| `npm run validate` | Runs full pre-commit pipeline: lint, typecheck, test, UI, CSS, links, size, secrets, format |
 | `npm run dev` | Starts Vite local development server with API proxy middleware |
 | `npm run build` | Validates TypeScript types (`tsc --noEmit`) and compiles optimized production bundles |
 | `npm run lint` | Runs ESLint across all source and test files |
@@ -167,6 +167,7 @@ The project includes automated verification guards for testing, code quality, ac
 | `npm run test:tz` | Tests slot and timeline invariance across UTC, Asia/Kolkata, and America/Los_Angeles |
 | `npm run test:matrix` | Executes full Cartesian policy matrix expansion |
 | `npm run check:ui` | Validates CSS tokens, ensures zero literal colors, and blocks banned alert roles |
+| `npm run check:css` | Verifies modular CSS: zero dead .aw- classes, zero duplicate selector blocks, motion-only !important |
 | `npm run check:links` | Verifies that all relative markdown links in `README.md` and `docs/*.md` resolve |
 | `npm run check:size` | Verifies repository size stays strictly within the 3 MB budget target |
 | `npm run check:branches` | Asserts single-branch policy on remote origin (`main` only) |

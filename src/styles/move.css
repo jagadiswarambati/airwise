@@ -1,0 +1,95 @@
+/* AirWise Travel Screen: outdoor commute exposure, transit mode comparisons, and active travel guidance. */
+
+/* Air Briefing Card & Verdicts (used in component tests) */
+.briefing-badges {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.briefing-main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.briefing-meta {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.pm25-reading {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+}
+
+.pm25-val {
+  font-size: var(--text-2xl);
+  font-weight: var(--font-bold);
+  color: var(--ink);
+  line-height: 1;
+}
+
+.pm25-unit {
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+}
+
+.aqi-reading {
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  color: var(--ink-2);
+}
+
+.trend-badge {
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  padding: 0.125rem 0.375rem;
+  border-radius: var(--radius-sm);
+  background-color: var(--surface);
+  color: var(--ink-2);
+}
+
+.verdict-yes {
+  background-color: var(--haze-0-bg);
+  color: var(--haze-0-ink);
+  border: 1px solid var(--line);
+}
+
+.verdict-no {
+  background-color: var(--haze-3-bg);
+  color: var(--haze-3-ink);
+  border: 1px solid var(--line);
+}
+
+.verdict-brief {
+  font-weight: var(--font-semibold);
+  color: var(--ink);
+}
+
+.verdict-precautions {
+  color: var(--ink-2);
+  margin-top: var(--space-1);
+}
+
+.commute-meta-text {
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+  line-height: 1.5;
+  margin-bottom: var(--space-3);
+}
+
+.walking-title {
+  font-size: var(--text-base);
+  font-weight: var(--font-bold);
+  color: var(--ink);
+  margin-bottom: var(--space-2);
+}
+
+.walking-explanation {
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+  line-height: 1.5;
+}

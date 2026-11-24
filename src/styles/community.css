@@ -1,0 +1,233 @@
+/* AirWise Community Screen: society air briefings, collective pledges, carpooling, and buddy checks. */
+
+/* Community Screen Society Briefing & Collective Action Styles */
+.community-header-desc {
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+  line-height: 1.5;
+  margin-bottom: var(--space-4);
+}
+
+.society-briefing-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.society-subtitle {
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  color: var(--ink-2);
+  letter-spacing: 0.05em;
+}
+
+.society-title {
+  font-size: var(--text-lg);
+  font-weight: var(--font-bold);
+  color: var(--ink);
+}
+
+.society-level-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.society-level-pm25 {
+  font-size: var(--text-xl);
+  font-weight: var(--font-bold);
+  line-height: 1;
+}
+
+.society-level-name {
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  color: var(--ink-2);
+}
+
+.society-briefing-summary {
+  font-size: var(--text-sm);
+  color: var(--ink);
+  line-height: 1.5;
+  margin-bottom: var(--space-3);
+}
+
+.pledge-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-3);
+  margin-bottom: var(--space-2);
+}
+
+.pledge-subtitle {
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  color: var(--ink-2);
+  letter-spacing: 0.05em;
+}
+
+.pledge-title {
+  font-size: var(--text-base);
+  font-weight: var(--font-bold);
+  color: var(--ink);
+}
+
+.pledge-desc {
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+  line-height: 1.5;
+  margin-bottom: var(--space-3);
+}
+
+.pledge-toggle-btn {
+  padding: 0.375rem 0.75rem;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.pledge-toggle-pledged {
+  background-color: var(--haze-0-bg);
+  color: var(--haze-0-ink);
+  border: 1px solid var(--line);
+}
+
+.pledge-toggle-unpledged {
+  background-color: var(--surface);
+  color: var(--ink);
+  border: 1px solid var(--line);
+}
+
+.carpool-subtitle {
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  color: var(--ink-2);
+  letter-spacing: 0.05em;
+  margin-bottom: var(--space-1);
+}
+
+.carpool-title {
+  font-size: var(--text-base);
+  font-weight: var(--font-bold);
+  color: var(--ink);
+  margin-bottom: var(--space-2);
+}
+
+.carpool-desc {
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+  line-height: 1.5;
+  margin-bottom: var(--space-3);
+}
+
+.buddy-title {
+  font-size: var(--text-base);
+  font-weight: var(--font-bold);
+  color: var(--ink);
+  margin-bottom: var(--space-2);
+}
+
+.buddy-desc {
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+  line-height: 1.5;
+  margin-bottom: var(--space-3);
+}
+
+.aw-compare-bar-alt {
+  background: var(--accent);
+}
+
+/* BriefingPreview Component */
+.aw-briefing-preview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.aw-briefing-preview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.aw-briefing-preview-text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-width: 100%;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  color: var(--ink);
+  margin: 0;
+}
+
+.aw-briefing-copy-btn {
+  min-height: var(--target-min);
+}
+
+/* Definition List for Community Statistics */
+.aw-definition-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: var(--space-3);
+  margin: var(--space-2) 0;
+}
+
+.aw-def-item {
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-2);
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+}
+
+.aw-def-label {
+  font-size: var(--text-xs);
+  color: var(--ink-2);
+  order: 2;
+}
+
+.aw-def-val {
+  font-size: var(--text-base);
+  font-weight: var(--font-bold);
+  color: var(--ink);
+  margin: 0 0 var(--space-1) 0;
+  order: 1;
+}
+
+/* ActionRow Expandable Panel & Axis Summary */
+.aw-action-row-axis-summary {
+  font-size: var(--text-xs);
+}
+
+.aw-action-row-expanded-panel {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-top: none;
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+  padding: var(--space-3);
+}
+
+.aw-chevron-rotated {
+  transform: rotate(90deg);
+  transition: transform var(--transition-fast);
+}
+
+.aw-filter-chips-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
