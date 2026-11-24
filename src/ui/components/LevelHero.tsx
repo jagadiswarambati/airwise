@@ -60,26 +60,65 @@ function getDataAgeInWords(snapshot: AirSnapshot, clock: Clock = systemClock): s
   return `Updated ${diffHours} hours ago`;
 }
 
-/**
- * LevelHero: Signature hero element spanning full container width.
- * Features decorative Sky Strip (Atmosphere) on top, solid color field
- * from --haze-N-bg/-ink with sentence-case level words, PM2.5 + unit + data type,
- * 3 trust chips, a single explanatory sentence, and the HazeBand.
- */
-export const LevelHero: React.FC<LevelHeroProps> = ({
-  snapshot,
-  profile,
-  plan,
-  radar,
-  effectiveLevel,
-  animatedSkyEnabled,
-  isFallback = false,
-  clock = systemClock,
-}) => {
-  const localHour = parseLocalTime(
-    snapshot.fetchedAt || snapshot.pm25.hourly[0]?.time || '',
-    snapshot.utcOffsetSeconds,
-  ).hour;
+const LevelHeroHeader: React.FC<{
+  effectiveLevel: RiskLevel;
+  levelWord: string;
+  pm25Val: number | string;
+  dataTypeLabel: string;
+  aqiText: string | null;
+}> = ({ effectiveLevel, levelWord, pm25Val, dataTypeLabel, aqiText }) => (
+  <>
+    <div className="aw-level-hero-title-row">
+      <Icon
+        name={getIconForLevel(effectiveLevel)}
+        size={28}
+        className="aw-level-hero-icon"
+        aria-hidden="true"
+      />
+      <span className="aw-level-hero-title">{levelWord}</span>
+    </div>
+
+    <div className="aw-level-hero-reading">
+      <span className="aw-level-hero-pm25-val">{pm25Val}</span>
+      <span className="aw-level-hero-pm25-unit">µg/m³ PM2.5</span>
+      <span className="aw-level-hero-data-type">({dataTypeLabel})</span>
+      {aqiText && <span className="aw-level-hero-aqi">({aqiText})</span>}
+    </div>
+  </>
+);
+
+const LevelHeroChips: React.FC<{
+  dataType: string;
+  dataAge: string;
+  isAiPlan: boolean;
+}> = ({ dataType, dataAge, isAiPlan }) => (
+  <div className="aw-level-hero-chips" role="list" aria-label="Forecast metadata chips">
+    <span className="aw-hero-chip" role="listitem">
+      {dataType === 'sample' ? 'Sample data' : 'Modelled data'}
+    </span>
+    <span className="aw-hero-chip" role="listitem">
+      {dataAge}
+    </span>
+    <span className="aw-hero-chip" role="listitem">
+      {isAiPlan ? 'AI-personalised plan' : 'Standard plan'}
+    </span>
+  </div>
+);
+
+function formatAqiBadge(aqi?: { standard: string; value: number } | null): string | null {
+  if (!aqi) return null;
+  if (aqi.standard === 'US') return `US AQI ${aqi.value}`;
+  if (aqi.standard === 'EU') return `European AQI ${aqi.value}`;
+  return null;
+}
+
+function deriveHeroViewModel(
+  snapshot: AirSnapshot,
+  effectiveLevel: RiskLevel,
+  clock: Clock,
+) {
+  const timeStr = snapshot.fetchedAt || snapshot.pm25.hourly[0]?.time || '';
+  const localHour = parseLocalTime(timeStr, snapshot.utcOffsetSeconds).hour;
 
   const pm25Val =
     snapshot.pm25.now !== null && !isNaN(snapshot.pm25.now)
@@ -95,73 +134,55 @@ export const LevelHero: React.FC<LevelHeroProps> = ({
     snapshot.source.dataType === 'sample' ? 'Sample' : 'Modelled';
 
   const dataAge = getDataAgeInWords(snapshot, clock);
+  const aqiText = formatAqiBadge(snapshot.aqi);
 
-  // Validate supported AQI standards from DATA_SOURCES.md
-  const aqiText =
-    snapshot.aqi && (snapshot.aqi.standard === 'US' || snapshot.aqi.standard === 'EU')
-      ? `${snapshot.aqi.standard === 'US' ? 'US AQI' : 'European AQI'} ${snapshot.aqi.value}`
-      : null;
+  return { localHour, pm25Val, levelWord, dataTypeLabel, dataAge, aqiText };
+}
+
+export const LevelHero: React.FC<LevelHeroProps> = ({
+  snapshot,
+  profile,
+  plan,
+  radar,
+  effectiveLevel,
+  animatedSkyEnabled,
+  isFallback = false,
+  clock = systemClock,
+}) => {
+  const vm = deriveHeroViewModel(snapshot, effectiveLevel, clock);
 
   return (
     <section
       className={`aw-level-hero aw-level-hero-${effectiveLevel}`}
-      aria-label={`Current air risk status: ${levelWord}`}
+      aria-label={`Current air risk status: ${vm.levelWord}`}
     >
-      {/* 1. Sky Strip (Atmosphere) */}
       <Atmosphere
         level={effectiveLevel}
-        localHour={localHour}
+        localHour={vm.localHour}
         windKmh={snapshot.weather?.windSpeed10m ?? undefined}
         enabled={animatedSkyEnabled ?? true}
         isFallback={isFallback}
       />
 
-      {/* 2. Solid Color Field */}
       <div className="aw-level-hero-body">
-        {/* Level in words */}
-        <div className="aw-level-hero-title-row">
-          <Icon
-            name={getIconForLevel(effectiveLevel)}
-            size={28}
-            className="aw-level-hero-icon"
-            aria-hidden="true"
-          />
-          <span className="aw-level-hero-title">
-            {levelWord}
-          </span>
-        </div>
+        <LevelHeroHeader
+          effectiveLevel={effectiveLevel}
+          levelWord={vm.levelWord}
+          pm25Val={vm.pm25Val}
+          dataTypeLabel={vm.dataTypeLabel}
+          aqiText={vm.aqiText}
+        />
 
-        {/* PM2.5 Value with Unit and Data Type (never alone) */}
-        <div className="aw-level-hero-reading">
-          <span className="aw-level-hero-pm25-val">{pm25Val}</span>
-          <span className="aw-level-hero-pm25-unit">µg/m³ PM2.5</span>
-          <span className="aw-level-hero-data-type">({dataTypeLabel})</span>
-          {aqiText && (
-            <span className="aw-level-hero-aqi">
-              ({aqiText})
-            </span>
-          )}
-        </div>
+        <LevelHeroChips
+          dataType={snapshot.source.dataType}
+          dataAge={vm.dataAge}
+          isAiPlan={plan.source === 'ai'}
+        />
 
-        {/* Three Trust Chips */}
-        <div className="aw-level-hero-chips" role="list" aria-label="Forecast metadata chips">
-          <span className="aw-hero-chip" role="listitem">
-            {snapshot.source.dataType === 'sample' ? 'Sample data' : 'Modelled data'}
-          </span>
-          <span className="aw-hero-chip" role="listitem">
-            {dataAge}
-          </span>
-          <span className="aw-hero-chip" role="listitem">
-            {plan.source === 'ai' ? 'AI-personalised plan' : 'Standard plan'}
-          </span>
-        </div>
-
-        {/* One Plain Sentence */}
         <p className="aw-level-hero-sentence">
           {getLevelHeadline(effectiveLevel)}
         </p>
 
-        {/* 3. Inline SVG Waking Day HazeBand */}
         <HazeBand
           snapshot={snapshot}
           profile={profile}

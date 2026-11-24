@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { type RiskLevel } from '../../domain/types';
-import { computeAtmosphereModel } from './model';
+import { computeAtmosphereModel, type AtmosphereModel } from './model';
 import './atmosphere.css';
 
 export interface AtmosphereProps {
@@ -11,10 +11,51 @@ export interface AtmosphereProps {
   isFallback?: boolean;
 }
 
-/**
- * Decorative atmospheric weather effects strip.
- * Aria-hidden, pointer-events: none, transform/opacity animation only, <= 30 DOM nodes.
- */
+const AtmosphereSpecks: React.FC<{ specks: AtmosphereModel['specks'] }> = ({ specks }) => (
+  <>
+    {specks.map((speck) => {
+      const speckStyle: React.CSSProperties = {
+        ['--speck-x' as string]: speck.xPct,
+        ['--speck-y' as string]: speck.yPct,
+        ['--speck-size' as string]: speck.sizePx,
+        ['--speck-duration' as string]: speck.durationS,
+        ['--speck-delay' as string]: speck.delayS,
+      } as React.CSSProperties;
+
+      return (
+        <div
+          key={speck.id}
+          className="aw-atmosphere-speck"
+          style={speckStyle}
+        />
+      );
+    })}
+  </>
+);
+
+const AtmosphereStreaks: React.FC<{ windStreaks: AtmosphereModel['windStreaks'] }> = ({
+  windStreaks,
+}) => (
+  <>
+    {windStreaks.map((streak) => {
+      const streakStyle: React.CSSProperties = {
+        ['--streak-top' as string]: streak.topPct,
+        ['--streak-width' as string]: streak.widthPx,
+        ['--streak-duration' as string]: streak.durationS,
+        ['--streak-delay' as string]: streak.delayS,
+      } as React.CSSProperties;
+
+      return (
+        <div
+          key={streak.id}
+          className="aw-atmosphere-streak"
+          style={streakStyle}
+        />
+      );
+    })}
+  </>
+);
+
 export const Atmosphere: React.FC<AtmosphereProps> = ({
   level,
   localHour,
@@ -73,10 +114,8 @@ export const Atmosphere: React.FC<AtmosphereProps> = ({
       data-motion={model.enabled ? 'on' : 'off'}
       data-hidden={isVisible ? 'false' : 'true'}
     >
-      {/* 1. Sky Tint */}
       <div className="aw-atmosphere-sky" data-phase={model.dayPhase} />
 
-      {/* 2. Celestial Body (Sun or Moon) */}
       <div className="aw-atmosphere-celestial" style={celestialStyle}>
         <div
           className={
@@ -89,7 +128,6 @@ export const Atmosphere: React.FC<AtmosphereProps> = ({
         </div>
       </div>
 
-      {/* 3. Two Haze Bands */}
       <div
         className="aw-atmosphere-haze-band aw-atmosphere-haze-band-1"
         style={haze1Style}
@@ -99,42 +137,8 @@ export const Atmosphere: React.FC<AtmosphereProps> = ({
         style={haze2Style}
       />
 
-      {/* 4. Specks (Tiny airborne dots, max 22) */}
-      {model.specks.map((speck) => {
-        const speckStyle: React.CSSProperties = {
-          ['--speck-x' as string]: speck.xPct,
-          ['--speck-y' as string]: speck.yPct,
-          ['--speck-size' as string]: speck.sizePx,
-          ['--speck-duration' as string]: speck.durationS,
-          ['--speck-delay' as string]: speck.delayS,
-        } as React.CSSProperties;
-
-        return (
-          <div
-            key={speck.id}
-            className="aw-atmosphere-speck"
-            style={speckStyle}
-          />
-        );
-      })}
-
-      {/* 5. Wind Streaks (Up to 3 when wind >= 15 km/h) */}
-      {model.windStreaks.map((streak) => {
-        const streakStyle: React.CSSProperties = {
-          ['--streak-top' as string]: streak.topPct,
-          ['--streak-width' as string]: streak.widthPx,
-          ['--streak-duration' as string]: streak.durationS,
-          ['--streak-delay' as string]: streak.delayS,
-        } as React.CSSProperties;
-
-        return (
-          <div
-            key={streak.id}
-            className="aw-atmosphere-streak"
-            style={streakStyle}
-          />
-        );
-      })}
+      <AtmosphereSpecks specks={model.specks} />
+      <AtmosphereStreaks windStreaks={model.windStreaks} />
     </div>
   );
 };

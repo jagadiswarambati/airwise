@@ -14,13 +14,63 @@ export interface SevereSmogViewProps {
   onToggleManualOverride?: () => void;
 }
 
-/**
- * SevereSmogView: Calm, high-legibility Severe Smog mode.
- * Single column layout, high-contrast severe theme, base text >= 1.25rem,
- * level word in sentence case, PM2.5 with unit, up to 3 actions (mustInclude first),
- * primary "Show full plan" button, visible "Turn off severe view" button.
- * Announces entry ONCE via LiveRegion without role="alert" or aria-live="assertive" on container.
- */
+const SevereActionItem: React.FC<{
+  candidate: ActionCandidate;
+  onSelect: (cand: ActionCandidate) => void;
+}> = ({ candidate, onSelect }) => (
+  <article className="aw-severe-action-item">
+    <div className="aw-severe-action-head">
+      <h3 className="aw-severe-action-title">{candidate.action.title}</h3>
+      <span className="tag tag-cost">{candidate.tags.cost}</span>
+    </div>
+    <p className="aw-severe-action-why">{candidate.impact.explanation}</p>
+    <button
+      type="button"
+      className="aw-btn aw-btn-quiet aw-severe-action-btn"
+      onClick={() => onSelect(candidate)}
+      aria-label={`View guidance details for ${candidate.action.title}`}
+    >
+      Action guidance &amp; details →
+    </button>
+  </article>
+);
+
+const SevereControls: React.FC<{
+  onShowFullPlan?: () => void;
+  onExitSevere?: () => void;
+  onExitSevereView?: () => void;
+  isManualOverride?: boolean;
+  onToggleManualOverride?: () => void;
+}> = ({
+  onShowFullPlan,
+  onExitSevere,
+  onExitSevereView,
+  isManualOverride,
+  onToggleManualOverride,
+}) => (
+  <div className="aw-severe-controls">
+    <button
+      type="button"
+      className="aw-btn aw-btn-primary aw-severe-btn-primary"
+      onClick={onShowFullPlan || onExitSevereView}
+    >
+      Show full plan
+    </button>
+
+    <button
+      type="button"
+      className="aw-btn aw-btn-secondary aw-severe-btn-exit"
+      onClick={
+        isManualOverride && onToggleManualOverride
+          ? onToggleManualOverride
+          : onExitSevere || onExitSevereView
+      }
+    >
+      {isManualOverride ? 'Turn off manual override' : 'Turn off severe view'}
+    </button>
+  </div>
+);
+
 export const SevereSmogView: React.FC<SevereSmogViewProps> = ({
   snapshot,
   plan,
@@ -32,12 +82,10 @@ export const SevereSmogView: React.FC<SevereSmogViewProps> = ({
 }) => {
   const [selectedAction, setSelectedAction] = useState<ActionCandidate | null>(null);
 
-  // Announce entry ONCE through LiveRegion
   useEffect(() => {
     announce('Severe air for your household. Showing the three most important actions.');
   }, []);
 
-  // Sort mustInclude (mandatory) actions first, take up to 3
   const sortedActions = [...plan.topActions].sort((a, b) => {
     if (a.isMandatory && !b.isMandatory) return -1;
     if (!a.isMandatory && b.isMandatory) return 1;
@@ -52,7 +100,6 @@ export const SevereSmogView: React.FC<SevereSmogViewProps> = ({
 
   return (
     <div className="aw-severe-view" data-theme="severe">
-      {/* 1. Header Information */}
       <header className="aw-severe-header">
         <div className="aw-severe-level-row">
           <Icon name="severe" size={28} aria-hidden="true" />
@@ -70,52 +117,22 @@ export const SevereSmogView: React.FC<SevereSmogViewProps> = ({
         </p>
       </header>
 
-      {/* 2. Top 3 Immediate Actions (MustInclude first) */}
       <section className="aw-severe-actions-section" aria-label="Immediate high-priority protections">
         <h2 className="aw-severe-section-title">Immediate Protections</h2>
         <div className="aw-severe-actions-list">
           {topActions.map((cand) => (
-            <article key={cand.action.id} className="aw-severe-action-item">
-              <div className="aw-severe-action-head">
-                <h3 className="aw-severe-action-title">{cand.action.title}</h3>
-                <span className="tag tag-cost">{cand.tags.cost}</span>
-              </div>
-              <p className="aw-severe-action-why">{cand.impact.explanation}</p>
-              <button
-                type="button"
-                className="aw-btn aw-btn-quiet aw-severe-action-btn"
-                onClick={() => setSelectedAction(cand)}
-                aria-label={`View guidance details for ${cand.action.title}`}
-              >
-                Action guidance &amp; details →
-              </button>
-            </article>
+            <SevereActionItem key={cand.action.id} candidate={cand} onSelect={setSelectedAction} />
           ))}
         </div>
       </section>
 
-      {/* 3. Action Controls */}
-      <div className="aw-severe-controls">
-        <button
-          type="button"
-          className="aw-btn aw-btn-primary aw-severe-btn-primary"
-          onClick={onShowFullPlan || onExitSevereView}
-        >
-          Show full plan
-        </button>
-
-        <button
-          type="button"
-          className="aw-btn aw-btn-secondary aw-severe-btn-exit"
-          onClick={
-            isManualOverride && onToggleManualOverride
-              ? onToggleManualOverride
-              : onExitSevere || onExitSevereView
-          }
-        >
-          {isManualOverride ? 'Turn off manual override' : 'Turn off severe view'}
-        </button>
-      </div>
+      <SevereControls
+        onShowFullPlan={onShowFullPlan}
+        onExitSevere={onExitSevere}
+        onExitSevereView={onExitSevereView}
+        isManualOverride={isManualOverride}
+        onToggleManualOverride={onToggleManualOverride}
+      />
 
       {selectedAction && (
         <ActionDetailModal

@@ -44,13 +44,100 @@ function formatConfidenceWord(confidence?: string): string {
   }
 }
 
+const AxisPairSummary: React.FC<{
+  exp: AxisDetails;
+  em: AxisDetails;
+  className: string;
+}> = ({ exp, em, className }) => {
+  const expText =
+    exp.direction === 'reduces'
+      ? 'lowers'
+      : exp.direction === 'neutral'
+        ? 'no change'
+        : 'conditional';
+
+  const emText =
+    em.direction === 'reduces'
+      ? 'lowers'
+      : em.direction === 'neutral'
+        ? 'no change'
+        : 'conditional';
+
+  return (
+    <div className={`aw-axis-summary-row flex-row-center gap-2 text-xs ${className}`.trim()}>
+      <span className="flex-row-center gap-1 text-exposure">
+        <Icon name="protect" size={14} aria-hidden="true" />
+        <span>Exposure: {expText}</span>
+      </span>
+      <span className="text-muted" aria-hidden="true">·</span>
+      <span className="flex-row-center gap-1 text-emissions">
+        <Icon name="emissions" size={14} aria-hidden="true" />
+        <span>Emissions: {emText}</span>
+      </span>
+    </div>
+  );
+};
+
+const AxisPairFull: React.FC<{
+  exp: AxisDetails;
+  em: AxisDetails;
+  className: string;
+}> = ({ exp, em, className }) => (
+  <div className={`aw-axis-pair-grid ${className}`.trim()}>
+    <div className="axis-card-exposure">
+      <div className="flex-between mb-1">
+        <strong className="text-exposure flex-row-center gap-1">
+          <Icon name="protect" size={16} aria-hidden="true" />
+          <span>Exposure</span>
+        </strong>
+        {exp.label && <span className="tag-exposure-pill">{exp.label}</span>}
+      </div>
+      <div className="catalog-axis-direction">
+        {formatDirectionWord(exp.direction, 'exposure')}
+      </div>
+      {exp.confidence && (
+        <div className="text-xs text-muted mt-1">
+          {formatConfidenceWord(exp.confidence)}
+        </div>
+      )}
+      {exp.magnitude && (
+        <div className="catalog-magnitude text-exposure">{exp.magnitude}</div>
+      )}
+      {exp.note && <div className="catalog-axis-note mt-1">{exp.note}</div>}
+    </div>
+
+    <div className="axis-card-emissions">
+      <div className="flex-between mb-1">
+        <strong className="text-emissions flex-row-center gap-1">
+          <Icon name="emissions" size={16} aria-hidden="true" />
+          <span>Emissions</span>
+        </strong>
+        {em.label && <span className="tag-emissions-pill">{em.label}</span>}
+      </div>
+      <div className="catalog-axis-direction">
+        {formatDirectionWord(em.direction, 'emissions')}
+      </div>
+      {em.confidence && (
+        <div className="text-xs text-muted mt-1">
+          {formatConfidenceWord(em.confidence)}
+        </div>
+      )}
+      {em.value && (
+        <div className="catalog-magnitude text-emissions">
+          ~{em.value.vkm} vkm avoided
+        </div>
+      )}
+      {em.note && <div className="catalog-axis-note mt-1">{em.note}</div>}
+    </div>
+  </div>
+);
+
 export const AxisPair: React.FC<AxisPairProps> = ({
   exposure,
   emissions,
   variant = 'full',
   className = '',
 }) => {
-  // If children/ReactNodes are passed directly and it's not an AxisDetails object
   const isExposureNode = React.isValidElement(exposure) || typeof exposure === 'string';
   const isEmissionsNode = React.isValidElement(emissions) || typeof emissions === 'string';
 
@@ -67,72 +154,10 @@ export const AxisPair: React.FC<AxisPairProps> = ({
   const em = (emissions || {}) as AxisDetails;
 
   if (variant === 'summary') {
-    return (
-      <div className={`aw-axis-summary-row flex-row-center gap-2 text-xs ${className}`.trim()}>
-        <span className="flex-row-center gap-1 text-exposure">
-          <Icon name="protect" size={14} aria-hidden="true" />
-          <span>Exposure: {exp.direction === 'reduces' ? 'lowers' : exp.direction === 'neutral' ? 'no change' : 'conditional'}</span>
-        </span>
-        <span className="text-muted" aria-hidden="true">·</span>
-        <span className="flex-row-center gap-1 text-emissions">
-          <Icon name="emissions" size={14} aria-hidden="true" />
-          <span>Emissions: {em.direction === 'reduces' ? 'lowers' : em.direction === 'neutral' ? 'no change' : 'conditional'}</span>
-        </span>
-      </div>
-    );
+    return <AxisPairSummary exp={exp} em={em} className={className} />;
   }
 
-  return (
-    <div className={`aw-axis-pair-grid ${className}`.trim()}>
-      {/* Exposure Axis */}
-      <div className="axis-card-exposure">
-        <div className="flex-between mb-1">
-          <strong className="text-exposure flex-row-center gap-1">
-            <Icon name="protect" size={16} aria-hidden="true" />
-            <span>Exposure</span>
-          </strong>
-          {exp.label && <span className="tag-exposure-pill">{exp.label}</span>}
-        </div>
-        <div className="catalog-axis-direction">
-          {formatDirectionWord(exp.direction, 'exposure')}
-        </div>
-        {exp.confidence && (
-          <div className="text-xs text-muted mt-1">
-            {formatConfidenceWord(exp.confidence)}
-          </div>
-        )}
-        {exp.magnitude && (
-          <div className="catalog-magnitude text-exposure">{exp.magnitude}</div>
-        )}
-        {exp.note && <div className="catalog-axis-note mt-1">{exp.note}</div>}
-      </div>
-
-      {/* Emissions Axis */}
-      <div className="axis-card-emissions">
-        <div className="flex-between mb-1">
-          <strong className="text-emissions flex-row-center gap-1">
-            <Icon name="emissions" size={16} aria-hidden="true" />
-            <span>Emissions</span>
-          </strong>
-          {em.label && <span className="tag-emissions-pill">{em.label}</span>}
-        </div>
-        <div className="catalog-axis-direction">
-          {formatDirectionWord(em.direction, 'emissions')}
-        </div>
-        {em.confidence && (
-          <div className="text-xs text-muted mt-1">
-            {formatConfidenceWord(em.confidence)}
-          </div>
-        )}
-        {em.value && (
-          <div className="catalog-magnitude text-emissions">
-            ~{em.value.vkm} vkm avoided
-          </div>
-        )}
-        {em.note && <div className="catalog-axis-note mt-1">{em.note}</div>}
-      </div>
-    </div>
-  );
+  return <AxisPairFull exp={exp} em={em} className={className} />;
 };
 
 export default AxisPair;

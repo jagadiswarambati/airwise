@@ -7,6 +7,53 @@ interface ActionDetailModalProps {
   onClose: () => void;
 }
 
+const DualAxisImpactSection: React.FC<{
+  impact: ActionCandidate['impact'];
+}> = ({ impact }) => (
+  <section aria-label="Dual-Axis Impact Breakdown" className="mb-4">
+    <h3 className="modal-section-subtitle mb-2">Dual-axis impact</h3>
+
+    <div className="dual-axis-grid">
+      <div className="axis-card-exposure">
+        <div className="axis-card-title text-exposure">Exposure axis</div>
+        <div className="axis-card-value">
+          {impact.exposure.direction === 'reduces'
+            ? 'Reduces Exposure ↓'
+            : impact.exposure.direction === 'neutral'
+              ? 'Neutral —'
+              : 'Conditional'}
+        </div>
+        <div className="axis-card-label">
+          Label: <strong>{impact.exposure.label}</strong> ({impact.exposure.confidence}{' '}
+          confidence)
+        </div>
+        <p className="axis-card-note">{impact.exposure.note}</p>
+      </div>
+
+      <div className="axis-card-emissions">
+        <div className="axis-card-title text-emissions">Emissions axis</div>
+        <div className="axis-card-value">
+          {impact.emissions.direction === 'reduces'
+            ? 'Reduces Emissions ↓'
+            : impact.emissions.direction === 'neutral'
+              ? 'Neutral —'
+              : 'Conditional'}
+        </div>
+        <div className="axis-card-label">
+          Label: <strong>{impact.emissions.label}</strong> ({impact.emissions.confidence}{' '}
+          confidence)
+        </div>
+        {impact.emissions.value && (
+          <div className="axis-card-sub text-emissions">
+            ≈ {impact.emissions.value.vkm} vkm avoided/wk
+          </div>
+        )}
+        <p className="axis-card-note">{impact.emissions.note}</p>
+      </div>
+    </div>
+  </section>
+);
+
 export const ActionDetailModal: React.FC<ActionDetailModalProps> = ({ candidate, onClose }) => {
   if (!candidate) return null;
 
@@ -21,7 +68,6 @@ export const ActionDetailModal: React.FC<ActionDetailModalProps> = ({ candidate,
       subtitle={`Category: ${action.category.charAt(0).toUpperCase() + action.category.slice(1)}`}
     >
       <div className="action-detail-body">
-        {/* Disclaimers & Safety Caveats */}
         {fixedDisclaimers && fixedDisclaimers.length > 0 && (
           <div className="banner banner-warning mb-4">
             <div>
@@ -34,53 +80,8 @@ export const ActionDetailModal: React.FC<ActionDetailModalProps> = ({ candidate,
           </div>
         )}
 
-        {/* Dual-Axis Impact Breakdown */}
-        <section aria-label="Dual-Axis Impact Breakdown" className="mb-4">
-          <h3 className="modal-section-subtitle mb-2">Dual-axis impact</h3>
+        <DualAxisImpactSection impact={impact} />
 
-          <div className="dual-axis-grid">
-            {/* Exposure Axis */}
-            <div className="axis-card-exposure">
-              <div className="axis-card-title text-exposure">Exposure axis</div>
-              <div className="axis-card-value">
-                {impact.exposure.direction === 'reduces'
-                  ? 'Reduces Exposure ↓'
-                  : impact.exposure.direction === 'neutral'
-                    ? 'Neutral —'
-                    : 'Conditional'}
-              </div>
-              <div className="axis-card-label">
-                Label: <strong>{impact.exposure.label}</strong> ({impact.exposure.confidence}{' '}
-                confidence)
-              </div>
-              <p className="axis-card-note">{impact.exposure.note}</p>
-            </div>
-
-            {/* Emissions Axis */}
-            <div className="axis-card-emissions">
-              <div className="axis-card-title text-emissions">Emissions axis</div>
-              <div className="axis-card-value">
-                {impact.emissions.direction === 'reduces'
-                  ? 'Reduces Emissions ↓'
-                  : impact.emissions.direction === 'neutral'
-                    ? 'Neutral —'
-                    : 'Conditional'}
-              </div>
-              <div className="axis-card-label">
-                Label: <strong>{impact.emissions.label}</strong> ({impact.emissions.confidence}{' '}
-                confidence)
-              </div>
-              {impact.emissions.value && (
-                <div className="axis-card-sub text-emissions">
-                  ≈ {impact.emissions.value.vkm} vkm avoided/wk
-                </div>
-              )}
-              <p className="axis-card-note">{impact.emissions.note}</p>
-            </div>
-          </div>
-        </section>
-
-        {/* Action Boundaries: What This Action Does NOT Change */}
         <section aria-label="What This Action Does Not Change" className="mb-4">
           <h3 className="modal-section-subtitle mb-1">What this does not change</h3>
           <div className="card-subtle text-sm">
@@ -88,7 +89,6 @@ export const ActionDetailModal: React.FC<ActionDetailModalProps> = ({ candidate,
           </div>
         </section>
 
-        {/* Assumptions */}
         {impact.assumptions && impact.assumptions.length > 0 && (
           <section aria-label="Assumptions" className="mb-4">
             <h3 className="modal-section-subtitle mb-1">Assumptions</h3>

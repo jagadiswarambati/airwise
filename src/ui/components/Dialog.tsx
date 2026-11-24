@@ -13,37 +13,23 @@ export interface DialogProps {
 const FOCUSABLE_SELECTOR =
   'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
-/**
- * Accessible Modal Dialog primitive.
- * Enforces role="dialog", aria-modal="true", focus trap, Escape key handling,
- * scroll locking, and return of focus to opener.
- */
-export const Dialog: React.FC<DialogProps> = ({
-  isOpen,
-  onClose,
-  titleId,
-  ariaLabel,
-  children,
-  className = '',
-  overlayClassName = '',
-}) => {
-  const dialogRef = useRef<HTMLDivElement>(null);
+function useDialogFocusTrap(
+  isOpen: boolean,
+  onClose: () => void,
+  dialogRef: React.RefObject<HTMLDivElement | null>,
+) {
   const openerRef = useRef<HTMLElement | null>(null);
 
-  // Capture active element before opening and handle focus trap / escape key
   useEffect(() => {
     if (!isOpen) return;
 
-    // Record opener
     if (typeof document !== 'undefined') {
       openerRef.current = document.activeElement as HTMLElement | null;
     }
 
-    // Lock body scroll
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
 
-    // Focus the first focusable element inside dialog or the dialog itself
     const timer = setTimeout(() => {
       if (dialogRef.current) {
         const focusables = dialogRef.current.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR);
@@ -95,12 +81,24 @@ export const Dialog: React.FC<DialogProps> = ({
       window.removeEventListener('keydown', handleKeyDown);
       document.body.style.overflow = prevOverflow;
 
-      // Return focus to trigger element
       if (openerRef.current && typeof openerRef.current.focus === 'function') {
         openerRef.current.focus();
       }
     };
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, dialogRef]);
+}
+
+export const Dialog: React.FC<DialogProps> = ({
+  isOpen,
+  onClose,
+  titleId,
+  ariaLabel,
+  children,
+  className = '',
+  overlayClassName = '',
+}) => {
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useDialogFocusTrap(isOpen, onClose, dialogRef);
 
   if (!isOpen) return null;
 

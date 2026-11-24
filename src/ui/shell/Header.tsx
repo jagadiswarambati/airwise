@@ -21,11 +21,29 @@ const SCENARIO_NAMES: Record<ScenarioType, string> = {
   stale: 'Stale / Unverified',
 };
 
-/**
- * Primary sticky application header (64px desktop / 56px mobile).
- * Features brand anchor, desktop top nav links, Demo switcher button,
- * and Menu button with visible text label at >=768px.
- */
+const DemoNoticeStrip: React.FC<{
+  scenario: ScenarioType;
+  onExitDemo: () => void;
+}> = ({ scenario, onExitDemo }) => (
+  <aside role="status" aria-label="Demo mode notice" className="aw-demo-strip">
+    <div className="aw-container aw-demo-strip-inner">
+      <div className="aw-demo-strip-text">
+        <Icon name="info" size={16} aria-hidden="true" />
+        <span>
+          You are viewing demo data (<strong>{SCENARIO_NAMES[scenario]}</strong>).
+        </span>
+      </div>
+      <button
+        type="button"
+        className="aw-btn aw-btn-quiet aw-demo-strip-exit"
+        onClick={onExitDemo}
+      >
+        Exit demo
+      </button>
+    </div>
+  </aside>
+);
+
 export const Header: React.FC<HeaderProps> = ({
   currentRoute,
   onNavigate,
@@ -40,7 +58,6 @@ export const Header: React.FC<HeaderProps> = ({
     <div className="aw-header-wrapper">
       <header className="aw-header">
         <div className="aw-container aw-header-inner">
-          {/* Brand */}
           <a
             href="#/today"
             className="aw-brand"
@@ -58,14 +75,11 @@ export const Header: React.FC<HeaderProps> = ({
             <span className="aw-brand-title">AirWise</span>
           </a>
 
-          {/* Desktop Top Navigation (>=1024px) */}
           <div className="aw-header-nav-desktop">
             <TopNav currentRoute={currentRoute} onNavigate={onNavigate} />
           </div>
 
-          {/* Controls */}
           <div className="aw-header-controls">
-            {/* Demo Data Button */}
             <button
               type="button"
               className={`aw-btn ${isDemoActive ? 'aw-btn-primary' : 'aw-btn-secondary'} aw-header-btn-demo`}
@@ -78,7 +92,6 @@ export const Header: React.FC<HeaderProps> = ({
               </span>
             </button>
 
-            {/* Menu Button (visible label at >=768px) */}
             <button
               type="button"
               className="aw-btn aw-btn-quiet aw-header-btn-menu"
@@ -92,30 +105,8 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
       </header>
 
-      {/* Slim Active Demo Notification Strip */}
       {isDemoActive && (
-        <aside
-          role="status"
-          aria-label="Demo mode notice"
-          className="aw-demo-strip"
-        >
-          <div className="aw-container aw-demo-strip-inner">
-            <div className="aw-demo-strip-text">
-              <Icon name="info" size={16} aria-hidden="true" />
-              <span>
-                You are viewing demo data (
-                <strong>{SCENARIO_NAMES[currentScenario]}</strong>).
-              </span>
-            </div>
-            <button
-              type="button"
-              className="aw-btn aw-btn-quiet aw-demo-strip-exit"
-              onClick={onExitDemo}
-            >
-              Exit demo
-            </button>
-          </div>
-        </aside>
+        <DemoNoticeStrip scenario={currentScenario} onExitDemo={onExitDemo} />
       )}
     </div>
   );

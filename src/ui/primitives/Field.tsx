@@ -10,6 +10,24 @@ export interface FieldProps {
   children: React.ReactNode;
 }
 
+function getEnhancedChild(
+  children: React.ReactNode,
+  id: string,
+  describedBy?: string,
+  error?: string,
+) {
+  if (!React.isValidElement<React.HTMLAttributes<HTMLElement>>(children)) {
+    return children;
+  }
+  const childProps = children.props as { id?: string; 'aria-describedby'?: string };
+  return React.cloneElement(children, {
+    id: childProps.id || id,
+    'aria-describedby':
+      [childProps['aria-describedby'], describedBy].filter(Boolean).join(' ') || undefined,
+    'aria-invalid': error ? true : undefined,
+  } as React.HTMLAttributes<HTMLElement>);
+}
+
 export const Field: React.FC<FieldProps> = ({
   id,
   label,
@@ -23,20 +41,7 @@ export const Field: React.FC<FieldProps> = ({
   const errorId = error ? `${id}-error` : undefined;
   const describedBy = [helperId, errorId].filter(Boolean).join(' ') || undefined;
 
-  // Enhance child input/select element with id, aria-describedby, and aria-invalid
-  const enhancedChild = React.isValidElement<React.HTMLAttributes<HTMLElement>>(children)
-    ? React.cloneElement(children, {
-        id: (children.props as { id?: string }).id || id,
-        'aria-describedby':
-          [
-            (children.props as { 'aria-describedby'?: string })['aria-describedby'],
-            describedBy,
-          ]
-            .filter(Boolean)
-            .join(' ') || undefined,
-        'aria-invalid': error ? true : undefined,
-      } as React.HTMLAttributes<HTMLElement>)
-    : children;
+  const enhancedChild = getEnhancedChild(children, id, describedBy, error);
 
   return (
     <div className={`aw-field ${error ? 'aw-field-has-error' : ''} ${className}`.trim()}>
