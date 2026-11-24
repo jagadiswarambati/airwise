@@ -55,7 +55,7 @@ export function getLevelHeadline(effectiveLevel: RiskLevel): string {
     case 2:
       return 'Caution advised. Sensitive members should reduce prolonged outdoor exertion.';
     case 3:
-      return 'High pollution alert. Protect your indoor air and avoid unnecessary outdoor exposure.';
+      return 'Air is at Protect level for your household today. Keep indoor air clean and limit time outside.';
     case 4:
       return 'Severe pollution conditions. Minimize outdoor exposure and maintain a clean indoor environment.';
   }

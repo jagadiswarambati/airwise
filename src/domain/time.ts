@@ -13,6 +13,10 @@ export interface LocalTimeComponents {
   minuteOfDay: number;
 }
 
+export function getLocalHour(timeStr: string, utcOffsetSeconds?: number): number {
+  return parseLocalTime(timeStr, utcOffsetSeconds).hour;
+}
+
 /**
  * Parses "HH:MM" into minutes from midnight (0..1439).
  */

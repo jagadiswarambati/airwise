@@ -125,14 +125,15 @@ describe('Accessibility & WCAG 2.2 AA Contrast Compliance', () => {
       expect(html).toContain('aria-labelledby="modal-action-title"');
     });
 
-    it('ensures Severe Smog Mode alert has role="alert"', () => {
+    it('ensures Calm Severe Smog Mode container does not have role="alert" or aria-live="assertive"', () => {
       const snapshot = getSampleScenarioSnapshot('severe');
       const plan = buildDeterministicPlan(PRIYA_PROFILE, snapshot);
       const html = renderToString(<SevereSmogView snapshot={snapshot} plan={plan} />);
 
-      expect(html).toContain('role="alert"');
-      expect(html).toContain('SEVERE SMOG ALERT');
-      expect(html).toContain('Outdoor exertion is hazardous');
+      expect(html).not.toContain('role="alert"');
+      expect(html).not.toContain('aria-live="assertive"');
+      expect(html).toContain('Severe for your household');
+      expect(html).toContain('Turn off severe view');
     });
 
     it('ensures all interactive cards have accessible button types and labels', () => {

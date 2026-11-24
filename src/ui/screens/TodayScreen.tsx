@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   ActionCandidate,
   AirSnapshot,
@@ -13,12 +13,12 @@ import { usePersonalizedPlan } from '../hooks/usePersonalizedPlan';
 import { ROUTE_DESCRIPTIONS } from '../../state/route';
 
 import { PageHeader } from '../shell/PageHeader';
-import { AirBriefingCard } from '../components/AirBriefingCard';
-import { RiskRadarCard } from '../components/RiskRadarCard';
-import { ActionCard } from '../components/ActionCard';
+import { LevelHero } from '../components/LevelHero';
+import { RadarLine } from '../components/RadarLine';
+import { ActionRow } from '../components/ActionRow';
 import { ActionDetailModal } from '../components/ActionDetailModal';
 import { QuickChecksCard } from '../components/QuickChecksCard';
-import { TrustPanel } from '../components/TrustPanel';
+import { TrustSummary } from '../components/TrustSummary';
 import { SevereSmogView } from '../components/SevereSmogView';
 import { Skeleton } from '../components/Skeleton';
 import { Icon } from '../icons';
@@ -91,6 +91,19 @@ export const TodayScreen: React.FC<TodayScreenProps> = ({
     prevAiPersonalizedRef.current = isAiPersonalized;
   }, [isAiPersonalized]);
 
+  // Top 3 actions with mustInclude (mandatory) first
+  const plan = activePlan.headline ? activePlan : deterministicPlan;
+  const topActions = useMemo(() => {
+    if (!plan || !plan.topActions) return [];
+    const list = [...plan.topActions];
+    list.sort((a, b) => {
+      if (a.isMandatory && !b.isMandatory) return -1;
+      if (!a.isMandatory && b.isMandatory) return 1;
+      return 0;
+    });
+    return list.slice(0, 3);
+  }, [plan]);
+
   if (loading && !snapshot) {
     return (
       <div className="aw-screen aw-screen-today">
@@ -98,8 +111,19 @@ export const TodayScreen: React.FC<TodayScreenProps> = ({
           title="Today's Clean-Air Plan"
           description={ROUTE_DESCRIPTIONS.today}
         />
-        <div className="center-panel py-8">
-          <Skeleton count={3} variant="card" />
+        <div className="aw-today-loading-skeleton" aria-label="Loading today's clean-air plan">
+          <Skeleton count={1} variant="card" />
+          <div className="aw-today-grid mt-6">
+            <div className="aw-today-main">
+              <Skeleton count={1} variant="text" />
+              <div className="mt-4">
+                <Skeleton count={3} variant="rect" />
+              </div>
+            </div>
+            <aside className="aw-today-aside">
+              <Skeleton count={2} variant="card" />
+            </aside>
+          </div>
         </div>
       </div>
     );
@@ -112,20 +136,30 @@ export const TodayScreen: React.FC<TodayScreenProps> = ({
           title="Today's Clean-Air Plan"
           description={ROUTE_DESCRIPTIONS.today}
         />
-        <div className="card text-center py-6">
+        <div className="aw-today-error-state text-center py-6">
+          <Icon name="warning" size={32} className="text-warning mb-2" aria-hidden="true" />
           <h2 className="text-lg font-bold mb-2">Unable to load air data</h2>
-          <p className="error-message mb-4">{error}</p>
-          <button type="button" className="aw-btn aw-btn-primary" onClick={onRetry}>
-            Retry
-          </button>
+          <p className="error-message mb-4">
+            {error || 'Network or service timeout. Check your connection or retry in a few moments.'}
+          </p>
+          <div className="aw-btn-row justify-center">
+            <button type="button" className="aw-btn aw-btn-primary" onClick={onRetry}>
+              Retry forecast
+            </button>
+            <button
+              type="button"
+              className="aw-btn aw-btn-secondary"
+              onClick={() => onSelectScenario('moderate')}
+            >
+              Use demo data
+            </button>
+          </div>
         </div>
       </div>
     );
   }
 
-  if (!snapshot || !radar || !deterministicPlan) return null;
-
-  const plan = activePlan.headline ? activePlan : deterministicPlan;
+  if (!snapshot || !radar || !deterministicPlan || !plan) return null;
 
   const trust: TrustModel = buildTrustModel(
     snapshot,
@@ -180,7 +214,9 @@ export const TodayScreen: React.FC<TodayScreenProps> = ({
         <aside className="banner banner-offline" role="status" aria-label="Fallback mode notice">
           <Icon name="info" size={18} aria-hidden="true" />
           <div>
-            <div>{fallbackReason || "We couldn't reach the air data service. Using cautious defaults."}</div>
+            <div>
+              {fallbackReason || "We couldn't reach the air data service. Using cautious defaults."}
+            </div>
             <button
               type="button"
               className="aw-btn aw-btn-secondary mt-1 text-xs"
@@ -194,88 +230,101 @@ export const TodayScreen: React.FC<TodayScreenProps> = ({
 
       {/* Stale Data Warning Banner (Rule P-03) */}
       {(snapshot.freshness === 'stale' || snapshot.freshness === 'none') && (
-        <aside className="banner banner-warning" role="alert" aria-label="Stale data warning">
+        <aside className="banner banner-warning" role="status" aria-label="Stale data notice">
           <Icon name="warning" size={18} aria-hidden="true" />
           <div>
-            <strong>Stale / Unverified Air Data:</strong> Outdoor recommendations (ventilation and
-            walking) are cautiously suppressed.
+            Air data is 26 hours old. Treat advice as low confidence. Walking and open-window advice is hidden.
           </div>
         </aside>
       )}
 
-      {/* Air Briefing Card */}
-      <AirBriefingCard snapshot={snapshot} effectiveLevel={effectiveLevel} />
+      {/* Signature LevelHero spanning full container width */}
+      <LevelHero
+        snapshot={snapshot}
+        profile={profile}
+        plan={plan}
+        radar={radar}
+        effectiveLevel={effectiveLevel}
+        animatedSkyEnabled={settings.animatedSky}
+        isFallback={isFallback}
+      />
 
-      {/* Household Risk Headline */}
-      <section
-        className={`card card-risk-level-${effectiveLevel}`}
-        aria-label="Household Risk Headline"
-      >
-        <div className="risk-headline-text">
-          {plan.headline}
-        </div>
-      </section>
+      {/* Two-Column Responsive Grid (>=1100px) / Single Column (<1100px) */}
+      <div className="aw-today-grid">
+        {/* Main Column */}
+        <div className="aw-today-main">
+          {/* Radar Sentence */}
+          <RadarLine radar={radar} profile={profile} />
 
-      {/* Household Risk Radar */}
-      <RiskRadarCard radar={radar} />
+          <hr className="aw-divider" />
 
-      {/* Top 3 Actions */}
-      <section aria-label="Today's Top 3 Actions">
-        <div className="section-title-row">
-          <h2 className="section-heading">Today's Top Actions</h2>
-          <span
-            className={plan.source === 'ai' ? 'plan-source-badge-ai' : 'plan-source-badge-standard'}
-          >
-            <Icon name={plan.source === 'ai' ? 'exposure' : 'protect'} size={14} aria-hidden="true" />
-            <span>{plan.source === 'ai' ? 'AI-personalised' : 'Standard plan'}</span>
-          </span>
-        </div>
-
-        <div className="actions-stack">
-          {plan.topActions.map((cand) => (
-            <ActionCard
-              key={cand.action.id}
-              candidate={cand}
-              onSelect={(c) => setSelectedAction(c)}
-            />
-          ))}
-        </div>
-      </section>
-
-      {/* 6-Slot Daily Timeline */}
-      <section aria-label="Daily Clean-Air Timeline">
-        <h2 className="section-heading mb-3">
-          Daily Clean-Air Timeline
-        </h2>
-
-        <div className="timeline-list">
-          {plan.timeline.map((slot) => (
-            <div key={slot.slotId} className="timeline-slot">
-              <div className="slot-header">
-                <span className="slot-title">{slot.slotLabel}</span>
-                <span className="slot-time">{slot.note}</span>
-              </div>
-
-              <div className="timeline-slot-actions">
-                {slot.actions.map((cand) => (
-                  <ActionCard
-                    key={cand.action.id}
-                    candidate={cand}
-                    onSelect={(c) => setSelectedAction(c)}
-                  />
-                ))}
-              </div>
+          {/* "Do these first" section */}
+          <section className="aw-today-section" aria-label="Do these first">
+            <div className="aw-today-section-header">
+              <h2 className="aw-section-title">Do these first</h2>
+              <span
+                className={
+                  plan.source === 'ai'
+                    ? 'plan-source-badge-ai'
+                    : 'plan-source-badge-standard'
+                }
+              >
+                <Icon
+                  name={plan.source === 'ai' ? 'exposure' : 'protect'}
+                  size={14}
+                  aria-hidden="true"
+                />
+                <span>{plan.source === 'ai' ? 'AI-personalised' : 'Standard plan'}</span>
+              </span>
             </div>
-          ))}
+
+            <div className="aw-action-rows-stack">
+              {topActions.map((cand, idx) => (
+                <ActionRow
+                  key={cand.action.id}
+                  candidate={cand}
+                  rank={idx + 1}
+                  onSelect={(c) => setSelectedAction(c)}
+                />
+              ))}
+            </div>
+          </section>
+
+          <hr className="aw-divider" />
+
+          {/* "Your day" timeline */}
+          <section className="aw-today-section" aria-label="Your day timeline">
+            <h2 className="aw-section-title">Your day</h2>
+            <div className="aw-timeline-slots">
+              {plan.timeline.map((slot) => (
+                <div key={slot.slotId} className="aw-timeline-slot-group">
+                  <div className="aw-timeline-slot-header">
+                    <span className="aw-slot-name">{slot.slotLabel}</span>
+                    <span className="aw-slot-note">{slot.note}</span>
+                  </div>
+                  <div className="aw-slot-actions">
+                    {slot.actions.map((cand) => (
+                      <ActionRow
+                        key={cand.action.id}
+                        candidate={cand}
+                        onSelect={(c) => setSelectedAction(c)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
         </div>
-      </section>
 
-      {/* Quick Checks */}
-      <QuickChecksCard checks={quickChecks} />
+        {/* Sticky Aside Column (>=1100px) / In-order below 1100px */}
+        <aside className="aw-today-aside" aria-label="Forecast trust and quick questions">
+          <TrustSummary trust={trust} />
 
-      {/* Trust Panel */}
-      <div id="trust-panel">
-        <TrustPanel trust={trust} />
+          <hr className="aw-divider" />
+
+          <QuickChecksCard checks={quickChecks} />
+        </aside>
       </div>
 
       {/* Action Detail Modal Sheet */}

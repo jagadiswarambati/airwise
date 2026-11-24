@@ -1,7 +1,6 @@
 import React from 'react';
 import { AirSnapshot, RiskLevel } from '../../domain/types';
 import { RiskBadge } from './RiskBadge';
-import { Sparkline } from './Sparkline';
 import { Badge } from '../primitives';
 
 interface AirBriefingCardProps {
@@ -58,8 +57,6 @@ export const AirBriefingCard: React.FC<AirBriefingCardProps> = ({ snapshot, effe
           </div>
         </div>
       </div>
-
-      <Sparkline hourly={snapshot.pm25.hourly} />
     </section>
   );
 };

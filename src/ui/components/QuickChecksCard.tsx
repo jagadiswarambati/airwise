@@ -1,61 +1,70 @@
 import React, { useState } from 'react';
 import { QuickCheckResult } from '../../domain/quickchecks';
+import { Sheet } from './Sheet';
 
-interface QuickChecksCardProps {
+export interface QuickChecksCardProps {
   checks: QuickCheckResult[];
 }
 
+function getVerdictClass(verdict: QuickCheckResult['verdict']): string {
+  switch (verdict) {
+    case 'Yes':
+      return 'verdict-yes';
+    case 'No':
+      return 'verdict-no';
+    case 'Brief':
+      return 'verdict-brief';
+    case 'With precautions':
+      return 'verdict-precautions';
+    default:
+      return '';
+  }
+}
+
+/**
+ * QuickChecksCard: Clean, unboxed Quick Questions presented as interactive Chips.
+ * Clicking any chip opens a full Sheet showing the answer and reasoning. No nested cards.
+ */
 export const QuickChecksCard: React.FC<QuickChecksCardProps> = ({ checks }) => {
-  const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
-
-  const toggleExpand = (idx: number) => {
-    setExpandedIdx((prev) => (prev === idx ? null : idx));
-  };
-
-  const getVerdictClass = (verdict: QuickCheckResult['verdict']) => {
-    switch (verdict) {
-      case 'Yes':
-        return 'verdict-yes';
-      case 'No':
-        return 'verdict-no';
-      case 'Brief':
-        return 'verdict-brief';
-      case 'With precautions':
-        return 'verdict-precautions';
-    }
-  };
+  const [selectedCheck, setSelectedCheck] = useState<QuickCheckResult | null>(null);
 
   return (
-    <section className="card" aria-label="Deterministic Quick Checks">
-      <div className="card-header">
-        <span className="card-title">Quick Checks</span>
-        <span className="tag tag-cost">Deterministic</span>
-      </div>
-
-      <div className="quick-checks-list">
+    <section className="aw-quick-questions-section" aria-label="Quick Checks">
+      <h2 className="aw-section-title">Quick Checks</h2>
+      <div className="aw-quick-chips-wrap">
         {checks.map((check, idx) => {
-          const isExpanded = expandedIdx === idx;
+          const verdictCls = getVerdictClass(check.verdict);
           return (
-            <div key={idx} className="quick-check-item">
-              <button
-                type="button"
-                className="qc-question-row"
-                onClick={() => toggleExpand(idx)}
-                aria-expanded={isExpanded}
-              >
-                <span className="qc-question">{check.question}</span>
-                <span className={`qc-verdict ${getVerdictClass(check.verdict)}`}>
-                  {check.verdict}
-                </span>
-              </button>
-
-              <div className="qc-answer">
-                {check.answer}
-              </div>
-            </div>
+            <button
+              key={idx}
+              type="button"
+              className="aw-quick-chip"
+              onClick={() => setSelectedCheck(check)}
+              aria-label={`${check.question}: ${check.verdict}. Tap for explanation.`}
+            >
+              <span className="aw-qc-chip-q">{check.question}</span>
+              <span className={`aw-qc-chip-verdict ${verdictCls}`}>
+                {check.verdict}
+              </span>
+            </button>
           );
         })}
       </div>
+
+      {selectedCheck && (
+        <Sheet
+          isOpen={!!selectedCheck}
+          onClose={() => setSelectedCheck(null)}
+          title={selectedCheck.question}
+        >
+          <div className="aw-qc-sheet-body">
+            <div className={`aw-qc-sheet-badge ${getVerdictClass(selectedCheck.verdict)}`}>
+              {selectedCheck.verdict}
+            </div>
+            <p className="aw-qc-sheet-answer">{selectedCheck.answer}</p>
+          </div>
+        </Sheet>
+      )}
     </section>
   );
 };

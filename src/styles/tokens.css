@@ -45,6 +45,27 @@
   --emissions-ink: #166534;
   --emissions-border: #16a34a;
 
+  /* Sky Tokens for Atmosphere */
+  --sky-day: #e0f2fe;
+  --sky-dusk: #fed7aa;
+  --sky-night: #0f172a;
+
+  /* Atmosphere dynamic layer token defaults */
+  --sun-x: 50%;
+  --sun-y: 20%;
+  --ring-opacity: 0.75;
+  --haze-1-opacity: 0;
+  --haze-2-opacity: 0;
+  --speck-x: 50%;
+  --speck-y: 50%;
+  --speck-size: 2px;
+  --speck-duration: 20s;
+  --speck-delay: 0s;
+  --streak-width: 40px;
+  --streak-top: 30%;
+  --streak-duration: 4s;
+  --streak-delay: 0s;
+
   /* Spacing Scale (4px base) */
   --space-1: 0.25rem;  /* 4px */
   --space-2: 0.5rem;   /* 8px */
@@ -119,6 +140,11 @@
     --emissions-ink: #bbf7d0;
     --emissions-border: #4ade80;
 
+    /* Dark Mode Sky Tokens */
+    --sky-day: #0369a1;
+    --sky-dusk: #7c2d12;
+    --sky-night: #020617;
+
     --focus-ring: 3px solid var(--accent);
     --shadow-sheet: 0 2px 4px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.3);
     --dialog-backdrop: rgba(0, 0, 0, 0.7);
@@ -156,6 +182,11 @@
   --emissions-ink: #bbf7d0;
   --emissions-border: #4ade80;
 
+  /* Dark Mode Sky Tokens */
+  --sky-day: #0369a1;
+  --sky-dusk: #7c2d12;
+  --sky-night: #020617;
+
   --focus-ring: 3px solid var(--accent);
   --shadow-sheet: 0 2px 4px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.3);
   --dialog-backdrop: rgba(0, 0, 0, 0.7);
@@ -191,6 +222,27 @@
   --emissions-bg: #f0fdf4;
   --emissions-ink: #166534;
   --emissions-border: #16a34a;
+
+  /* Sky Tokens for Atmosphere */
+  --sky-day: #e0f2fe;
+  --sky-dusk: #fed7aa;
+  --sky-night: #0f172a;
+
+  /* Atmosphere dynamic layer token defaults */
+  --sun-x: 50%;
+  --sun-y: 20%;
+  --ring-opacity: 0.75;
+  --haze-1-opacity: 0;
+  --haze-2-opacity: 0;
+  --speck-x: 50%;
+  --speck-y: 50%;
+  --speck-size: 2px;
+  --speck-duration: 20s;
+  --speck-delay: 0s;
+  --streak-width: 40px;
+  --streak-top: 30%;
+  --streak-duration: 4s;
+  --streak-delay: 0s;
 
   --focus-ring: 3px solid var(--accent);
   --shadow-sheet: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
@@ -228,6 +280,11 @@
   --emissions-bg: #052e16;
   --emissions-ink: #bbf7d0;
   --emissions-border: #4ade80;
+
+  /* Severe Theme Sky Tokens */
+  --sky-day: #2e1065;
+  --sky-dusk: #3b0764;
+  --sky-night: #1a0526;
 
   /* High Legibility Scaling (Base >= 20px) */
   --text-base: 1.25rem;  /* 20px */

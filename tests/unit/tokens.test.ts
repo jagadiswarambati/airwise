@@ -79,6 +79,9 @@ describe('Design Tokens & Contrast Compliance (tokens.test.ts)', () => {
         '--emissions-bg',
         '--emissions-ink',
         '--emissions-border',
+        '--sky-day',
+        '--sky-dusk',
+        '--sky-night',
       ];
 
       for (const token of colorTokens) {

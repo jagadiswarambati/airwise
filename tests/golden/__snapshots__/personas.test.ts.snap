@@ -2,7 +2,7 @@
 
 exports[`Golden Persona Tests across Scenarios > No-Data Golden Snapshot > matches golden snapshot when data is missing/unavailable 1`] = `
 {
-  "headline": "High pollution alert. Protect your indoor air and avoid unnecessary outdoor exposure.",
+  "headline": "Air is at Protect level for your household today. Keep indoor air clean and limit time outside.",
   "planConfidence": "low",
   "radar": {
     "memberRoleLabel": "Child 5-12",
@@ -256,7 +256,7 @@ exports[`Golden Persona Tests across Scenarios > Persona 1: Priya (Multi-Generat
 
 exports[`Golden Persona Tests across Scenarios > Persona 1: Priya (Multi-Generational Urban) > evaluates safely and matches golden snapshot in scenario: stale 1`] = `
 {
-  "headline": "High pollution alert. Protect your indoor air and avoid unnecessary outdoor exposure.",
+  "headline": "Air is at Protect level for your household today. Keep indoor air clean and limit time outside.",
   "planConfidence": "low",
   "radar": {
     "memberRoleLabel": "Child 5-12",

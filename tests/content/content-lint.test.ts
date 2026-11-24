@@ -1,4 +1,6 @@
 import React from 'react';
+import fs from 'node:fs';
+import path from 'node:path';
 import { describe, it, expect } from 'vitest';
 import { renderToString } from 'react-dom/server';
 import { ACTION_CATALOG } from '../../src/domain/catalog/actions';
@@ -188,6 +190,22 @@ describe('Content Lint & Safety Audit', () => {
           action.id,
         );
       }
+    }
+  });
+
+  it('verifies no text-transform: uppercase in atmosphere.css or components.css LevelHero/ActionRow', () => {
+    const atmosphereCss = fs.readFileSync(path.resolve('src/ui/atmosphere/atmosphere.css'), 'utf8');
+    expect(atmosphereCss).not.toContain('text-transform: uppercase');
+
+    const componentsCss = fs.readFileSync(path.resolve('src/styles/components.css'), 'utf8');
+    // Neither LevelHero nor ActionRow should use uppercase text transform
+    const levelHeroBlock = componentsCss.match(/\.aw-level-hero[\s\S]*?(?=\n\.[a-z]|\n\/\*|$)/);
+    if (levelHeroBlock) {
+      expect(levelHeroBlock[0]).not.toContain('text-transform: uppercase');
+    }
+    const actionRowBlock = componentsCss.match(/\.aw-action-row[\s\S]*?(?=\n\.[a-z]|\n\/\*|$)/);
+    if (actionRowBlock) {
+      expect(actionRowBlock[0]).not.toContain('text-transform: uppercase');
     }
   });
 });
