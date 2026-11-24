@@ -1,9 +1,11 @@
 import {
   type ActionCandidate,
   type AirSnapshot,
+  type Confidence,
   type HouseholdProfile,
   type Plan,
   type TimelineSlot,
+  type TimeSlot,
 } from './types';
 import { deriveTimeSlots } from './radar';
 import { evaluatePolicy } from './policy';
@@ -17,150 +19,82 @@ export interface PlanBuilderOptions {
   generatedAt?: string;
 }
 
-/**
- * Deterministic Plan Builder:
- * Builds a complete, valid Clean-Air Plan without LLM or network dependency.
- *
- * Rules:
- * - Ranks actions by health urgency, feasibility, cost fit, and effort.
- * - Free-first ranking for free budget or low-cost mode.
- * - Precedence for top 3 (Decision A-11):
- *   1. Urgent mustInclude actions (e.g. IN-01, PE-03 at level >= 3)
- *   2. Exposure actions
- *   3. Emissions action (if a slot remains among top 3)
- * - Produces time-ordered daily timeline across 6 slots.
- * - Works offline with sample or default data.
- */
-export function buildDeterministicPlan(
-  profile: HouseholdProfile,
-  snapshot: AirSnapshot,
-  options?: PlanBuilderOptions,
-): Plan {
-  const targetRegion = options?.targetRegion || 'IN';
-  const communityMode = options?.communityMode || false;
-  const generatedAt = options?.generatedAt || snapshot.fetchedAt || snapshot.observedAt;
+const DAYTIME_IDS = new Set(['PE-03', 'MO-05', 'IN-06']);
+const EVENING_IDS = new Set(['IN-07', 'IN-08', 'IN-10']);
+const NIGHT_IDS = new Set(['IN-03', 'IN-05', 'IN-06']);
 
-  const slots = deriveTimeSlots(profile, snapshot.pm25.hourly, targetRegion, snapshot.utcOffsetSeconds);
-  const policyResult = evaluatePolicy(
-    profile,
-    snapshot,
-    slots,
-    communityMode,
-    targetRegion,
-    generatedAt,
-  );
-
-  const { effectiveLevel, approvedCandidates, mustIncludeActionIds, flags } = policyResult;
-
-  // Sort candidates by priority score descending
-  const sortedCandidates = [...approvedCandidates].sort((a, b) => b.priorityScore - a.priorityScore);
-
-  // Select Top 3 Actions per Decision A-11
-  const selectedTopActions: ActionCandidate[] = [];
+function selectTop3Actions(
+  sortedCandidates: ActionCandidate[],
+  mustIncludeActionIds: string[],
+): ActionCandidate[] {
+  const selected: ActionCandidate[] = [];
   const selectedIds = new Set<string>();
 
-  // 1. Mandatory / Urgent actions first
+  const addIfSlotAvailable = (candidate: ActionCandidate | undefined) => {
+    if (candidate && !selectedIds.has(candidate.action.id) && selected.length < 3) {
+      selected.push(candidate);
+      selectedIds.add(candidate.action.id);
+    }
+  };
+
   for (const id of mustIncludeActionIds) {
-    if (selectedTopActions.length >= 3) break;
-    const candidate = sortedCandidates.find((c) => c.action.id === id);
-    if (candidate && !selectedIds.has(id)) {
-      selectedTopActions.push(candidate);
-      selectedIds.add(id);
-    }
+    addIfSlotAvailable(sortedCandidates.find((c) => c.action.id === id));
   }
 
-  // 2. High priority exposure reduction actions
   for (const candidate of sortedCandidates) {
-    if (selectedTopActions.length >= 3) break;
-    if (
-      !selectedIds.has(candidate.action.id) &&
-      candidate.action.impactSpec.exposure.direction === 'reduces'
-    ) {
-      selectedTopActions.push(candidate);
-      selectedIds.add(candidate.action.id);
+    if (candidate.action.impactSpec.exposure.direction === 'reduces') {
+      addIfSlotAvailable(candidate);
     }
   }
 
-  // 3. High priority emissions reduction action (if a slot remains)
   for (const candidate of sortedCandidates) {
-    if (selectedTopActions.length >= 3) break;
-    if (
-      !selectedIds.has(candidate.action.id) &&
-      candidate.action.impactSpec.emissions.direction === 'reduces'
-    ) {
-      selectedTopActions.push(candidate);
-      selectedIds.add(candidate.action.id);
+    if (candidate.action.impactSpec.emissions.direction === 'reduces') {
+      addIfSlotAvailable(candidate);
     }
   }
 
-  // 4. Fill remaining top 3 slots from top sorted candidates
   for (const candidate of sortedCandidates) {
-    if (selectedTopActions.length >= 3) break;
-    if (!selectedIds.has(candidate.action.id)) {
-      selectedTopActions.push(candidate);
-      selectedIds.add(candidate.action.id);
-    }
+    addIfSlotAvailable(candidate);
   }
 
-  // Ensure top 3 has exactly 3 IDs (fallback to generic safe actions if candidates sparse)
-  while (selectedTopActions.length < 3 && sortedCandidates.length > 0) {
-    for (const c of sortedCandidates) {
-      if (selectedTopActions.length >= 3) break;
-      if (!selectedIds.has(c.action.id)) {
-        selectedTopActions.push(c);
-        selectedIds.add(c.action.id);
-      }
-    }
-    break;
+  return selected;
+}
+
+function matchCandidateToSlot(candidate: ActionCandidate, slotId: string): boolean {
+  if (candidate.applicableSlot === slotId) return true;
+  const { id, category } = candidate.action;
+
+  switch (slotId) {
+    case 'early-morning':
+      return id === 'IN-01';
+    case 'commute-out':
+    case 'commute-back':
+      return category === 'mobility' || id === 'PE-02';
+    case 'daytime':
+      return DAYTIME_IDS.has(id);
+    case 'evening':
+      return EVENING_IDS.has(id);
+    case 'night':
+      return NIGHT_IDS.has(id);
+    default:
+      return false;
   }
+}
 
-  const topActionIds: [string, string, string] = [
-    selectedTopActions[0]?.action.id || 'IN-01',
-    selectedTopActions[1]?.action.id || 'IN-03',
-    selectedTopActions[2]?.action.id || 'IN-09',
-  ];
-
-  // Build Time-Ordered Timeline across 6 Slots
-  const timeline: TimelineSlot[] = slots.map((slot) => {
+function buildTimeline(slots: TimeSlot[], sortedCandidates: ActionCandidate[]): TimelineSlot[] {
+  return slots.map((slot) => {
     const slotActions: ActionCandidate[] = [];
 
     for (const candidate of sortedCandidates) {
       if (slotActions.length >= 3) break;
-
-      // Assign by explicit slot mapping or category appropriateness
-      let matches = false;
-      if (candidate.applicableSlot === slot.id) {
-        matches = true;
-      } else if (slot.id === 'early-morning' && candidate.action.id === 'IN-01') {
-        matches = true;
-      } else if (
-        (slot.id === 'commute-out' || slot.id === 'commute-back') &&
-        (candidate.action.category === 'mobility' || candidate.action.id === 'PE-02')
+      if (
+        matchCandidateToSlot(candidate, slot.id) &&
+        !slotActions.some((sa) => sa.action.id === candidate.action.id)
       ) {
-        matches = true;
-      } else if (
-        slot.id === 'daytime' &&
-        (candidate.action.id === 'PE-03' || candidate.action.id === 'MO-05' || candidate.action.id === 'IN-06')
-      ) {
-        matches = true;
-      } else if (
-        slot.id === 'evening' &&
-        (candidate.action.id === 'IN-07' || candidate.action.id === 'IN-08' || candidate.action.id === 'IN-10')
-      ) {
-        matches = true;
-      } else if (
-        slot.id === 'night' &&
-        (candidate.action.id === 'IN-03' || candidate.action.id === 'IN-05' || candidate.action.id === 'IN-06')
-      ) {
-        matches = true;
-      }
-
-      if (matches && !slotActions.some((sa) => sa.action.id === candidate.action.id)) {
         slotActions.push(candidate);
       }
     }
 
-    // If slot has no actions, provide one safe baseline indoor action
     if (slotActions.length === 0 && sortedCandidates.length > 0) {
       slotActions.push(sortedCandidates[0]);
     }
@@ -173,46 +107,101 @@ export function buildDeterministicPlan(
       note: `${slot.label} (${slot.startTime}–${slot.endTime})`,
     };
   });
+}
 
-  // Explanations dictionary
+function resolvePlanConfidence(
+  staleOrNoData: boolean,
+  dataType: string,
+): Confidence {
+  if (staleOrNoData) return 'low';
+  if (dataType === 'observed') return 'high';
+  return 'medium';
+}
+
+function resolveTopActionIds(topActions: ActionCandidate[]): [string, string, string] {
+  return [
+    topActions[0]?.action.id || 'IN-01',
+    topActions[1]?.action.id || 'IN-03',
+    topActions[2]?.action.id || 'IN-09',
+  ];
+}
+
+function buildExplanations(candidates: ActionCandidate[]): Record<string, string> {
   const explanations: Record<string, string> = {};
-  for (const candidate of sortedCandidates) {
+  for (const candidate of candidates) {
     const template = ACTION_TEMPLATES[candidate.action.id];
     explanations[candidate.action.id] = template?.shortWhy || candidate.action.title;
   }
+  return explanations;
+}
 
-  // Plan confidence calculation
-  const planConfidence =
-    flags.staleData || flags.noData
-      ? 'low'
-      : snapshot.source.dataType === 'observed'
-        ? 'high'
-        : 'medium';
+function resolveGeneratedAt(options?: PlanBuilderOptions, snapshot?: AirSnapshot): string {
+  if (options?.generatedAt) return options.generatedAt;
+  if (snapshot?.fetchedAt) return snapshot.fetchedAt;
+  return snapshot?.observedAt || '';
+}
 
-  const confidenceReason = getConfidenceExplanation(
-    planConfidence,
-    snapshot.freshness,
-    snapshot.source.dataType,
+/**
+ * Deterministic Plan Builder:
+ * Builds a complete, valid Clean-Air Plan without LLM or network dependency.
+ */
+export function buildDeterministicPlan(
+  profile: HouseholdProfile,
+  snapshot: AirSnapshot,
+  options?: PlanBuilderOptions,
+): Plan {
+  const targetRegion = options?.targetRegion ?? 'IN';
+  const communityMode = options?.communityMode ?? false;
+  const generatedAt = resolveGeneratedAt(options, snapshot);
+
+  const slots = deriveTimeSlots(
+    profile,
+    snapshot.pm25.hourly,
+    targetRegion,
+    snapshot.utcOffsetSeconds,
+  );
+  const policyResult = evaluatePolicy(
+    profile,
+    snapshot,
+    slots,
+    communityMode,
+    targetRegion,
+    generatedAt,
   );
 
-  const headline = getLevelHeadline(effectiveLevel);
+  const { effectiveLevel, approvedCandidates, mustIncludeActionIds, flags } = policyResult;
+  const sortedCandidates = [...approvedCandidates].sort(
+    (a, b) => b.priorityScore - a.priorityScore,
+  );
 
-  const assumptions = [
-    'Recommendations assume standard household routine and local hourly forecast trends.',
-    'Protective actions reduce personal exposure; emissions actions reduce motor vehicle travel.',
-  ];
+  const selectedTopActions = selectTop3Actions(sortedCandidates, mustIncludeActionIds);
+  const topActionIds = resolveTopActionIds(selectedTopActions);
+  const timeline = buildTimeline(slots, sortedCandidates);
+  const explanations = buildExplanations(sortedCandidates);
+
+  const planConfidence = resolvePlanConfidence(
+    flags.staleData || flags.noData,
+    snapshot.source.dataType,
+  );
 
   return {
     source: 'deterministic',
     generatedAt,
-    headline,
+    headline: getLevelHeadline(effectiveLevel),
     topActionIds,
     topActions: selectedTopActions,
     timeline,
     explanations,
     planConfidence,
-    confidenceReason,
-    assumptions,
+    confidenceReason: getConfidenceExplanation(
+      planConfidence,
+      snapshot.freshness,
+      snapshot.source.dataType,
+    ),
+    assumptions: [
+      'Recommendations assume standard household routine and local hourly forecast trends.',
+      'Protective actions reduce personal exposure; emissions actions reduce motor vehicle travel.',
+    ],
     flags: {
       severeMode: flags.severeMode,
       lowCostMode: flags.lowCostMode,

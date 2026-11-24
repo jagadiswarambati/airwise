@@ -7,7 +7,7 @@ console.log('Running full Cartesian Policy Matrix (691,200 cases + P-22 submatri
 try {
   execSync('npx vitest run tests/policy/matrix-full.test.ts', {
     stdio: 'inherit',
-    env: process.env,
+    env: { ...process.env, RUN_MATRIX: '1' },
   });
 
   const matrixRunFile = path.join(process.cwd(), 'docs', 'matrix-run.txt');

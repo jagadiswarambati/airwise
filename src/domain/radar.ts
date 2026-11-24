@@ -23,6 +23,40 @@ export function parseTimeToMinutes(timeStr: string): number {
   return (hours || 0) * 60 + (mins || 0);
 }
 
+interface SlotDef {
+  id: SlotId;
+  label: string;
+  startM: number;
+  endM: number;
+  outdoorActivity: 'none' | 'commute' | 'active';
+}
+
+function buildSlotDefinitions(routine: HouseholdProfile['routine']): SlotDef[] {
+  const wakeM = parseTimeToMinutes(routine.wake);
+  const leaveM = parseTimeToMinutes(routine.leave);
+  const returnM = parseTimeToMinutes(routine.returnHome);
+  const bedM = parseTimeToMinutes(routine.bed);
+  const commuteOutEndM = (leaveM + 45) % 1440;
+  const commuteBackEndM = (returnM + 45) % 1440;
+
+  return [
+    { id: 'early-morning', label: 'Early Morning', startM: wakeM, endM: leaveM, outdoorActivity: 'none' },
+    { id: 'commute-out', label: 'Morning Commute', startM: leaveM, endM: commuteOutEndM, outdoorActivity: 'commute' },
+    { id: 'daytime', label: 'Daytime', startM: commuteOutEndM, endM: returnM, outdoorActivity: 'none' },
+    { id: 'commute-back', label: 'Evening Commute', startM: returnM, endM: commuteBackEndM, outdoorActivity: 'commute' },
+    { id: 'evening', label: 'Evening', startM: commuteBackEndM, endM: bedM, outdoorActivity: 'none' },
+    { id: 'night', label: 'Night', startM: bedM, endM: wakeM, outdoorActivity: 'none' },
+  ];
+}
+
+function formatMinutes(minutes: number): string {
+  const h = Math.floor(minutes / 60)
+    .toString()
+    .padStart(2, '0');
+  const m = (minutes % 60).toString().padStart(2, '0');
+  return `${h}:${m}`;
+}
+
 /**
  * Derives 6 standard daily time slots based on household routine and hourly forecast.
  * Uses location-local time parsing to guarantee timezone invariance.
@@ -33,78 +67,9 @@ export function deriveTimeSlots(
   targetRegion: 'IN' | 'US' = 'IN',
   utcOffsetSeconds?: number,
 ): TimeSlot[] {
-  const { wake, leave, returnHome, bed } = profile.routine;
-
-  const wakeM = parseTimeToMinutes(wake);
-  const leaveM = parseTimeToMinutes(leave);
-  const returnM = parseTimeToMinutes(returnHome);
-  const bedM = parseTimeToMinutes(bed);
-
-  // Commute durations default to 45 mins
-  const commuteOutEndM = (leaveM + 45) % 1440;
-  const commuteBackEndM = (returnM + 45) % 1440;
-
-  const formatM = (minutes: number): string => {
-    const h = Math.floor(minutes / 60)
-      .toString()
-      .padStart(2, '0');
-    const m = (minutes % 60).toString().padStart(2, '0');
-    return `${h}:${m}`;
-  };
-
-  const slotDefinitions: Array<{
-    id: SlotId;
-    label: string;
-    startM: number;
-    endM: number;
-    outdoorActivity: 'none' | 'commute' | 'active';
-  }> = [
-    {
-      id: 'early-morning',
-      label: 'Early Morning',
-      startM: wakeM,
-      endM: leaveM,
-      outdoorActivity: 'none',
-    },
-    {
-      id: 'commute-out',
-      label: 'Morning Commute',
-      startM: leaveM,
-      endM: commuteOutEndM,
-      outdoorActivity: 'commute',
-    },
-    {
-      id: 'daytime',
-      label: 'Daytime',
-      startM: commuteOutEndM,
-      endM: returnM,
-      outdoorActivity: 'none',
-    },
-    {
-      id: 'commute-back',
-      label: 'Evening Commute',
-      startM: returnM,
-      endM: commuteBackEndM,
-      outdoorActivity: 'commute',
-    },
-    {
-      id: 'evening',
-      label: 'Evening',
-      startM: commuteBackEndM,
-      endM: bedM,
-      outdoorActivity: 'none',
-    },
-    {
-      id: 'night',
-      label: 'Night',
-      startM: bedM,
-      endM: wakeM,
-      outdoorActivity: 'none',
-    },
-  ];
+  const slotDefinitions = buildSlotDefinitions(profile.routine);
 
   return slotDefinitions.map((def) => {
-    // Collect PM2.5 hourly points that fall within this slot's time window
     const pointsInSlot = hourlySeries.filter((p) => {
       if (!p.time) return false;
       const pointMinute = parseLocalMinuteOfDay(p.time, utcOffsetSeconds);
@@ -125,13 +90,25 @@ export function deriveTimeSlots(
     return {
       id: def.id,
       label: def.label,
-      startTime: formatM(def.startM),
-      endTime: formatM(def.endM),
+      startTime: formatMinutes(def.startM),
+      endTime: formatMinutes(def.endM),
       forecastMeanPm25: meanPm25,
       forecastLevel,
       outdoorActivity: def.outdoorActivity,
     };
   });
+}
+
+function isTieBreakerBetter(candidate: Member, current: Member): boolean {
+  const candidateCrit =
+    candidate.flags.includes('asthma_copd') || candidate.flags.includes('heart');
+  const currentCrit =
+    current.flags.includes('asthma_copd') || current.flags.includes('heart');
+
+  if (candidateCrit && !currentCrit) return true;
+  if (!candidateCrit && currentCrit) return false;
+  if (candidate.ageGroup === 'u5' && current.ageGroup !== 'u5') return true;
+  return candidate.ageGroup === '65+' && current.ageGroup !== 'u5' && current.ageGroup !== '65+';
 }
 
 /**
@@ -150,27 +127,11 @@ export function findMostVulnerableMember(members: Member[]): Member {
 
   for (const member of members) {
     const weight = calculateMemberWeight(member.ageGroup, member.flags);
-    const hasCriticalFlag = member.flags.includes('asthma_copd') || member.flags.includes('heart');
-
     if (weight > maxWeight) {
       maxWeight = weight;
       bestMember = member;
-    } else if (weight === maxWeight) {
-      const bestHasCritical =
-        bestMember.flags.includes('asthma_copd') || bestMember.flags.includes('heart');
-      if (hasCriticalFlag && !bestHasCritical) {
-        bestMember = member;
-      } else if (!hasCriticalFlag && bestHasCritical) {
-        // Keep bestMember
-      } else if (member.ageGroup === 'u5' && bestMember.ageGroup !== 'u5') {
-        bestMember = member;
-      } else if (
-        member.ageGroup === '65+' &&
-        bestMember.ageGroup !== 'u5' &&
-        bestMember.ageGroup !== '65+'
-      ) {
-        bestMember = member;
-      }
+    } else if (weight === maxWeight && isTieBreakerBetter(member, bestMember)) {
+      bestMember = member;
     }
   }
 

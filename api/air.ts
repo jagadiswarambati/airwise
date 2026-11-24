@@ -1,9 +1,8 @@
 import { createErrorResponse, type ApiResponse, type ApiErrorBody } from './_lib/errors';
 import { getSecurityHeaders } from './_lib/headers';
-import { validateCorsOrigin } from './_lib/cors';
-import { checkRateLimit, getClientIp } from './_lib/rateLimit';
-import { parseQuery, AirQuerySchema, validatePayloadSize } from './_lib/validate';
+import { parseQuery, AirQuerySchema } from './_lib/validate';
 import { type Clock, systemClock } from '../src/lib/clock';
+import { withApiGuards } from './_lib/pipeline';
 
 interface UpstreamAirQualityResponse {
   current?: {
@@ -86,78 +85,36 @@ export function clearAirCache(): void {
   serverAirCache.clear();
 }
 
-/**
- * Pure core air quality handler.
- */
-export async function handleAirCore(
+export function parseAirRequest(
   query: Record<string, string | string[] | undefined>,
-  headers: Record<string, string | string[] | undefined> = {},
-  method: string = 'GET',
-  bodyBytes: number = 0,
-  clock: Clock = systemClock,
-): Promise<ApiResponse<ApiAirResponseData | ApiErrorBody>> {
-  // 1. Method check
-  if (method !== 'GET' && method !== 'HEAD') {
-    return createErrorResponse(405, 'MethodNotAllowed', 'Only GET method is supported on /api/air', {
-      Allow: 'GET, HEAD',
-    });
-  }
-
-  // 2. CORS check
-  const origin = typeof headers['origin'] === 'string' ? headers['origin'] : undefined;
-  const host = typeof headers['host'] === 'string' ? headers['host'] : undefined;
-  const cors = validateCorsOrigin(origin, host);
-  if (!cors.allowed) {
-    return createErrorResponse(403, 'Forbidden', 'Cross-origin request not permitted');
-  }
-
-  // 3. Body cap (1 KB)
-  const contentLength = typeof headers['content-length'] === 'string' ? headers['content-length'] : undefined;
-  const sizeValidation = validatePayloadSize(contentLength, bodyBytes, 1024);
-  if (!sizeValidation.valid) {
-    return sizeValidation.response;
-  }
-
-  // 4. Rate limit check
-  const ip = getClientIp(headers);
-  const rateLimit = checkRateLimit(ip, 'general', clock);
-  if (!rateLimit.allowed) {
-    return createErrorResponse(429, 'RateLimited', 'Too many requests. Please try again later.', {
-      'Retry-After': String(rateLimit.retryAfterSeconds || 30),
-    });
-  }
-
-  // 5. Query validation
+): { success: true; lat: number; lon: number } | { success: false; response: ApiResponse<ApiErrorBody> } {
   const parsed = parseQuery(query, AirQuerySchema);
   if (!parsed.success) {
-    return parsed.response;
+    return { success: false, response: parsed.response };
   }
-  const { lat, lon } = parsed.data;
+  return { success: true, lat: parsed.data.lat, lon: parsed.data.lon };
+}
 
-  // 6. Cache lookup (10-minute TTL)
+export function lookupAirCache(lat: number, lon: number, clock: Clock): ApiAirResponseData | null {
   const now = clock().getTime();
-  const dateHour = clock().toISOString().slice(0, 13); // e.g. "2026-11-22T04"
+  const dateHour = clock().toISOString().slice(0, 13);
   const cacheKey = `${lat},${lon}_${dateHour}`;
-
   const cached = serverAirCache.get(cacheKey);
   if (cached && now < cached.expiresAt) {
-    return {
-      status: 200,
-      headers: getSecurityHeaders({
-        'Content-Type': 'application/json',
-        'Cache-Control': 'public, max-age=600, stale-while-revalidate=300',
-        ...cors.headers,
-      }),
-      body: cached.data,
-    };
+    return cached.data;
   }
+  return null;
+}
 
-  // 7. Parallel fetch to Open-Meteo Air Quality + Weather Forecast (6s timeout)
+export async function fetchUpstream(
+  lat: number,
+  lon: number,
+): Promise<
+  | { success: true; airJson: UpstreamAirQualityResponse; weatherJson: UpstreamWeatherResponse | null }
+  | { success: false; response: ApiResponse<ApiErrorBody> }
+> {
   const airUrl = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&hourly=pm2_5,us_aqi,european_aqi&current=pm2_5&timezone=auto`;
   const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=temperature_2m,wind_speed_10m,relative_humidity_2m&daily=sunrise,sunset&timezone=auto`;
-
-  let airJson: UpstreamAirQualityResponse;
-  let weatherJson: UpstreamWeatherResponse | null = null;
 
   try {
     const [airRes, weatherRes] = await Promise.allSettled([
@@ -166,91 +123,101 @@ export async function handleAirCore(
     ]);
 
     if (airRes.status === 'rejected' || !airRes.value.ok) {
-      return createErrorResponse(502, 'DataUnavailable', 'Air quality service is temporarily unavailable');
+      return {
+        success: false,
+        response: createErrorResponse(502, 'DataUnavailable', 'Air quality service is temporarily unavailable'),
+      };
     }
 
-    airJson = (await airRes.value.json()) as UpstreamAirQualityResponse;
-
+    const airJson = (await airRes.value.json()) as UpstreamAirQualityResponse;
+    let weatherJson: UpstreamWeatherResponse | null = null;
     if (weatherRes.status === 'fulfilled' && weatherRes.value.ok) {
       try {
         weatherJson = (await weatherRes.value.json()) as UpstreamWeatherResponse;
       } catch {
-        weatherJson = null; // Tolerated
+        weatherJson = null;
       }
     }
+
+    return { success: true, airJson, weatherJson };
   } catch (_err: unknown) {
-    return createErrorResponse(504, 'DataUnavailable', 'Air quality service timed out or was unreachable');
-  }
-
-  // 8. Normalization
-  const fetchedAt = clock().toISOString();
-  const currentPm25 = typeof airJson?.current?.pm2_5 === 'number' ? airJson.current.pm2_5 : null;
-
-  const hourlyTimes: string[] = Array.isArray(airJson?.hourly?.time) ? airJson.hourly.time : [];
-  const hourlyPm25: Array<number | null> = Array.isArray(airJson?.hourly?.pm2_5) ? airJson.hourly.pm2_5 : [];
-  const hourlyUsAqi: Array<number | null> = Array.isArray(airJson?.hourly?.us_aqi) ? airJson.hourly.us_aqi : [];
-
-  const hourly: ApiHourlyPoint[] = [];
-  for (let i = 0; i < hourlyTimes.length; i++) {
-    hourly.push({
-      time: hourlyTimes[i],
-      pm25: hourlyPm25[i] ?? null,
-      aqi: hourlyUsAqi[i] ?? null,
-    });
-  }
-
-  // Parse weather if available
-  let weather: ApiAirResponseData['weather'] = undefined;
-  let daylight: ApiAirResponseData['daylight'] = undefined;
-
-  if (weatherJson) {
-    const sunriseArr = weatherJson?.daily?.sunrise;
-    const sunsetArr = weatherJson?.daily?.sunset;
-    const sunrise = Array.isArray(sunriseArr) && sunriseArr.length > 0 ? String(sunriseArr[0]) : undefined;
-    const sunset = Array.isArray(sunsetArr) && sunsetArr.length > 0 ? String(sunsetArr[0]) : undefined;
-
-    if (sunrise && sunset) {
-      daylight = { sunrise, sunset };
-    }
-
-    const wTimes: string[] = Array.isArray(weatherJson?.hourly?.time) ? weatherJson.hourly.time : [];
-    const wTemp: Array<number | null> = Array.isArray(weatherJson?.hourly?.temperature_2m)
-      ? weatherJson.hourly.temperature_2m
-      : [];
-    const wWind: Array<number | null> = Array.isArray(weatherJson?.hourly?.wind_speed_10m)
-      ? weatherJson.hourly.wind_speed_10m
-      : [];
-    const wHum: Array<number | null> = Array.isArray(weatherJson?.hourly?.relative_humidity_2m)
-      ? weatherJson.hourly.relative_humidity_2m
-      : [];
-
-    const weatherHourly: ApiWeatherHourlyPoint[] = [];
-    for (let i = 0; i < wTimes.length; i++) {
-      weatherHourly.push({
-        time: wTimes[i],
-        temperature2m: wTemp[i] ?? null,
-        windSpeed10m: wWind[i] ?? null,
-        relativeHumidity2m: wHum[i] ?? null,
-      });
-    }
-
-    weather = {
-      temperature2m: wTemp.length > 0 ? wTemp[0] : null,
-      windSpeed10m: wWind.length > 0 ? wWind[0] : null,
-      relativeHumidity2m: wHum.length > 0 ? wHum[0] : null,
-      hourly: weatherHourly,
-      daylight,
+    return {
+      success: false,
+      response: createErrorResponse(504, 'DataUnavailable', 'Air quality service timed out or was unreachable'),
     };
   }
+}
 
-  const responseData: ApiAirResponseData = {
+function parseDaylight(daily?: UpstreamWeatherResponse['daily']): ApiAirResponseData['daylight'] {
+  const sunrise = daily?.sunrise?.[0];
+  const sunset = daily?.sunset?.[0];
+  return sunrise && sunset ? { sunrise: String(sunrise), sunset: String(sunset) } : undefined;
+}
+
+function parseWeatherHourly(hourly?: UpstreamWeatherResponse['hourly']): ApiWeatherHourlyPoint[] {
+  if (!hourly?.time) return [];
+  const { time, temperature_2m: temp = [], wind_speed_10m: wind = [], relative_humidity_2m: hum = [] } = hourly;
+  return time.map((t, i) => ({
+    time: t,
+    temperature2m: temp[i] ?? null,
+    windSpeed10m: wind[i] ?? null,
+    relativeHumidity2m: hum[i] ?? null,
+  }));
+}
+
+function parseWeatherSection(weatherJson: UpstreamWeatherResponse | null): {
+  weather?: ApiAirResponseData['weather'];
+  daylight?: ApiAirResponseData['daylight'];
+} {
+  if (!weatherJson) return {};
+  const daylight = parseDaylight(weatherJson.daily);
+  const hourly = parseWeatherHourly(weatherJson.hourly);
+  const wTemp = weatherJson.hourly?.temperature_2m ?? [];
+  const wWind = weatherJson.hourly?.wind_speed_10m ?? [];
+  const wHum = weatherJson.hourly?.relative_humidity_2m ?? [];
+
+  return {
+    daylight,
+    weather: {
+      temperature2m: wTemp[0] ?? null,
+      windSpeed10m: wWind[0] ?? null,
+      relativeHumidity2m: wHum[0] ?? null,
+      hourly,
+      daylight,
+    },
+  };
+}
+
+function parseAirHourly(hourlyData?: UpstreamAirQualityResponse['hourly']): ApiHourlyPoint[] {
+  const times = hourlyData?.time ?? [];
+  const pm25s = hourlyData?.pm2_5 ?? [];
+  const aqis = hourlyData?.us_aqi ?? [];
+
+  return times.map((time, i) => ({
+    time,
+    pm25: pm25s[i] ?? null,
+    aqi: aqis[i] ?? null,
+  }));
+}
+
+export function normalizeUpstream(
+  airJson: UpstreamAirQualityResponse,
+  weatherJson: UpstreamWeatherResponse | null,
+  clock: Clock,
+): ApiAirResponseData {
+  const fetchedAt = clock().toISOString();
+  const currentPm25 = typeof airJson.current?.pm2_5 === 'number' ? airJson.current.pm2_5 : null;
+  const hourly = parseAirHourly(airJson.hourly);
+  const { weather, daylight } = parseWeatherSection(weatherJson);
+
+  return {
     currentPm25,
     hourly,
     weather,
     daylight,
-    timezone: String(airJson?.timezone || 'auto'),
-    utcOffsetSeconds: Number(airJson?.utc_offset_seconds || 0),
-    observedAt: airJson?.current?.time || fetchedAt,
+    timezone: String(airJson.timezone || 'auto'),
+    utcOffsetSeconds: Number(airJson.utc_offset_seconds || 0),
+    observedAt: airJson.current?.time || fetchedAt,
     fetchedAt,
     source: {
       id: 'open-meteo',
@@ -261,22 +228,66 @@ export async function handleAirCore(
         'Air quality and weather data by Open-Meteo, derived from Copernicus Atmosphere Monitoring Service (CAMS) information.',
     },
   };
+}
 
-  // Cache response for 10 minutes (600,000 ms)
-  serverAirCache.set(cacheKey, {
-    data: responseData,
-    expiresAt: now + 600 * 1000,
-  });
+/**
+ * Pure core air quality handler.
+ */
+export async function handleAirCore(
+  query: Record<string, string | string[] | undefined>,
+  headers: Record<string, string | string[] | undefined> = {},
+  method: string = 'GET',
+  bodyBytes: number = 0,
+  clock: Clock = systemClock,
+): Promise<ApiResponse<ApiAirResponseData | ApiErrorBody>> {
+  return withApiGuards(
+    {
+      endpointName: '/api/air',
+      allowedMethods: ['GET', 'HEAD'],
+      allowHeader: 'GET, HEAD',
+      maxBodyBytes: 1024,
+      rateLimitBucket: 'general',
+    },
+    { headers, method, bodyBytes, clock },
+    async (cors) => {
+      const parsed = parseAirRequest(query);
+      if (!parsed.success) return parsed.response;
+      const { lat, lon } = parsed;
 
-  return {
-    status: 200,
-    headers: getSecurityHeaders({
-      'Content-Type': 'application/json',
-      'Cache-Control': 'public, max-age=600, stale-while-revalidate=300',
-      ...cors.headers,
-    }),
-    body: responseData,
-  };
+      const cached = lookupAirCache(lat, lon, clock);
+      if (cached) {
+        return {
+          status: 200,
+          headers: getSecurityHeaders({
+            'Content-Type': 'application/json',
+            'Cache-Control': 'public, max-age=600, stale-while-revalidate=300',
+            ...cors.headers,
+          }),
+          body: cached,
+        };
+      }
+
+      const upstream = await fetchUpstream(lat, lon);
+      if (!upstream.success) return upstream.response;
+
+      const responseData = normalizeUpstream(upstream.airJson, upstream.weatherJson, clock);
+      const dateHour = clock().toISOString().slice(0, 13);
+      serverAirCache.set(`${lat},${lon}_${dateHour}`, {
+        data: responseData,
+        expiresAt: clock().getTime() + 600 * 1000,
+      });
+
+      return {
+        status: 200,
+        headers: getSecurityHeaders({
+          'Content-Type': 'application/json',
+          'Cache-Control': 'public, max-age=600, stale-while-revalidate=300',
+          ...cors.headers,
+        }),
+        body: responseData,
+      };
+    },
+  );
 }
 
 /**

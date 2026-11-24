@@ -1,6 +1,6 @@
-import { createErrorResponse, type ApiResponse, type ApiErrorBody } from './_lib/errors';
+import { type ApiResponse, type ApiErrorBody } from './_lib/errors';
 import { getSecurityHeaders } from './_lib/headers';
-import { validateCorsOrigin } from './_lib/cors';
+import { withApiGuards } from './_lib/pipeline';
 
 export interface HealthResponseBody {
   status: 'ok';
@@ -15,35 +15,32 @@ export async function handleHealthCore(
   headers: Record<string, string | string[] | undefined> = {},
   method: string = 'GET',
 ): Promise<ApiResponse<HealthResponseBody | ApiErrorBody>> {
-  if (method !== 'GET' && method !== 'HEAD') {
-    return createErrorResponse(405, 'MethodNotAllowed', 'Only GET method is supported on /api/health', {
-      Allow: 'GET, HEAD',
-    });
-  }
-
-  const origin = typeof headers['origin'] === 'string' ? headers['origin'] : undefined;
-  const host = typeof headers['host'] === 'string' ? headers['host'] : undefined;
-  const cors = validateCorsOrigin(origin, host);
-  if (!cors.allowed) {
-    return createErrorResponse(403, 'Forbidden', 'Cross-origin request not permitted');
-  }
-
-  const llmProvider = process.env.LLM_PROVIDER || 'none';
-  const hasKey = Boolean(process.env.GEMINI_API_KEY?.trim());
-  const llmEnabled = llmProvider !== 'none' && hasKey;
-
-  return {
-    status: 200,
-    headers: getSecurityHeaders({
-      'Content-Type': 'application/json',
-      'Cache-Control': 'no-store, max-age=0',
-      ...cors.headers,
-    }),
-    body: {
-      status: 'ok',
-      llmEnabled,
+  return withApiGuards(
+    {
+      endpointName: '/api/health',
+      allowedMethods: ['GET', 'HEAD'],
+      allowHeader: 'GET, HEAD',
     },
-  };
+    { headers, method },
+    async (cors) => {
+      const llmProvider = process.env.LLM_PROVIDER || 'none';
+      const hasKey = Boolean(process.env.GEMINI_API_KEY?.trim());
+      const llmEnabled = llmProvider !== 'none' && hasKey;
+
+      return {
+        status: 200,
+        headers: getSecurityHeaders({
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-store, max-age=0',
+          ...cors.headers,
+        }),
+        body: {
+          status: 'ok',
+          llmEnabled,
+        },
+      };
+    },
+  );
 }
 
 /**
