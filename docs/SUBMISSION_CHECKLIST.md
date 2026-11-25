@@ -69,13 +69,13 @@ Purpose: the final gate before each of the three attempts. Tick items with evide
 - [ ] All CI gates in `TEST_PLAN.md` §12 green on `main`.
 - [ ] `npm run test:policy` green; full `npm run test:matrix` run locally at Gate B and Gate C, with output saved.
 - [ ] Validator abuse suite, contract tests, golden personas, content lint all present and green.
-- [ ] Playwright e2e green (all journeys in `TEST_PLAN.md` §8) including the mocked-AI run.
+- [ ] Playwright e2e: Planned, not implemented (decision A-41).
 - [ ] Traceability table maps every P-01…P-22 rule, error type and impact field to a test.
 - [ ] Test count and coverage numbers recorded in README.
 
 ## 7. Accessibility (see `ACCESSIBILITY.md`)
 
-- [ ] axe: zero serious or critical on every screen, dialog, and Severe Mode, light and dark.
+- [ ] axe-core automation: Planned, not implemented (decision A-41). Accessibility is currently verified with Vitest render tests, check:ui, manual keyboard and screen-reader checks (`docs/a11y-report.md`), and Chrome Lighthouse ([`docs/evidence/lighthouse.md`](./evidence/lighthouse.md)).
 - [ ] Keyboard-only run of the full journey completed.
 - [ ] Screen-reader pass (desktop and mobile) recorded in `docs/a11y-report.md`.
 - [ ] 200% text, 400% zoom, 360 px, reduced motion, and forced colours checked.
@@ -126,7 +126,7 @@ npm run lint && npm run typecheck && npm run format:check
 npm test && npm run test:policy
 npm run build && npm run check:size && npm run scan:secrets && npm run check:branches
 npm audit --audit-level=high
-npm run test:e2e
+# npm run test:e2e (planned, not implemented per decision A-41)
 ```
 
 - [ ] Every command passes on a clean clone with no `.env`.

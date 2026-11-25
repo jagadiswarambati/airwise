@@ -8,7 +8,7 @@ Purpose: the phase-by-phase execution plan for Antigravity. Source of truth for 
 |---|---|
 | Phase 1 split into **1A** (types, config, levels, freshness, trend, radar, ventilation, catalog, templates) and **1B** (policy, plan-builder, impact, confidence, quick checks, policy matrix). | Phase 1 is the largest. Two commits keep each reviewable. |
 | Phase 4 split into **4A** (Today shell + deterministic plan) and **4B** (Severe Mode, Quick Checks, action detail, Trust Panel, service worker). | First usable product earlier; offline gate sits at 4B. |
-| Playwright e2e job added at 4A (not Phase 0). axe in unit-level component checks from Phase 3, in Playwright from 4A. | Nothing to run e2e against before that. |
+| Playwright e2e and axe-core automation: Planned, not implemented (decision A-41). | Accessibility currently verified with Vitest render tests, check:ui, manual keyboard/screen-reader checks, and Chrome Lighthouse (docs/evidence/lighthouse.md). |
 | `api/geocode.ts` added in Phase 2. | CSP `connect-src 'self'` (A-02). |
 | Policy-matrix *full* enumeration runs in Phase 1B; Phase 8 adds sharding, perf budget, and regression fixtures. | Safety proven before UI exists. |
 
@@ -31,7 +31,7 @@ Cut from Attempt 1: CO₂e, carpool board, weekly history, Hindi/Telugu, OpenAQ,
 **Objective:** An empty but fully gated repository.
 **Scope:** Tooling, CI, guards, tokens, docs placement. No product code.
 **Tasks:**
-1. Vite + React + strict TS scaffold; Vitest; Playwright config (no tests yet); ESLint with `no-restricted-imports` boundary rules (domain → nothing; data/ai → domain; ui → domain/data/ai types/state; api → domain + `src/data/providers`); Prettier.
+1. Vite + React + strict TS scaffold; Vitest; (Playwright e2e: Planned, not implemented per decision A-41); ESLint with `no-restricted-imports` boundary rules (domain → nothing; data/ai → domain; ui → domain/data/ai types/state; api → domain + `src/data/providers`); Prettier.
 2. `AGENTS.md` from the Shared Context Block; `.gitignore`, `.env.example`, `LICENSE` (MIT).
 3. `scripts/check-size.mjs`, `check-branches.mjs`, `scan-secrets.mjs`; npm scripts `check:size`, `check:branches`, `scan:secrets`.
 4. `.github/workflows/ci.yml`: install, lint, typecheck, unit, build, audit (`--audit-level=high`), size, secrets, branches. **No Dependabot.**
@@ -75,19 +75,19 @@ Cut from Attempt 1: CO₂e, carpool board, weekly history, Hindi/Telugu, OpenAQ,
 ## Phase 3 — Onboarding and profile
 **Tasks:** state store (`state/`), LocalStorage adapter with schema versioning and in-memory fallback; five-step onboarding (incl. `homeHeating`, privacy and AI notice with toggle); Priya preset (profile + severe scenario, A-28); Menu: edit profile, export JSON, delete all; accessible form components.
 **Depends on:** 2.
-**Acceptance:** onboarding completes in < 90 s keyboard-only; validation errors announced; export/delete work and delete leaves no AirWise keys; corrupt storage recovers to safe reset; axe zero serious/critical on every step.
-**Tests:** store migration, corrupt storage, form validation, Playwright onboarding + axe.
+**Acceptance:** onboarding completes in < 90 s keyboard-only; validation errors announced; export/delete work and delete leaves no AirWise keys; corrupt storage recovers to safe reset; accessibility verified clean via Vitest render tests and check:ui (axe-core automation: Planned, not implemented per decision A-41).
+**Tests:** store migration, corrupt storage, form validation. (Playwright onboarding and axe-core: Planned, not implemented per decision A-41).
 **Commit:** `feat(ui): onboarding, local profile, export and delete`
 **Gate:** a11y checks green.
 
 ## Phase 4A — Today and deterministic plan
-**Tasks:** app shell with 5 tabs (lazy chunks), Today: air briefing card (PM2.5 primary, AQI secondary, sparkline inline SVG), risk headline (A-09), Risk Radar, top 3, six-slot timeline; scenario switcher in Menu; Playwright e2e job in CI.
+**Tasks:** app shell with 5 tabs (lazy chunks), Today: air briefing card (PM2.5 primary, AQI secondary, sparkline inline SVG), risk headline (A-09), Risk Radar, top 3, six-slot timeline; scenario switcher in Menu. (Playwright e2e job: Planned, not implemented per decision A-41).
 **Acceptance:** Priya preset → Today in ≤ 3 taps and ≤ 10 s; all four scenarios render correct level and plan; no AI code involved.
 **Commit:** `feat(today): briefing, risk radar, deterministic plan and timeline`
 
 ## Phase 4B — Severe Mode, Quick Checks, action detail, Trust Panel, offline
 **Tasks:** Severe Mode layout (auto/manual, ≥ 20 px, max 3 actions, no charts); Quick Checks; action detail sheet (Why, dual-axis, doesNotChange, assumptions, cost/effort); Trust Panel (plan source and confidence); stale/no-data banners; `vite-plugin-pwa` (shell + last air snapshot only; never cache `/api/plan`); error boundary per tab.
-**Acceptance:** works offline with `LLM_PROVIDER=none`; stale scenario suppresses walking/ventilation and lowers confidence; 100% of visible actions show all impact fields; axe clean incl. Severe Mode.
+**Acceptance:** works offline with `LLM_PROVIDER=none`; stale scenario suppresses walking/ventilation and lowers confidence; 100% of visible actions show all impact fields; accessibility verified clean incl. Severe Mode via Vitest render tests, check:ui, and Lighthouse (docs/evidence/lighthouse.md); axe-core automation: Planned, not implemented (decision A-41).
 **Manual:** browser test of all scenarios at 360 px width and 200% text.
 **Commit:** `feat(today): severe mode, quick checks, action detail, trust panel, offline`
 **Gate:** Works offline with no AI. **This is the first usable product.**
@@ -95,7 +95,7 @@ Cut from Attempt 1: CO₂e, carpool board, weekly history, Hindi/Telugu, OpenAQ,
 ## Phase 5 — AI plan layer
 **Tasks:** `ai/schema.ts`, `prompts/` (+`PROMPT_VERSION`), `api/plan.ts` (Zod body validation, server-built prompt, JSON mode, no body logging, timeout, rate limit), `ai/client.ts`, `validator.ts` (7 checks + A-12), `overlay.ts` (confidence ceiling), `plan-cache.ts` (A-29), UI swap-in with badge and polite live-region announcement; settings toggle.
 **Acceptance:** malicious, malformed, hallucinated, partial fixtures all rejected; one retry then fallback; with mocked model the plan swaps in; with `none` nothing changes; no coordinates or location label in the request.
-**Tests:** validator abuse suite, client timeout/abort, plan-cache keys, e2e with mocked `/api/plan`.
+**Tests:** validator abuse suite, client timeout/abort, plan-cache keys; integration tests with mocked `/api/plan` (Playwright e2e: Planned, not implemented per decision A-41).
 **Commit:** `feat(ai): constrained plan overlay with validator and fallback`
 **Gate:** Abuse tests green.
 
@@ -103,7 +103,7 @@ Cut from Attempt 1: CO₂e, carpool board, weekly history, Hindi/Telugu, OpenAQ,
 **Tasks:** Indoor tab (Ventilation Advisor, cleaner room, source control, cooking by fuel/exhaust, equipment steps, P-22 safety line); Move tab (Commute Exposure Planner with X1 and P-16 threshold, transport options by P-18/P-25, trip combining, walk/cycle "not suitable today" with reason); Low-Cost Mode visible indicator.
 **Acceptance:** verdict and reason match domain output; no recommendation outside the approved set; Priya shows low-cost cooking steps and carpool.
 **Commit:** `feat(ui): indoor and move modules`
-**Gate:** e2e smoke green.
+**Gate:** render and unit smoke tests green (Playwright e2e: Planned, not implemented per decision A-41).
 
 ## Phase 7 — Impact and Community
 **Tasks:** Impact tab (per-action cards, E1/X1 with formula links, "if you do these this week" tally from profile inputs), Community tab (seeded society, local pledges, C1 aggregate, counts line, Copy briefing), Demo data labelling.
@@ -112,8 +112,8 @@ Cut from Attempt 1: CO₂e, carpool board, weekly history, Hindi/Telugu, OpenAQ,
 **Gate A (Attempt 1):** full checklist in `SUBMISSION_CHECKLIST.md` §Attempt 1 passes; tag `attempt-1`.
 
 ## Phase 8 — Quality hardening
-**Tasks:** shard/optimise matrix, add regression fixtures from bugs; e2e for every scenario and keyboard-only journey; axe on all screens; Lighthouse mobile budgets; bundle analysis (≤ 150 KB gzip initial); manual screen-reader and keyboard pass (`ACCESSIBILITY.md`); security checklist run; fix findings only.
-**Acceptance:** budgets met; zero serious/critical axe; security checklist complete; no new features.
+**Tasks:** shard/optimise matrix, add regression fixtures from bugs; Lighthouse mobile budgets; bundle analysis (≤ 150 KB gzip initial); manual screen-reader and keyboard pass (`ACCESSIBILITY.md`); security checklist run; fix findings only. (Playwright e2e and axe-core automation: Planned, not implemented per decision A-41).
+**Acceptance:** budgets met; accessibility verified via manual audit, check:ui, and Lighthouse (docs/evidence/lighthouse.md); security checklist complete; no new features. (axe-core: Planned, not implemented per decision A-41).
 **Commit:** `test: harden matrix, e2e, a11y, performance and security`
 **Gate B (Attempt 2):** tag `attempt-2`.
 
@@ -152,7 +152,7 @@ Each phase has numbered, checkable criteria in this document. Global product acc
 - [x] 100% of actions show Why, Exposure, Emissions, label, confidence and assumptions.
 - [x] No action violates any rule P-01…P-22 anywhere in the policy matrix.
 - [x] App is fully usable with `LLM_PROVIDER=none` and with the network off (sample/cached).
-- [x] axe: zero serious/critical issues; keyboard-only flow completes the journey.
+- [ ] axe-core automation: Planned, not implemented (decision A-41). Accessibility is currently verified via Vitest render tests, check:ui, manual keyboard and screen-reader checks (docs/a11y-report.md), and Chrome Lighthouse ([docs/evidence/lighthouse.md](./evidence/lighthouse.md)). Keyboard-only flow completes the journey.
 - [x] Lighthouse mobile: Performance ≥ 90, Accessibility ≥ 95, Best Practices ≥ 95.
 - [x] CI green: lint, types, unit, audit, size, secret scan, branch guard.
 - [x] Repo < 10 MB (target < 3 MB), public, single branch, regular commit history.
@@ -163,7 +163,7 @@ Each phase has numbered, checkable criteria in this document. Global product acc
 | Attempt | Submit when | Contains | Rule |
 |---|---|---|---|
 | **1: Complete and safe** | After Phase 7 (Gate A) | Every mandatory capability, deterministic plan, AI overlay with fallback, Severe/Low-Cost modes, community on seeded data, core + matrix tests, README | Must be demoable end-to-end on a phone. Not a prototype. |
-| **2: Evidence of quality** | After Phase 8 (Gate B) | Expanded tests, e2e, axe, Lighthouse, security checklist, bug fixes from your own review of Attempt 1 feedback | Strict improvement only. Re-run full suite. |
+| **2: Evidence of quality** | After Phase 8 (Gate B) | Expanded tests, Lighthouse, security checklist, manual a11y audit (Playwright e2e and axe-core: Planned, not implemented per decision A-41) | Strict improvement only. Re-run full suite. |
 | **3: Polish and de-risk** | After Phase 9 (Gate C) | Copy and reading-level pass, demo assets, final README, freeze | No new features. If in doubt, don't ship the change. |
 
 Always keep a tagged known-good commit (`git tag attempt-N`) before submitting. Tags are not branches.

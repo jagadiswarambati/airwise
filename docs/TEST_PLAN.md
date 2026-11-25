@@ -57,10 +57,11 @@ Snapshots of headline, radar, top 3, timeline IDs, plan confidence for: Priya ×
 Banned phrases (diagnose, treat, cure, dose, medication, "saved the planet", "guaranteed", unsourced `%`), reading level (mean ≤ 16 words/sentence and syllable heuristic ≈ grade 6–8) over all templates and fixed texts, every template key referenced exists, every catalog action has all impact fields, no names in samples/demo data, no mention of Measured in MVP UI strings, attribution string present.
 
 ## 8. End-to-end (Playwright, `tests/e2e`)
-Runs against `vite preview` with `LLM_PROVIDER=none` and sample provider; one project runs with a mocked `/api/plan`. Journeys: (1) onboarding → Today, (2) Priya preset → Today ≤ 3 taps, (3) severe scenario: Severe Mode, radar, ≤ 3 actions, action detail with both axes, (4) stale scenario: banner, confidence drop, no walking/ventilation, (5) low-cost: no purchase prompts except PE-02 label "low cost", (6) Indoor and Move content matches scenario, (7) community pledge and Copy briefing, (8) offline (context offline) uses cache/sample, (9) AI on/off badge, malformed AI response → "Standard plan", (10) export/delete, (11) keyboard-only full journey, (12) 360 px width and 200% zoom.
+Planned, not implemented (decision A-41).
+End-to-end browser automation is not implemented; see decision A-41. Core journey logic and offline scenarios are verified via Vitest render and unit smoke tests (`tests/render/render-smoke.test.tsx`, `tests/unit/pages-smoke.test.tsx`).
 
 ## 9. Accessibility tests
-axe-core in Playwright on every screen, sheet and Severe Mode, light and dark, reduced motion: zero serious/critical (and zero moderate on forms). Component-level checks for focus order and labels. Manual checklist in `ACCESSIBILITY.md`. Contrast ratios of token pairs checked by a unit test.
+axe-core automation is planned, not implemented (decision A-41). Accessibility is currently checked with Vitest render tests (`tests/render/render-smoke.test.tsx`, `tests/unit/accessibility.test.tsx`), `npm run check:ui` (token/contrast/motion linting), manual keyboard and screen-reader checks (`docs/a11y-report.md`), and Chrome Lighthouse audit ([`docs/evidence/lighthouse.md`](./evidence/lighthouse.md)). Component-level checks verify focus order, labels, ARIA landmarks, and LiveRegion announcements. Manual checklist is maintained in `ACCESSIBILITY.md`. Contrast ratios of token pairs are verified by unit tests (`tests/unit/tokens.test.ts`).
 
 ## 10. Performance tests
 Bundle budget script (initial JS ≤ 150 KB gzip; fails CI). Lighthouse CI (mobile, throttled): Performance ≥ 90, Accessibility ≥ 95, Best Practices ≥ 95 (run from Phase 8, informational earlier). Matrix perf: `test:policy` < 30 s. Unit: plan build for one profile < 5 ms. Today renders < 3 s from cache (Playwright timing against a throttled profile).
@@ -69,7 +70,7 @@ Bundle budget script (initial JS ≤ 150 KB gzip; fails CI). Lighthouse CI (mobi
 API: oversize body → 413, wrong content-type → 415, unknown fields → 400, bad enum → 400, rate limit → 429 with no stack trace, CORS only allowed origin, no body logging (spy on logger), secrets never in client bundle (grep built assets for key patterns and `GEMINI`), CSP present and `connect-src 'self'`, no `dangerouslySetInnerHTML` (lint rule), `npm audit --audit-level=high`, secret scan, localStorage contains no coordinates beyond 2 dp and no names, delete-all leaves no keys.
 
 ## 12. CI gates (all required before declaring a phase done)
-`lint` · `typecheck` · `test` (unit+contract+validator+golden+content) · `test:policy` · `build` · `bundle budget` · `check:size` (< 10 MB hard, 3 MB warn) · `scan:secrets` · `check:branches` (exactly one) · `audit` · `test:e2e` (from 4A) · Lighthouse CI (from Phase 8, required for Gates B and C).
+`lint` · `typecheck` · `test` (unit+contract+validator+golden+content) · `test:policy` · `build` · `bundle budget` · `check:size` (< 10 MB hard, 3 MB warn) · `scan:secrets` · `check:branches` (exactly one) · `audit` · Lighthouse audit (`docs/evidence/lighthouse.md`). (Note: `test:e2e` is planned, not implemented per decision A-41).
 
 ## 13. Traceability
 A table in `tests/README.md` (create in Phase 1B) maps each P-rule, each ImpactStatement field, and each error type (`DataUnavailable`, `DataStale`, `ProviderSchemaError`, `LlmUnavailable`, `LlmInvalid`, `GeolocationDenied`, `StorageUnavailable`, `RateLimited`, `ValidationError`) to its tests. A script fails CI if a rule ID has no mapped test.

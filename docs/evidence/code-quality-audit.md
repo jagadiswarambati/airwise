@@ -3,13 +3,13 @@
 **Date:** 2026-11-25  
 **Auditor Role:** Senior Code-Quality Auditor & Security Reviewer  
 **Repository:** `AirWise` (`main` branch)  
-**Deliverable Status:** VERIFIED & GREEN  
+**Deliverable Status:** VERIFIED & GREEN (self-assessed; not independently verified)  
 
 ---
 
 ## Executive Summary & Scorecard
 
-| Category | Max Score | Baseline Score (Phase 2) | Final Score (Phase 4) | Delta |
+| Category | Max Score | Baseline Score (Phase 2) | Final Score (Phase 4) (self-assessed; not independently verified) | Delta |
 |---|:---:|:---:|:---:|:---:|
 | 1. Architecture & Modularity | 20 | 17 | 20 | +3 |
 | 2. Readability & Naming | 15 | 13 | 15 | +2 |
@@ -19,7 +19,7 @@
 | 6. Tests as Part of Quality | 10 | 9 | 10 | +1 |
 | 7. Documentation & Hygiene | 10 | 8 | 10 | +2 |
 | 8. Tooling & Consistency | 10 | 9 | 10 | +1 |
-| **Total** | **100** | **85** | **100** | **+15** |
+| **Total** | **100** | **85** | **100 (self-assessed; not independently verified)** | **+15** |
 
 ---
 
@@ -145,51 +145,51 @@
 
 ---
 
-## Detailed Category Re-Scoring
+## Detailed Category Re-Scoring (self-assessed; not independently verified)
 
-### 1. Architecture & Modularity: 20 / 20
+### 1. Architecture & Modularity: 20 / 20 (self-assessed; not independently verified)
 - **Evidence 1:** Zero production files exceed 300 lines outside the static catalog (`src/domain/catalog/actions.ts`). `src/domain/types.ts` reduced to 227 lines; `api/air.ts` reduced to 129 lines.
 - **Evidence 2:** Strict unidirectional layer boundaries (`ui` $\rightarrow$ `state` $\rightarrow$ `domain` $\leftarrow$ `data`, `ai` $\rightarrow$ `domain`, `api` $\rightarrow$ `_lib`) with 0 forbidden imports from ui/data/ai/state in `src/domain`, verified by `tests/unit/domain-purity.test.ts`.
 - **Evidence 3:** Pure domain policy engine split cleanly into `src/domain/policy/rules/*.ts` and composed in documented order; API routes split into pure core logic (`handle*Core`) and thin serverless entry points using shared `api/_lib/request.ts` and `api/_lib/pipeline.ts`.
-- **Remaining weakness:** `src/domain/catalog/actions.ts` embeds 28 catalog actions as TypeScript objects rather than an external data asset.
+- **Remaining weakness:** `src/domain/catalog/actions.ts` embeds 25 catalog actions as TypeScript objects rather than an external data asset.
 
-### 2. Readability & Naming: 15 / 15
+### 2. Readability & Naming: 15 / 15 (self-assessed; not independently verified)
 - **Evidence 1:** Zero nested ternaries in production and test code (enforced by ESLint `no-nested-ternary`).
 - **Evidence 2:** Functions > 60 lines halved from 26 down to 13; all 13 are $\le 80$ lines and strictly JSX layout components in `ui/screens/` and `ui/onboarding/`.
 - **Evidence 3:** Consistent naming across domain entities (`roleLabelFor`, `deriveTimeSlots`, `getFreshnessTimestamp`, `parseServerlessRequest`).
 - **Remaining weakness:** Onboarding step components pass step routing callbacks through props rather than a unified context.
 
-### 3. Type Safety & Lint Hygiene: 15 / 15
+### 3. Type Safety & Lint Hygiene: 15 / 15 (self-assessed; not independently verified)
 - **Evidence 1:** Exactly 0 errors and 0 warnings across the entire repository with strict ESLint config (`no-explicit-any`: error, `complexity`: 12, `max-lines-per-function`: 80, `max-lines`: 300).
 - **Evidence 2:** 0 `any`, 0 non-null assertions `!`, 0 `@ts-ignore`, 0 `@ts-expect-error`, 0 `eslint-disable`.
 - **Evidence 3:** End-to-end Zod schemas validating all external inputs (`HouseholdProfileSchema`, `AirQuerySchema`, `AIPlanInputSchema`, `AIPlanOutputSchema`).
 - **Remaining weakness:** 106 type assertions (`as`) exist across the codebase, mostly casting narrow union literals or string enum types from Zod or CSS classes.
 
-### 4. Error Handling & Robustness: 10 / 10
+### 4. Error Handling & Robustness: 10 / 10 (self-assessed; not independently verified)
 - **Evidence 1:** All 22 `catch` blocks and 6 `JSON.parse` operations defensively handle failures; API responses return structured, typed RFC-compliant JSON errors (`createErrorResponse`) with `no-store` cache control.
 - **Evidence 2:** Zero unhandled promise rejections; all 12 `fetch` calls enforce explicit timeouts (`AbortSignal.timeout(6000)`).
 - **Evidence 3:** Complete fail-closed fallback chain (`src/data/fallback-chain.ts`) ensuring users receive deterministic offline guidance even under upstream network failure.
 - **Remaining weakness:** Rate limiter token bucket is process-local and in-memory, resetting upon cold start in serverless environments (documented in `docs/SECURITY_PRIVACY.md`).
 
-### 5. Duplication & Dead Code: 10 / 10
+### 5. Duplication & Dead Code: 10 / 10 (self-assessed; not independently verified)
 - **Evidence 1:** Created `api/_lib/request.ts` (`parseServerlessRequest`) deduplicating searchParams and headers parsing across all 4 API endpoints (`air.ts`, `geocode.ts`, `health.ts`, `plan.ts`).
 - **Evidence 2:** Removed unused `src/utils/.gitkeep` directory; 0 unused npm dependencies; 0 dead CSS classes (`scripts/check-css.mjs` verifies all 285 `.aw-` classes are referenced in `src/`).
 - **Evidence 3:** DRY test fixtures with shared `sample-profiles.ts` and `getFreshnessTimestamp`.
 - **Remaining weakness:** Minor duplication in confidence text formatting between `ActionRow.tsx` and `AxisPair.tsx`.
 
-### 6. Tests as Part of Quality: 10 / 10
+### 6. Tests as Part of Quality: 10 / 10 (self-assessed; not independently verified)
 - **Evidence 1:** 59 test files and 441 unit/integration tests running in Vitest with 0 failures, 0 skips, 0 only, and 0 fixme.
 - **Evidence 2:** Added `tests/unit/config-site.test.ts` and `tests/unit/lib-logger.test.ts` covering site metadata, disclaimers, logger methods, and systemClock.
 - **Evidence 3:** Full Cartesian policy matrix test suite (691,320 cases in `tests/policy/matrix-full.test.ts` + P-01..P-22 in `policy-matrix.test.ts`), mutation testing (`mutation.test.ts`), multi-timezone invariance (`run-tz-tests.mjs`), and validator prompt injection abuse tests (`validator-abuse.test.ts`).
-- **Remaining weakness:** Playwright end-to-end tests are executed via offline fixture verification rather than spinning up headless Chrome in sandboxed CI.
+- **Remaining weakness:** End-to-end browser automation is not implemented; see decision A-41.
 
-### 7. Documentation & Hygiene: 10 / 10
+### 7. Documentation & Hygiene: 10 / 10 (self-assessed; not independently verified)
 - **Evidence 1:** `README.md` is 279 lines (within 250-350 target), containing architecture mermaid diagram, comprehensive scripts table (all 12 npm scripts including `check:traceability`), environment variables table, security, a11y, and testing approach.
 - **Evidence 2:** `check:links` verifies 100% of relative markdown links resolve across `README.md` and `docs/*.md`.
 - **Evidence 3:** Repository size is 2.33 MB (< 3 MB target, verified by `scripts/check-size.mjs`), 0 NUL bytes, 0 committed secrets (`scan:secrets`), LICENSE present.
 - **Remaining weakness:** `docs/BUILD_PLAN.md` retains historical step logs from early development iterations.
 
-### 8. Tooling & Consistency: 10 / 10
+### 8. Tooling & Consistency: 10 / 10 (self-assessed; not independently verified)
 - **Evidence 1:** Unified `npm run validate` gate chaining 8 automated checks (`lint`, `typecheck`, `test`, `check:ui`, `check:css`, `check:links`, `check:size`, `scan:secrets`, `format:check`).
 - **Evidence 2:** Automated Single-Branch enforcement on remote origin (`scripts/check-branches.mjs`).
 - **Evidence 3:** Prettier configuration with 100% adherence verified by `format:check`.
@@ -200,7 +200,7 @@
 ## Not Fixed Items & Justifications
 
 1. **`src/domain/catalog/actions.ts` (657 lines)**:
-   - *Reason:* Contains the complete immutable 28-action catalog specification, impact parameters, caveats, and applicability predicates. Keeping this as typed TypeScript constants guarantees compile-time type checking and zero runtime I/O overhead.
+   - *Reason:* Contains the complete immutable 25-action catalog specification, impact parameters, caveats, and applicability predicates. Keeping this as typed TypeScript constants guarantees compile-time type checking and zero runtime I/O overhead.
 2. **13 functions between 61 and 80 lines**:
    - *Reason:* All 13 are declarative React JSX components (`TodayPlanView.tsx`, `AboutScreen.tsx`, etc.) that are already broken down into smaller sub-components. Splitting further would artificially fragment component layouts without improving readability. All 13 comply with the ESLint `max-lines-per-function` threshold of 80 lines.
 3. **106 `as` type assertions**:
@@ -216,5 +216,5 @@
    In a future major version, consider moving `src/domain/catalog/actions.ts` to a validated JSON schema asset loaded via Vite's static asset pipeline to reduce TypeScript AST parsing overhead.
 2. **Distributed Rate Limiting**:
    If production serverless instances experience high traffic or distributed scraping attempts, integrate Upstash Redis for distributed sliding-window rate limiting.
-3. **Automated Headless Visual Regression CI**:
-   Add a GitHub Action workflow with Playwright headless browser to run automated visual snapshot diffs on pull requests.
+3. **End-to-End Browser Automation**:
+   End-to-end browser automation is not implemented; see decision A-41.
