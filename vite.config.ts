@@ -1,13 +1,16 @@
 import { defineConfig, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
-import path from 'path';
-import fs from 'fs';
+import path from 'node:path';
+import fs from 'node:fs';
+import { Buffer } from 'node:buffer';
+import type { IncomingMessage } from 'node:http';
+import { fileURLToPath } from 'node:url';
 import { handleAirCore } from './api/air';
 import { handleGeocodeCore } from './api/geocode';
 import { handleHealthCore } from './api/health';
 import { handlePlanCore } from './api/plan';
 
-import type { IncomingMessage } from 'node:http';
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 function extractHeaders(req: {
   headers: Record<string, string | string[] | undefined>;
