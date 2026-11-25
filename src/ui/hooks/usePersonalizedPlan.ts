@@ -4,7 +4,7 @@ import { type PolicyEvaluationResult } from '../../domain/policy';
 import { getPersonalizedPlan } from '../../ai/client';
 
 export interface UsePersonalizedPlanResult {
-  plan: Plan;
+  plan: Plan | null;
   isAiPersonalized: boolean;
   statusMessage?: string;
   isSwapping: boolean;
@@ -19,28 +19,39 @@ export interface UsePersonalizedPlanResult {
  * - Enforces an 8-second client abort timeout.
  * - Client acts as safety authority: invalid responses fall back silently to basePlan.
  * - Clean teardown on unmount or input change.
+ * - When basePlan is null, does nothing and sets no state.
  */
 export function usePersonalizedPlan(
-  basePlan: Plan,
+  basePlan: Plan | null,
   snapshot: AirSnapshot | null,
   profile: HouseholdProfile | null,
   slots: TimeSlot[],
   policyResult: PolicyEvaluationResult | null,
   enabled: boolean,
 ): UsePersonalizedPlanResult {
-  const [activePlan, setActivePlan] = useState<Plan>(basePlan);
+  const [activePlan, setActivePlan] = useState<Plan | null>(basePlan);
   const [isAiPersonalized, setIsAiPersonalized] = useState<boolean>(false);
   const [statusMessage, setStatusMessage] = useState<string | undefined>();
   const [isSwapping, setIsSwapping] = useState<boolean>(false);
 
   // Keep ref to latest basePlan to ensure immediate fallback on dependency change
-  const basePlanRef = useRef(basePlan);
+  const basePlanRef = useRef<Plan | null>(basePlan);
   basePlanRef.current = basePlan;
 
   useEffect(() => {
+    // If basePlan is null, do nothing and set no state
+    if (!basePlan) {
+      return;
+    }
+
+    // Helper to skip updates when the new value is identical
+    const updateActivePlan = (next: Plan | null) => {
+      setActivePlan((prev) => (prev === next ? prev : next));
+    };
+
     // If AI is disabled or required data is missing, immediately reset to basePlan
     if (!enabled || !snapshot || !profile || !policyResult) {
-      setActivePlan(basePlan);
+      updateActivePlan(basePlan);
       setIsAiPersonalized(false);
       setStatusMessage(undefined);
       setIsSwapping(false);
@@ -48,7 +59,7 @@ export function usePersonalizedPlan(
     }
 
     // Set basePlan immediately first
-    setActivePlan(basePlan);
+    updateActivePlan(basePlan);
     setIsAiPersonalized(false);
     setIsSwapping(true);
 
@@ -71,7 +82,7 @@ export function usePersonalizedPlan(
         if (!isMounted) return;
         clearTimeout(timeoutId);
         setIsSwapping(false);
-        setActivePlan(result.plan);
+        updateActivePlan(result.plan);
         setIsAiPersonalized(result.isAIPersonalized);
         setStatusMessage(result.statusMessage);
       })
@@ -79,7 +90,7 @@ export function usePersonalizedPlan(
         if (!isMounted) return;
         clearTimeout(timeoutId);
         setIsSwapping(false);
-        setActivePlan(basePlanRef.current);
+        updateActivePlan(basePlanRef.current);
         setIsAiPersonalized(false);
         setStatusMessage(err instanceof Error ? err.message : 'Plan personalization failed');
       });

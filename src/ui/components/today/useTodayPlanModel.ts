@@ -2,7 +2,6 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import {
   type AirSnapshot,
   type HouseholdProfile,
-  type Plan,
 } from '../../../domain/types';
 import { useDailyPlan } from '../../hooks/useDailyPlan';
 import { usePersonalizedPlan } from '../../hooks/usePersonalizedPlan';
@@ -28,7 +27,7 @@ export function useTodayPlanModel(
   } = useDailyPlan(profile, snapshot, targetRegion, false);
 
   const { plan: activePlan, isAiPersonalized } = usePersonalizedPlan(
-    deterministicPlan || ({} as Plan),
+    deterministicPlan,
     snapshot,
     profile,
     slots,
@@ -43,7 +42,7 @@ export function useTodayPlanModel(
     prevAiPersonalizedRef.current = isAiPersonalized;
   }, [isAiPersonalized]);
 
-  const plan = activePlan.headline ? activePlan : deterministicPlan;
+  const plan = activePlan?.headline ? activePlan : deterministicPlan;
   const topActions = useMemo(() => {
     if (!plan || !plan.topActions) return [];
     const list = [...plan.topActions];

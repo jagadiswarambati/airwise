@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 export type AppRoute =
   | 'today'
@@ -56,9 +56,13 @@ export const ROUTE_DESCRIPTIONS: Record<AppRoute, string> = {
 
 /**
  * Parses the current URL hash into a valid AppRoute.
- * Defaults to 'today' if invalid or missing.
+ * If the hash matches an allowed route, returns that route.
+ * When hashchange fires from stray anchor clicks (e.g. #main or in-page anchors),
+ * parseRouteFromHash must ignore them without navigating away from the active screen
+ * by returning the active currentRoute if provided.
+ * Defaults to 'today' if invalid or missing on initial load.
  */
-export function parseRouteFromHash(hash?: string): AppRoute {
+export function parseRouteFromHash(hash?: string, currentRoute?: AppRoute): AppRoute {
   let currentHash = hash;
   if (currentHash === undefined) {
     currentHash = typeof window !== 'undefined' ? window.location.hash : '';
@@ -67,23 +71,30 @@ export function parseRouteFromHash(hash?: string): AppRoute {
   if ((ALLOWED_ROUTES as readonly string[]).includes(clean)) {
     return clean as AppRoute;
   }
+  // Ignore stray in-page anchor clicks (e.g. #main) without navigating away from active screen
+  if (currentRoute) {
+    return currentRoute;
+  }
   return 'today';
 }
 
 /**
- * Updates document title and moves focus to the main screen h1 element with tabIndex=-1.
+ * Updates document title and optionally moves focus to the main screen h1 element with tabIndex=-1.
+ * Focus is only moved on route transitions, never on initial page load.
  */
-export function applyRouteEffects(route: AppRoute): void {
+export function applyRouteEffects(route: AppRoute, moveFocus: boolean = true): void {
   if (typeof document === 'undefined') return;
 
   const title = ROUTE_TITLES[route] || 'AirWise';
   document.title = title;
 
+  if (!moveFocus) return;
+
   // Move focus to main h1 for screen reader and keyboard accessibility
   // Use requestAnimationFrame or setTimeout to let React render the DOM first
   setTimeout(() => {
-    const heading = document.querySelector('main h1') as HTMLElement | null;
-    if (heading) {
+    const heading = document.querySelector('main h1');
+    if (heading instanceof HTMLElement) {
       if (heading.tabIndex < 0) {
         heading.tabIndex = -1;
       }
@@ -102,7 +113,7 @@ export function navigate(route: AppRoute): void {
     window.location.hash = targetHash;
   } else {
     // If hash was already the same, re-trigger effects
-    applyRouteEffects(route);
+    applyRouteEffects(route, true);
   }
 }
 
@@ -114,22 +125,33 @@ export function useRoute(): {
   navigate: (r: AppRoute) => void;
 } {
   const [route, setRoute] = useState<AppRoute>(() => parseRouteFromHash());
+  const routeRef = useRef<AppRoute>(route);
+  routeRef.current = route;
+  const isInitialMount = useRef<boolean>(true);
 
+  // Sync title on initial mount without moving focus
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      applyRouteEffects(route, false);
+    }
+  }, [route]);
+
+  // Subscribe to hashchange events; only move focus on user-driven route transitions
   useEffect(() => {
     const handleHashChange = () => {
-      const next = parseRouteFromHash();
-      setRoute(next);
-      applyRouteEffects(next);
+      const next = parseRouteFromHash(window.location.hash, routeRef.current);
+      if (next !== routeRef.current) {
+        setRoute(next);
+        applyRouteEffects(next, true);
+      }
     };
 
     window.addEventListener('hashchange', handleHashChange);
-    // Initial run to ensure title and focus are synced
-    applyRouteEffects(route);
-
     return () => {
       window.removeEventListener('hashchange', handleHashChange);
     };
-  }, [route]);
+  }, []);
 
   const goTo = useCallback((target: AppRoute) => {
     navigate(target);
