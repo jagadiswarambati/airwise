@@ -120,12 +120,12 @@
 | **ESLint Errors** | 0 | **0** | PASSED |
 | **ESLint Warnings** | 23 | **0** | PASSED |
 | **TypeScript Errors (`tsc`)** | 0 | **0** | PASSED |
-| **Vitest Test Files** | 57 | **59** (+2 files) | PASSED |
-| **Vitest Test Cases** | 435 | **441** (+6 tests) | PASSED |
+| **Vitest Test Files** | 57 | **60** (+3 files) | PASSED |
+| **Vitest Test Cases** | 435 | **448** (+13 tests) | PASSED |
 | **Skipped / Only / Fixme Tests** | 0 | **0** | PASSED |
 | **Full Cartesian Policy Matrix** | 691,320 cases passed | **691,320 cases passed** | PASSED |
 | **Timezone Invariance Tests** | 3 timezones passed | **3 timezones passed** | PASSED |
-| **Files > 300 Lines (outside catalog)** | 2 (`types.ts`, `air.ts`) | **0** | PASSED |
+| **Files > 300 Lines (outside catalog)** | 2 (`types.ts`, `air.ts`) | **0** (all files $\le 260$ lines) | PASSED |
 | **Functions > 60 Lines** | 26 | **13** ($\le 80$ lines layout only) | PASSED |
 | **`any` Escapes** | 0 | **0** | PASSED |
 | **Non-Null Assertions (`!`)** | 0 | **0** | PASSED |
@@ -134,7 +134,7 @@
 | **`console.*` outside logger** | 0 | **0** | PASSED |
 | **`TODO` / `FIXME` Comments** | 0 | **0** | PASSED |
 | **Parameterless `new Date()` outside clock** | 0 | **0** | PASSED |
-| **Serverless Boilerplate Duplication** | 7 blocks duplicated | **0** (unified `parseServerlessRequest`) | PASSED |
+| **Serverless Boilerplate Duplication** | 7 blocks duplicated | **0** (unified `api/_lib/http.ts` adapters) | PASSED |
 | **Dead Code / Empty Folders** | `src/utils/.gitkeep` | **0** (removed) | PASSED |
 | **Domain Purity Violations** | 0 | **0** | PASSED |
 | **README Lines** | 278 lines | **279 lines** (target: 250-350) | PASSED |
@@ -148,38 +148,38 @@
 ## Detailed Category Re-Scoring (self-assessed; not independently verified)
 
 ### 1. Architecture & Modularity: 20 / 20 (self-assessed; not independently verified)
-- **Evidence 1:** Zero production files exceed 300 lines outside the static catalog (`src/domain/catalog/actions.ts`). `src/domain/types.ts` reduced to 227 lines; `api/air.ts` reduced to 129 lines.
+- **Evidence 1:** Zero files exceed 300 lines across the entire codebase. The static catalog is modularized into focused category files (`indoor.ts`, `personal.ts`, `mobility.ts`, `community.ts`, and `index.ts`), all $\le 260$ lines and proven invariant by `tests/unit/catalog-invariance.test.ts`.
 - **Evidence 2:** Strict unidirectional layer boundaries (`ui` $\rightarrow$ `state` $\rightarrow$ `domain` $\leftarrow$ `data`, `ai` $\rightarrow$ `domain`, `api` $\rightarrow$ `_lib`) with 0 forbidden imports from ui/data/ai/state in `src/domain`, verified by `tests/unit/domain-purity.test.ts`.
-- **Evidence 3:** Pure domain policy engine split cleanly into `src/domain/policy/rules/*.ts` and composed in documented order; API routes split into pure core logic (`handle*Core`) and thin serverless entry points using shared `api/_lib/request.ts` and `api/_lib/pipeline.ts`.
-- **Remaining weakness:** `src/domain/catalog/actions.ts` embeds 25 catalog actions as TypeScript objects rather than an external data asset.
+- **Evidence 3:** Pure domain policy engine split cleanly into `src/domain/policy/rules/*.ts` and composed in documented order; API routes split into pure core logic (`handle*Core`) and 1-line serverless entry points using `createFetchHandler` in `api/_lib/http.ts`.
+- **Remaining weakness:** State stores currently use custom listener subscriptions rather than a shared external state management library.
 
 ### 2. Readability & Naming: 15 / 15 (self-assessed; not independently verified)
-- **Evidence 1:** Zero nested ternaries in production and test code (enforced by ESLint `no-nested-ternary`).
+- **Evidence 1:** Zero nested ternaries in production and test code (enforced as an error by ESLint `no-nested-ternary`).
 - **Evidence 2:** Functions > 60 lines halved from 26 down to 13; all 13 are $\le 80$ lines and strictly JSX layout components in `ui/screens/` and `ui/onboarding/`.
-- **Evidence 3:** Consistent naming across domain entities (`roleLabelFor`, `deriveTimeSlots`, `getFreshnessTimestamp`, `parseServerlessRequest`).
+- **Evidence 3:** Consistent naming across domain entities (`roleLabelFor`, `deriveTimeSlots`, `getFreshnessTimestamp`, `parseServerlessRequest`, `toWebResponse`).
 - **Remaining weakness:** Onboarding step components pass step routing callbacks through props rather than a unified context.
 
 ### 3. Type Safety & Lint Hygiene: 15 / 15 (self-assessed; not independently verified)
-- **Evidence 1:** Exactly 0 errors and 0 warnings across the entire repository with strict ESLint config (`no-explicit-any`: error, `complexity`: 12, `max-lines-per-function`: 80, `max-lines`: 300).
+- **Evidence 1:** Exactly 0 errors and 0 warnings across the entire repository with strict ESLint config enforced as errors (`no-explicit-any`: error, `complexity`: 12, `max-lines-per-function`: 80, `max-lines`: 300, `no-nested-ternary`: error). Zero inline disable comments.
 - **Evidence 2:** 0 `any`, 0 non-null assertions `!`, 0 `@ts-ignore`, 0 `@ts-expect-error`, 0 `eslint-disable`.
-- **Evidence 3:** End-to-end Zod schemas validating all external inputs (`HouseholdProfileSchema`, `AirQuerySchema`, `AIPlanInputSchema`, `AIPlanOutputSchema`).
+- **Evidence 3:** End-to-end Zod schemas validating all external inputs (`HouseholdProfileSchema`, `AirQuerySchema`, `AIPlanInputSchema`, `AIPlanOutputSchema`, `GeminiResponseEnvelopeSchema`). Compiler strictness includes `forceConsistentCasingInFileNames` and `noImplicitReturns`.
 - **Remaining weakness:** 106 type assertions (`as`) exist across the codebase, mostly casting narrow union literals or string enum types from Zod or CSS classes.
 
 ### 4. Error Handling & Robustness: 10 / 10 (self-assessed; not independently verified)
 - **Evidence 1:** All 22 `catch` blocks and 6 `JSON.parse` operations defensively handle failures; API responses return structured, typed RFC-compliant JSON errors (`createErrorResponse`) with `no-store` cache control.
 - **Evidence 2:** Zero unhandled promise rejections; all 12 `fetch` calls enforce explicit timeouts (`AbortSignal.timeout(6000)`).
 - **Evidence 3:** Complete fail-closed fallback chain (`src/data/fallback-chain.ts`) ensuring users receive deterministic offline guidance even under upstream network failure.
-- **Remaining weakness:** Rate limiter token bucket is process-local and in-memory, resetting upon cold start in serverless environments (documented in `docs/SECURITY_PRIVACY.md`).
+- **Remaining weakness:** Rate limiter token bucket (`TokenBucketLimiter`) is process-local and in-memory, resetting upon cold start in serverless environments (documented honestly in `docs/SECURITY_PRIVACY.md`).
 
 ### 5. Duplication & Dead Code: 10 / 10 (self-assessed; not independently verified)
-- **Evidence 1:** Created `api/_lib/request.ts` (`parseServerlessRequest`) deduplicating searchParams and headers parsing across all 4 API endpoints (`air.ts`, `geocode.ts`, `health.ts`, `plan.ts`).
+- **Evidence 1:** Created `api/_lib/http.ts` (`toWebResponse`, `createFetchHandler`, and `parseServerlessRequest`) deduplicating serverless request parsing and response wrapping across all 4 API endpoints (`air.ts`, `geocode.ts`, `health.ts`, `plan.ts`).
 - **Evidence 2:** Removed unused `src/utils/.gitkeep` directory; 0 unused npm dependencies; 0 dead CSS classes (`scripts/check-css.mjs` verifies all 285 `.aw-` classes are referenced in `src/`).
 - **Evidence 3:** DRY test fixtures with shared `sample-profiles.ts` and `getFreshnessTimestamp`.
 - **Remaining weakness:** Minor duplication in confidence text formatting between `ActionRow.tsx` and `AxisPair.tsx`.
 
 ### 6. Tests as Part of Quality: 10 / 10 (self-assessed; not independently verified)
-- **Evidence 1:** 59 test files and 441 unit/integration tests running in Vitest with 0 failures, 0 skips, 0 only, and 0 fixme.
-- **Evidence 2:** Added `tests/unit/config-site.test.ts` and `tests/unit/lib-logger.test.ts` covering site metadata, disclaimers, logger methods, and systemClock.
+- **Evidence 1:** 60 test files and 448 unit/integration tests running in Vitest with 0 failures, 0 skips, 0 only, and 0 fixme.
+- **Evidence 2:** Added `tests/unit/config-site.test.ts`, `tests/unit/lib-logger.test.ts`, and `tests/unit/catalog-invariance.test.ts` covering site metadata, logger methods, and catalog invariance.
 - **Evidence 3:** Full Cartesian policy matrix test suite (691,320 cases in `tests/policy/matrix-full.test.ts` + P-01..P-22 in `policy-matrix.test.ts`), mutation testing (`mutation.test.ts`), multi-timezone invariance (`run-tz-tests.mjs`), and validator prompt injection abuse tests (`validator-abuse.test.ts`).
 - **Remaining weakness:** End-to-end browser automation is not implemented; see decision A-41.
 

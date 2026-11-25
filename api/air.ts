@@ -3,7 +3,7 @@ import { getSecurityHeaders } from './_lib/headers';
 import { parseQuery, AirQuerySchema } from './_lib/validate';
 import { type Clock, systemClock } from '../src/lib/clock';
 import { withApiGuards } from './_lib/pipeline';
-import { parseServerlessRequest } from './_lib/request';
+import { createFetchHandler } from './_lib/http';
 import {
   type ApiHourlyPoint,
   type ApiWeatherHourlyPoint,
@@ -110,13 +110,6 @@ export async function handleAirCore(
 /**
  * Vercel Serverless Function entry point.
  */
-export default {
-  async fetch(request: Request, clock: Clock = systemClock): Promise<Response> {
-    const { query, headers } = parseServerlessRequest(request);
-    const res = await handleAirCore(query, headers, request.method, 0, clock);
-    return new Response(JSON.stringify(res.body), {
-      status: res.status,
-      headers: res.headers,
-    });
-  },
-};
+export default createFetchHandler((req, { query, headers }) =>
+  handleAirCore(query, headers, req.method),
+);

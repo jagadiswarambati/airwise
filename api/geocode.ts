@@ -2,7 +2,7 @@ import { createErrorResponse, type ApiResponse, type ApiErrorBody } from './_lib
 import { getSecurityHeaders } from './_lib/headers';
 import { parseQuery, GeocodeQuerySchema } from './_lib/validate';
 import { withApiGuards } from './_lib/pipeline';
-import { parseServerlessRequest } from './_lib/request';
+import { createFetchHandler } from './_lib/http';
 
 export interface GeocodeItem {
   name: string;
@@ -105,13 +105,6 @@ export async function handleGeocodeCore(
 /**
  * Vercel Serverless Function entry point.
  */
-export default {
-  async fetch(request: Request): Promise<Response> {
-    const { query, headers } = parseServerlessRequest(request);
-    const res = await handleGeocodeCore(query, headers, request.method);
-    return new Response(JSON.stringify(res.body), {
-      status: res.status,
-      headers: res.headers,
-    });
-  },
-};
+export default createFetchHandler((req, { query, headers }) =>
+  handleGeocodeCore(query, headers, req.method),
+);

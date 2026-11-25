@@ -1,0 +1,186 @@
+import { type Action } from '../types';
+
+/**
+ * Mobility Category Actions (MO-01 to MO-07).
+ */
+export const MOBILITY_ACTIONS: Action[] = [
+  {
+    id: 'MO-01',
+    title: 'Shift commute to cleaner forecast window',
+    category: 'mobility',
+    cost: 'free',
+    effort: 2,
+    evidence: 'medium',
+    templateKey: 'MO-01',
+    impactSpec: {
+      exposure: {
+        direction: 'reduces',
+        label: 'Estimated',
+        evidence: 'medium',
+        noteTemplate: 'Avoids diurnal peak pollution and heavy traffic exhaust.',
+      },
+      emissions: {
+        direction: 'reduces',
+        label: 'Recommended',
+        evidence: 'low',
+        noteTemplate: 'Smoother traffic flow slightly lowers stop-and-go fuel burn.',
+      },
+      assumptions: ['Schedule allows 30–60 minute departure shift.'],
+      doesNotChange: 'Does not eliminate in-transit vehicle exhaust exposure.',
+    },
+  },
+  {
+    id: 'MO-02',
+    title: 'Use public transit for trips',
+    category: 'mobility',
+    cost: 'low',
+    effort: 2,
+    evidence: 'high',
+    templateKey: 'MO-02',
+    impactSpec: {
+      exposure: {
+        direction: 'conditional',
+        label: 'Recommended',
+        evidence: 'medium',
+        noteTemplate: 'Reduces road congestion exposure; requires respirator if waiting outdoors.',
+      },
+      emissions: {
+        direction: 'reduces',
+        label: 'Recommended',
+        evidence: 'high',
+        noteTemplate: 'Replaces personal vehicle trips with shared transit capacity.',
+      },
+      assumptions: ['Public bus or metro route is available and accessible.'],
+      doesNotChange: 'Does not prevent exposure while waiting at unshielded stops.',
+    },
+  },
+  {
+    id: 'MO-03',
+    title: 'Carpool or share rides',
+    category: 'mobility',
+    cost: 'free',
+    effort: 2,
+    evidence: 'high',
+    templateKey: 'MO-03',
+    impactSpec: {
+      exposure: {
+        direction: 'neutral',
+        label: 'Recommended',
+        evidence: 'medium',
+        noteTemplate: 'Vehicle cabin exposure is similar unless recirculate AC is used.',
+      },
+      emissions: {
+        direction: 'reduces',
+        label: 'Estimated',
+        evidence: 'high',
+        noteTemplate: 'Reduces private vehicle kilometers travelled directly.',
+        hasFormula: 'E1',
+      },
+      assumptions: ['Carpool occupancy is at least 2 people per shared vehicle.'],
+      doesNotChange: 'Does not clean outdoor air along the roadway.',
+    },
+  },
+  {
+    id: 'MO-04',
+    title: 'Combine errands into a single trip',
+    category: 'mobility',
+    cost: 'free',
+    effort: 1,
+    evidence: 'high',
+    templateKey: 'MO-04',
+    impactSpec: {
+      exposure: {
+        direction: 'reduces',
+        label: 'Recommended',
+        evidence: 'medium',
+        noteTemplate: 'Cuts overall travel time and roadside exposure episodes.',
+      },
+      emissions: {
+        direction: 'reduces',
+        label: 'Recommended',
+        evidence: 'high',
+        noteTemplate: 'Avoids cold engine starts and redundant vehicle trips (qualitative, no numeric estimate).',
+      },
+      assumptions: ['Errands can be coordinated into a single route.'],
+      doesNotChange: 'Does not change emission rate per kilometer driven.',
+    },
+  },
+  {
+    id: 'MO-05',
+    title: 'Work remotely on high-pollution days',
+    category: 'mobility',
+    cost: 'free',
+    effort: 1,
+    evidence: 'high',
+    templateKey: 'MO-05',
+    minLevel: 2,
+    impactSpec: {
+      exposure: {
+        direction: 'reduces',
+        label: 'Recommended',
+        evidence: 'high',
+        noteTemplate: 'Eliminates commute exposure entirely during severe smog days.',
+      },
+      emissions: {
+        direction: 'reduces',
+        label: 'Estimated',
+        evidence: 'high',
+        noteTemplate: 'Eliminates 100% of round-trip commute vehicle-kilometers.',
+        hasFormula: 'E1',
+      },
+      assumptions: ['Employer and role allow remote work.'],
+      doesNotChange: 'Does not clean home indoor air automatically.',
+    },
+  },
+  {
+    id: 'MO-06',
+    title: 'Turn engine off while idling',
+    category: 'mobility',
+    cost: 'free',
+    effort: 1,
+    evidence: 'high',
+    templateKey: 'MO-06',
+    impactSpec: {
+      exposure: {
+        direction: 'neutral',
+        label: 'Recommended',
+        evidence: 'medium',
+        noteTemplate: 'Reduces immediate exhaust accumulation around parked vehicles.',
+      },
+      emissions: {
+        direction: 'reduces',
+        label: 'Recommended',
+        evidence: 'high',
+        noteTemplate: 'Cuts unneeded tailpipe exhaust and fuel waste during stops (qualitative, no numeric estimate).',
+      },
+      assumptions: ['Vehicle waiting period exceeds 30 seconds.'],
+      doesNotChange: 'Does not alter emissions while traveling.',
+    },
+  },
+  {
+    id: 'MO-07',
+    title: 'Walk or cycle for short neighborhood trips',
+    category: 'mobility',
+    cost: 'free',
+    effort: 2,
+    evidence: 'medium',
+    templateKey: 'MO-07',
+    forbiddenLevels: [2, 3, 4], // Forbidden during Caution, Protect, Severe (P-08)
+    impactSpec: {
+      exposure: {
+        direction: 'conditional',
+        label: 'Recommended',
+        evidence: 'medium',
+        noteTemplate: 'Only recommended during Clear/Watch air with safe pedestrian paths.',
+      },
+      emissions: {
+        direction: 'reduces',
+        label: 'Recommended',
+        evidence: 'high',
+        noteTemplate: 'Replaces motorized travel with zero-emission active mobility (qualitative, no numeric estimate).',
+      },
+      assumptions: ['Outdoor air is Clear/Watch (level 0 or 1) and daylight hours.'],
+      doesNotChange: 'Not suitable when outdoor air reaches Caution, Protect, or Severe.',
+    },
+  },
+];

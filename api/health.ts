@@ -1,7 +1,7 @@
 import { type ApiResponse, type ApiErrorBody } from './_lib/errors';
 import { getSecurityHeaders } from './_lib/headers';
 import { withApiGuards } from './_lib/pipeline';
-import { parseServerlessRequest } from './_lib/request';
+import { createFetchHandler } from './_lib/http';
 
 export interface HealthResponseBody {
   status: 'ok';
@@ -46,13 +46,4 @@ export async function handleHealthCore(
 /**
  * Vercel Serverless Function entry point.
  */
-export default {
-  async fetch(request: Request): Promise<Response> {
-    const { headers } = parseServerlessRequest(request);
-    const res = await handleHealthCore(headers, request.method);
-    return new Response(JSON.stringify(res.body), {
-      status: res.status,
-      headers: res.headers,
-    });
-  },
-};
+export default createFetchHandler((req, { headers }) => handleHealthCore(headers, req.method));

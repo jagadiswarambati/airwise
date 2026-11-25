@@ -63,7 +63,7 @@ The deterministic plan renders first. The AI result swaps in when and if it vali
 | `trend.ts` | Rising/steady/falling from hourly series. |
 | `radar.ts` | Most vulnerable member × highest-risk slot. |
 | `ventilation.ts` | Closed/brief/open verdict and window selection (P-05…P-07). |
-| `catalog/` | Static action catalog with impact specs and template keys. |
+| `catalog/` | Static action catalog split into category modules (`indoor.ts`, `personal.ts`, `mobility.ts`, `community.ts`, `index.ts`) with impact specs and template keys. |
 | `policy.ts` | Candidate filtering, mustInclude, forbidden set (P-01…P-21). |
 | `plan-builder.ts` | Complete deterministic plan from candidates. |
 | `impact.ts` | Formulas E1, E2, X1, C1; qualitative impact statements. |
@@ -96,7 +96,7 @@ The deterministic plan renders first. The AI result swaps in when and if it vali
 | `air.ts` | Validates query, fetches Open-Meteo, normalizes, caches, rate-limits. |
 | `plan.ts` | Validates body (Zod), builds prompt server-side from enums, calls Gemini with JSON mode, returns raw JSON. Never logs request bodies. |
 | `health.ts` | Liveness and LLM-enabled flag. |
-| `_lib/` | Rate limiter, validation, headers, error mapper. |
+| `_lib/` | Rate limiter (`TokenBucketLimiter` class), HTTP request/response adapters (`http.ts`), validation, headers, pipeline guards, error mapper. |
 
 ### `src/ui`
 Screens (Today, Indoor, Move, Impact, Community, Onboarding), shared components (RiskBadge, ActionCard, ImpactCard, TrustPanel, QuickChecks, Sparkline), Severe Mode layout, error boundaries per tab.
@@ -136,7 +136,7 @@ Boundary validation with Zod on both ends; CSP with `connect-src 'self'`; secret
 
 ## 9. Testing architecture
 
-Pure domain code is tested without mocks. Policy matrix enumerates scenarios programmatically. The LLM client is mocked with fixtures (good, malformed, malicious, partial). Providers are tested against recorded JSON fixtures. Playwright runs against `vite preview` with the sample provider and `LLM_PROVIDER=none`, plus one run with a mocked `/api/plan`.
+Pure domain code is tested without mocks. Policy matrix enumerates scenarios programmatically. The LLM client is mocked with fixtures (good, malformed, malicious, partial). Providers are tested against recorded JSON fixtures. Component and accessibility rendering are verified via Vitest render tests, check:ui, and Lighthouse audits; browser automation is planned (decision A-41).
 
 ## 10. Deployment
 

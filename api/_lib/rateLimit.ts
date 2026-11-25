@@ -6,46 +6,115 @@ interface Bucket {
 }
 
 export const DEFAULT_MAX_BUCKETS = 10000;
-export const DEFAULT_IDLE_TTL_MS = 10 * 60 * 1000; // 10 minutes (buckets fully refill within seconds/minutes)
+export const DEFAULT_IDLE_TTL_MS = 10 * 60 * 1000; // 10 minutes
 
-let maxBucketsConfig = DEFAULT_MAX_BUCKETS;
-let idleTtlMsConfig = DEFAULT_IDLE_TTL_MS;
+export interface RateLimitResult {
+  allowed: boolean;
+  retryAfterSeconds?: number;
+}
 
-const buckets = new Map<string, Bucket>();
-
-/**
- * Configure rate limiter limits (useful for testing bounded capacity & eviction).
- */
-export function configureRateLimiter(options?: { maxBuckets?: number; idleTtlMs?: number }): void {
-  if (options?.maxBuckets !== undefined) {
-    maxBucketsConfig = Math.max(1, options.maxBuckets);
-  }
-  if (options?.idleTtlMs !== undefined) {
-    idleTtlMsConfig = Math.max(1, options.idleTtlMs);
-  }
+export interface LimiterOptions {
+  maxBuckets?: number;
+  idleTtlMs?: number;
+  clock?: Clock;
 }
 
 /**
- * Returns current bucket count in memory.
+ * Token bucket rate limiter managing memory bounded per-client quotas.
  */
-export function getBucketCount(): number {
-  return buckets.size;
-}
+export class TokenBucketLimiter {
+  private readonly maxBuckets: number;
+  private readonly idleTtlMs: number;
+  private readonly clock: Clock;
+  private readonly buckets = new Map<string, Bucket>();
 
-/**
- * Evicts idle buckets whose last refill occurred longer than idleTtlMs ago.
- * Returns the number of evicted entries.
- */
-export function evictIdleBuckets(now: number, idleTtlMs: number = idleTtlMsConfig): number {
-  let evicted = 0;
-  for (const [key, bucket] of buckets.entries()) {
-    if (now - bucket.lastRefill >= idleTtlMs) {
-      buckets.delete(key);
-      evicted++;
+  constructor(options: LimiterOptions = {}) {
+    this.maxBuckets = Math.max(1, options.maxBuckets ?? DEFAULT_MAX_BUCKETS);
+    this.idleTtlMs = Math.max(1, options.idleTtlMs ?? DEFAULT_IDLE_TTL_MS);
+    this.clock = options.clock ?? systemClock;
+  }
+
+  getBucketCount(): number {
+    return this.buckets.size;
+  }
+
+  evictIdleBuckets(now?: number, idleTtlMs?: number): number {
+    const currentTime = now ?? this.clock().getTime();
+    const ttl = idleTtlMs ?? this.idleTtlMs;
+    let evicted = 0;
+    for (const [key, bucket] of this.buckets.entries()) {
+      if (currentTime - bucket.lastRefill >= ttl) {
+        this.buckets.delete(key);
+        evicted++;
+      }
+    }
+    return evicted;
+  }
+
+  private ensureCapacity(now: number): void {
+    if (this.buckets.size >= this.maxBuckets) {
+      this.evictIdleBuckets(now, this.idleTtlMs);
+    }
+    if (this.buckets.size >= this.maxBuckets) {
+      const oldestKey = this.buckets.keys().next().value;
+      if (oldestKey !== undefined) {
+        this.buckets.delete(oldestKey);
+      }
     }
   }
-  return evicted;
+
+  checkRateLimit(
+    ip: string,
+    endpoint: 'general' | 'plan' = 'general',
+    nowOrClock?: number | Clock,
+  ): RateLimitResult {
+    const resolvedClock = nowOrClock ?? this.clock;
+    const now = typeof resolvedClock === 'function' ? resolvedClock().getTime() : resolvedClock;
+    const ratePerMin =
+      endpoint === 'plan'
+        ? 6
+        : parseInt(process.env.RATE_LIMIT_PER_MIN || '20', 10) || 20;
+    const burst = endpoint === 'plan' ? 2 : 5;
+
+    const refillRatePerMs = ratePerMin / 60000;
+    const key = `${endpoint}:${ip}`;
+
+    let bucket = this.buckets.get(key);
+    if (!bucket) {
+      this.ensureCapacity(now);
+      bucket = {
+        tokens: burst,
+        lastRefill: now,
+      };
+      this.buckets.set(key, bucket);
+    } else {
+      const elapsed = Math.max(0, now - bucket.lastRefill);
+      bucket.tokens = Math.min(burst, bucket.tokens + elapsed * refillRatePerMs);
+      bucket.lastRefill = now;
+    }
+
+    if (bucket.tokens >= 1) {
+      bucket.tokens -= 1;
+      return { allowed: true };
+    }
+
+    const deficit = 1 - bucket.tokens;
+    const retryAfterSeconds = Math.ceil(deficit / (refillRatePerMs * 1000));
+    return {
+      allowed: false,
+      retryAfterSeconds: Math.max(1, retryAfterSeconds),
+    };
+  }
+
+  reset(): void {
+    this.buckets.clear();
+  }
 }
+
+/**
+ * Singleton default instance used by serverless API handlers.
+ */
+export const defaultRateLimiter = new TokenBucketLimiter();
 
 /**
  * Extracts client IP from trusted request headers.
@@ -86,82 +155,34 @@ export function getClientIp(headers: Record<string, string | string[] | undefine
   return 'unknown';
 }
 
-export interface RateLimitResult {
-  allowed: boolean;
-  retryAfterSeconds?: number;
-}
-
-function ensureCapacity(now: number): void {
-  if (buckets.size >= maxBucketsConfig) {
-    evictIdleBuckets(now, idleTtlMsConfig);
-  }
-  if (buckets.size >= maxBucketsConfig) {
-    const oldestKey = buckets.keys().next().value;
-    if (oldestKey !== undefined) {
-      buckets.delete(oldestKey);
-    }
-  }
-}
-
 /**
- * Token bucket rate limiter per client IP.
- * Defaults:
- * - General endpoints (air, geocode): 20 req/min, burst 5 (configurable via RATE_LIMIT_PER_MIN)
- * - Plan endpoint: 6 req/min, burst 2
- *
- * Enforces memory safety:
- * - Capped at maxBuckets to prevent unbounded memory growth.
- * - Evicts idle entries exceeding idleTtlMs on insertion.
- * - If still at capacity, evicts the oldest entry (FIFO / LRU style).
+ * Token bucket rate limiter wrapper for default limiter instance.
  */
 export function checkRateLimit(
   ip: string,
   endpoint: 'general' | 'plan' = 'general',
   nowOrClock: number | Clock = systemClock,
 ): RateLimitResult {
-  const now = typeof nowOrClock === 'function' ? nowOrClock().getTime() : nowOrClock;
-  const ratePerMin =
-    endpoint === 'plan'
-      ? 6
-      : parseInt(process.env.RATE_LIMIT_PER_MIN || '20', 10) || 20;
-  const burst = endpoint === 'plan' ? 2 : 5;
-
-  const refillRatePerMs = ratePerMin / 60000;
-  const key = `${endpoint}:${ip}`;
-
-  let bucket = buckets.get(key);
-  if (!bucket) {
-    ensureCapacity(now);
-    bucket = {
-      tokens: burst,
-      lastRefill: now,
-    };
-    buckets.set(key, bucket);
-  } else {
-    // Refill tokens based on elapsed time
-    const elapsed = Math.max(0, now - bucket.lastRefill);
-    bucket.tokens = Math.min(burst, bucket.tokens + elapsed * refillRatePerMs);
-    bucket.lastRefill = now;
-  }
-
-  if (bucket.tokens >= 1) {
-    bucket.tokens -= 1;
-    return { allowed: true };
-  }
-
-  const deficit = 1 - bucket.tokens;
-  const retryAfterSeconds = Math.ceil(deficit / (refillRatePerMs * 1000));
-  return {
-    allowed: false,
-    retryAfterSeconds: Math.max(1, retryAfterSeconds),
-  };
+  return defaultRateLimiter.checkRateLimit(ip, endpoint, nowOrClock);
 }
 
 /**
- * Reset rate limit memory and restore default configuration.
+ * Reset default rate limiter memory.
  */
 export function resetRateLimiter(): void {
-  buckets.clear();
-  maxBucketsConfig = DEFAULT_MAX_BUCKETS;
-  idleTtlMsConfig = DEFAULT_IDLE_TTL_MS;
+  defaultRateLimiter.reset();
+}
+
+/**
+ * Returns current bucket count for the default limiter.
+ */
+export function getBucketCount(): number {
+  return defaultRateLimiter.getBucketCount();
+}
+
+/**
+ * Evicts idle buckets for the default limiter.
+ */
+export function evictIdleBuckets(now: number, idleTtlMs?: number): number {
+  return defaultRateLimiter.evictIdleBuckets(now, idleTtlMs);
 }

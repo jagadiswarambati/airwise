@@ -6,7 +6,7 @@ import { ACTION_CATALOG } from '../src/domain/catalog/actions';
 import { createErrorResponse, type ApiResponse, type ApiErrorBody } from './_lib/errors';
 import { getSecurityHeaders } from './_lib/headers';
 import { withApiGuards } from './_lib/pipeline';
-import { parseServerlessRequest } from './_lib/request';
+import { createFetchHandler } from './_lib/http';
 
 export interface PlanApiResponse {
   success: boolean;
@@ -264,14 +264,6 @@ export async function handlePlanRequest(
 /**
  * Vercel Serverless Function entry point.
  */
-export default {
-  async fetch(request: Request): Promise<Response> {
-    const { headers } = parseServerlessRequest(request);
-    const rawBody = await request.text();
-    const res = await handlePlanCore(rawBody, headers, request.method);
-    return new Response(JSON.stringify(res.body), {
-      status: res.status,
-      headers: res.headers,
-    });
-  },
-};
+export default createFetchHandler(async (req, { headers }) =>
+  handlePlanCore(await req.text(), headers, req.method),
+);

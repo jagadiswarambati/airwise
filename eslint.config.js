@@ -42,8 +42,8 @@ export default tsPlugin.config(
       'no-console': 'error',
       eqeqeq: ['error', 'always'],
       'prefer-const': 'error',
-      'no-nested-ternary': 'warn',
-      complexity: ['warn', 12],
+      'no-nested-ternary': 'error',
+      complexity: ['error', 12],
     },
   },
   // Allow console in logger abstraction and standalone maintenance scripts
@@ -59,7 +59,7 @@ export default tsPlugin.config(
     ignores: ['**/*.test.{ts,tsx}', '**/tests/**'],
     rules: {
       'max-lines-per-function': [
-        'warn',
+        'error',
         { max: 80, skipBlankLines: true, skipComments: true, IIFEs: true },
       ],
     },
@@ -68,7 +68,7 @@ export default tsPlugin.config(
     files: ['src/**/*.{ts,tsx}', 'api/**/*.{ts,tsx}'],
     ignores: ['**/*.test.{ts,tsx}', '**/tests/**', 'src/domain/catalog/**', 'src/data/samples/**'],
     rules: {
-      'max-lines': ['warn', { max: 300, skipBlankLines: true, skipComments: true }],
+      'max-lines': ['error', { max: 300, skipBlankLines: true, skipComments: true }],
     },
   },
   // Boundary rule: domain must be pure TypeScript and never import from UI, data, state, ai, or external frameworks

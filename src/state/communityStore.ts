@@ -46,14 +46,16 @@ export function useCommunityPledge(): [boolean, (pledged: boolean) => void] {
       setPledged(customEvent.detail);
     };
 
-    if (typeof window !== 'undefined') {
-      window.addEventListener('storage', handleStorage);
-      window.addEventListener(PLEDGE_CHANGE_EVENT, handleCustom);
-      return () => {
-        window.removeEventListener('storage', handleStorage);
-        window.removeEventListener(PLEDGE_CHANGE_EVENT, handleCustom);
-      };
+    if (typeof window === 'undefined') {
+      return undefined;
     }
+
+    window.addEventListener('storage', handleStorage);
+    window.addEventListener(PLEDGE_CHANGE_EVENT, handleCustom);
+    return () => {
+      window.removeEventListener('storage', handleStorage);
+      window.removeEventListener(PLEDGE_CHANGE_EVENT, handleCustom);
+    };
   }, []);
 
   const update = useCallback((next: boolean) => {
