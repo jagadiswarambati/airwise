@@ -7,6 +7,12 @@ interface ActionDetailModalProps {
   onClose: () => void;
 }
 
+function formatAxisDirection(dir: string, axis: 'Exposure' | 'Emissions'): string {
+  if (dir === 'reduces') return `Reduces ${axis} ↓`;
+  if (dir === 'neutral') return 'Neutral —';
+  return 'Conditional';
+}
+
 const DualAxisImpactSection: React.FC<{
   impact: ActionCandidate['impact'];
 }> = ({ impact }) => (
@@ -17,11 +23,7 @@ const DualAxisImpactSection: React.FC<{
       <div className="axis-card-exposure">
         <div className="axis-card-title text-exposure">Exposure axis</div>
         <div className="axis-card-value">
-          {impact.exposure.direction === 'reduces'
-            ? 'Reduces Exposure ↓'
-            : impact.exposure.direction === 'neutral'
-              ? 'Neutral —'
-              : 'Conditional'}
+          {formatAxisDirection(impact.exposure.direction, 'Exposure')}
         </div>
         <div className="axis-card-label">
           Label: <strong>{impact.exposure.label}</strong> ({impact.exposure.confidence}{' '}
@@ -33,11 +35,7 @@ const DualAxisImpactSection: React.FC<{
       <div className="axis-card-emissions">
         <div className="axis-card-title text-emissions">Emissions axis</div>
         <div className="axis-card-value">
-          {impact.emissions.direction === 'reduces'
-            ? 'Reduces Emissions ↓'
-            : impact.emissions.direction === 'neutral'
-              ? 'Neutral —'
-              : 'Conditional'}
+          {formatAxisDirection(impact.emissions.direction, 'Emissions')}
         </div>
         <div className="axis-card-label">
           Label: <strong>{impact.emissions.label}</strong> ({impact.emissions.confidence}{' '}

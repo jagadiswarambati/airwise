@@ -8,6 +8,12 @@ interface AirBriefingCardProps {
   effectiveLevel: RiskLevel;
 }
 
+function formatFreshnessBadge(freshness: string): string {
+  if (freshness === 'fresh') return 'Fresh';
+  if (freshness === 'aging') return 'Aging';
+  return 'Stale data';
+}
+
 export const AirBriefingCard: React.FC<AirBriefingCardProps> = ({ snapshot, effectiveLevel }) => {
   const pm25Now = snapshot.pm25.now;
   const aqi = snapshot.aqi;
@@ -25,11 +31,7 @@ export const AirBriefingCard: React.FC<AirBriefingCardProps> = ({ snapshot, effe
         <span className="card-title">Air Briefing</span>
         <div className="briefing-badges">
           <Badge type="freshness" variant={snapshot.freshness}>
-            {snapshot.freshness === 'fresh'
-              ? 'Fresh'
-              : snapshot.freshness === 'aging'
-                ? 'Aging'
-                : 'Stale data'}
+            {formatFreshnessBadge(snapshot.freshness)}
           </Badge>
           <Badge type="data-type">
             {snapshot.source.dataType === 'sample' ? 'Sample' : 'Modelled'}

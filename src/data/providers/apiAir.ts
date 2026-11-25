@@ -44,6 +44,18 @@ export interface ApiAirResponse {
 export const OPEN_METEO_ATTRIBUTION =
   'Air quality and weather data by Open-Meteo, derived from Copernicus Atmosphere Monitoring Service (CAMS) information.';
 
+function buildSourceMetadata(source?: ApiAirResponse['source']) {
+  return {
+    id: source?.id || 'open-meteo',
+    name: source?.name || 'Open-Meteo (CAMS & Forecast)',
+    dataType: source?.dataType || 'modelled',
+    resolutionNote:
+      source?.resolutionNote ||
+      'Modelled CAMS atmospheric forecast (~25 km spatial resolution).',
+    attribution: source?.attribution || OPEN_METEO_ATTRIBUTION,
+  };
+}
+
 /**
  * Pure parser that maps same-origin /api/air response to AirWise domain RawAirDataInput
  */
@@ -60,15 +72,7 @@ export function parseApiAirResponse(
     fetchedAt: json.fetchedAt || fetchedAt,
     utcOffsetSeconds: json.utcOffsetSeconds,
     timezone: json.timezone,
-    source: {
-      id: json.source?.id || 'open-meteo',
-      name: json.source?.name || 'Open-Meteo (CAMS & Forecast)',
-      dataType: json.source?.dataType || 'modelled',
-      resolutionNote:
-        json.source?.resolutionNote ||
-        'Modelled CAMS atmospheric forecast (~25 km spatial resolution).',
-      attribution: json.source?.attribution || OPEN_METEO_ATTRIBUTION,
-    },
+    source: buildSourceMetadata(json.source),
   };
 }
 

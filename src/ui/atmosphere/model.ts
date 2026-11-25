@@ -130,7 +130,12 @@ export function computeSpecks(level: RiskLevel | null, isNeutral: boolean): Spec
   for (let i = 0; i < count; i++) {
     const xPct = Math.round(((i * 47 + 13) % 90) + 5);
     const yPct = Math.round(((i * 31 + 19) % 76) + 12);
-    const sizePx = i % 3 === 0 ? 3 : i % 2 === 0 ? 2 : 1.5;
+    let sizePx = 1.5;
+    if (i % 3 === 0) {
+      sizePx = 3;
+    } else if (i % 2 === 0) {
+      sizePx = 2;
+    }
     const durationS = 14 + ((i * 7) % 17); // 14s .. 30s
     const delayS = Math.round((((i * 5) % 11) * 0.7) * 10) / 10;
     specks.push({ id: i, xPct, yPct, sizePx, durationS, delayS });

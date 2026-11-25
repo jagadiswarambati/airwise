@@ -63,25 +63,20 @@ const ActionRowLead: React.FC<{
   </div>
 );
 
+function formatDirectionLabel(dir: string): string {
+  if (dir === 'reduces') return 'lowers';
+  if (dir === 'neutral') return 'no change';
+  return 'conditional';
+}
+
 const ActionRowMeta: React.FC<{
   candidate: ActionCandidate;
   showEffort?: boolean;
   showAxisSummary?: boolean;
 }> = ({ candidate, showEffort, showAxisSummary }) => {
   const { impact, tags } = candidate;
-  const expDir =
-    impact.exposure.direction === 'reduces'
-      ? 'lowers'
-      : impact.exposure.direction === 'neutral'
-        ? 'no change'
-        : 'conditional';
-
-  const emDir =
-    impact.emissions.direction === 'reduces'
-      ? 'lowers'
-      : impact.emissions.direction === 'neutral'
-        ? 'no change'
-        : 'conditional';
+  const expDir = formatDirectionLabel(impact.exposure.direction);
+  const emDir = formatDirectionLabel(impact.emissions.direction);
 
   return (
     <>

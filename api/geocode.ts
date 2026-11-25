@@ -2,6 +2,7 @@ import { createErrorResponse, type ApiResponse, type ApiErrorBody } from './_lib
 import { getSecurityHeaders } from './_lib/headers';
 import { parseQuery, GeocodeQuerySchema } from './_lib/validate';
 import { withApiGuards } from './_lib/pipeline';
+import { parseServerlessRequest } from './_lib/request';
 
 export interface GeocodeItem {
   name: string;
@@ -106,17 +107,7 @@ export async function handleGeocodeCore(
  */
 export default {
   async fetch(request: Request): Promise<Response> {
-    const url = new URL(request.url);
-    const query: Record<string, string> = {};
-    url.searchParams.forEach((value, key) => {
-      query[key] = value;
-    });
-
-    const headers: Record<string, string> = {};
-    request.headers.forEach((value, key) => {
-      headers[key.toLowerCase()] = value;
-    });
-
+    const { query, headers } = parseServerlessRequest(request);
     const res = await handleGeocodeCore(query, headers, request.method);
     return new Response(JSON.stringify(res.body), {
       status: res.status,

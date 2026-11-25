@@ -7,6 +7,53 @@ import { handleGeocodeCore } from './api/geocode';
 import { handleHealthCore } from './api/health';
 import { handlePlanCore } from './api/plan';
 
+import type { IncomingMessage } from 'node:http';
+
+function extractHeaders(req: {
+  headers: Record<string, string | string[] | undefined>;
+}): Record<string, string> {
+  const headers: Record<string, string> = {};
+  for (const [key, val] of Object.entries(req.headers)) {
+    if (typeof val === 'string') {
+      headers[key.toLowerCase()] = val;
+    } else if (Array.isArray(val) && val.length > 0) {
+      headers[key.toLowerCase()] = val[0];
+    }
+  }
+  return headers;
+}
+
+async function routeApiRequest(
+  pathname: string,
+  req: IncomingMessage,
+  queryParams: Record<string, string>,
+  headers: Record<string, string>,
+): Promise<{ status: number; headers: Record<string, string>; body: unknown } | null> {
+  if (pathname === '/api/health') {
+    return handleHealthCore(headers, req.method);
+  }
+  if (pathname === '/api/geocode') {
+    return handleGeocodeCore(queryParams, headers, req.method);
+  }
+  if (pathname === '/api/air') {
+    return handleAirCore(queryParams, headers, req.method);
+  }
+  if (pathname === '/api/plan') {
+    const chunks: Buffer[] = [];
+    let totalBytes = 0;
+    req.on('data', (chunk: Buffer) => {
+      totalBytes += chunk.length;
+      if (totalBytes <= 16384) {
+        chunks.push(chunk);
+      }
+    });
+    await new Promise<void>((resolve) => req.on('end', () => resolve()));
+    const rawBody = Buffer.concat(chunks).toString('utf-8');
+    return handlePlanCore(rawBody, headers, req.method, totalBytes);
+  }
+  return null;
+}
+
 function apiDevAndPreviewPlugin(): Plugin {
   return {
     name: 'api-dev-and-preview-plugin',
@@ -28,36 +75,10 @@ function apiDevAndPreviewPlugin(): Plugin {
             });
           }
 
-          const headers: Record<string, string> = {};
-          for (const [key, val] of Object.entries(req.headers)) {
-            if (typeof val === 'string') {
-              headers[key.toLowerCase()] = val;
-            } else if (Array.isArray(val) && val.length > 0) {
-              headers[key.toLowerCase()] = val[0];
-            }
-          }
+          const headers = extractHeaders(req);
+          const response = await routeApiRequest(pathname, req, queryParams, headers);
 
-          let response: { status: number; headers: Record<string, string>; body: unknown };
-
-          if (pathname === '/api/health') {
-            response = await handleHealthCore(headers, req.method);
-          } else if (pathname === '/api/geocode') {
-            response = await handleGeocodeCore(queryParams, headers, req.method);
-          } else if (pathname === '/api/air') {
-            response = await handleAirCore(queryParams, headers, req.method);
-          } else if (pathname === '/api/plan') {
-            const chunks: Buffer[] = [];
-            let totalBytes = 0;
-            req.on('data', (chunk: Buffer) => {
-              totalBytes += chunk.length;
-              if (totalBytes <= 16384) {
-                chunks.push(chunk);
-              }
-            });
-            await new Promise<void>((resolve) => req.on('end', () => resolve()));
-            const rawBody = Buffer.concat(chunks).toString('utf-8');
-            response = await handlePlanCore(rawBody, headers, req.method, totalBytes);
-          } else {
+          if (!response) {
             res.statusCode = 404;
             res.setHeader('Content-Type', 'application/json');
             res.end(

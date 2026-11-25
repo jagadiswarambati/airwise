@@ -129,20 +129,20 @@ export function generateHourlySeries(
   return result;
 }
 
+function getSampleFetchedAt(freshness: 'fresh' | 'aging' | 'stale' | 'none'): string {
+  if (freshness === 'fresh') return new Date().toISOString();
+  if (freshness === 'aging') return new Date(Date.now() - 6 * 3600 * 1000).toISOString();
+  if (freshness === 'stale') return new Date(Date.now() - 24 * 3600 * 1000).toISOString();
+  return new Date(Date.now() - 72 * 3600 * 1000).toISOString();
+}
+
 export function createSnapshot(
   nowPm25: number | null,
   freshness: 'fresh' | 'aging' | 'stale' | 'none' = 'fresh',
   dataType: 'modelled' | 'observed' | 'sample' = 'modelled',
 ): AirSnapshot {
   const hourly = nowPm25 !== null ? generateHourlySeries(nowPm25) : [];
-  const fetchedAt =
-    freshness === 'fresh'
-      ? new Date().toISOString()
-      : freshness === 'aging'
-        ? new Date(Date.now() - 6 * 3600 * 1000).toISOString()
-        : freshness === 'stale'
-          ? new Date(Date.now() - 24 * 3600 * 1000).toISOString()
-          : new Date(Date.now() - 72 * 3600 * 1000).toISOString();
+  const fetchedAt = getSampleFetchedAt(freshness);
 
   return {
     pm25: {

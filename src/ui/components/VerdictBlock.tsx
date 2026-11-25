@@ -41,12 +41,13 @@ export const VerdictBlock: React.FC<VerdictBlockProps> = ({
     }
   };
 
-  const badgeClass =
-    verdict === 'open'
-      ? 'vent-badge-open'
-      : verdict === 'brief'
-        ? 'vent-badge-brief'
-        : 'vent-badge-closed';
+  const getVerdictBadgeClass = (v: string) => {
+    if (v === 'open') return 'vent-badge-open';
+    if (v === 'brief') return 'vent-badge-brief';
+    return 'vent-badge-closed';
+  };
+
+  const badgeClass = getVerdictBadgeClass(verdict);
 
   return (
     <section

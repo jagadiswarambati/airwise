@@ -31,6 +31,13 @@ export function applyTheme(theme: AppTheme): void {
   }
 }
 
+function parseTheme(rawTheme?: unknown): AppTheme {
+  if (rawTheme === 'light' || rawTheme === 'dark' || rawTheme === 'system') {
+    return rawTheme;
+  }
+  return DEFAULT_SETTINGS.theme;
+}
+
 /**
  * Retrieves current settings from localStorage, or defaults.
  */
@@ -43,14 +50,13 @@ export function getSettings(): AirWiseSettings {
     const raw = window.localStorage.getItem(SETTINGS_STORAGE_KEY);
     if (!raw) return { ...DEFAULT_SETTINGS };
     const parsed = JSON.parse(raw);
-    const theme: AppTheme =
-      parsed?.theme === 'light' || parsed?.theme === 'dark' || parsed?.theme === 'system'
-        ? parsed.theme
-        : DEFAULT_SETTINGS.theme;
+    const theme = parseTheme(parsed?.theme);
+    const aiEnabled = typeof parsed?.aiEnabled === 'boolean' ? parsed.aiEnabled : DEFAULT_SETTINGS.aiEnabled;
+    const animatedSky = typeof parsed?.animatedSky === 'boolean' ? parsed.animatedSky : DEFAULT_SETTINGS.animatedSky;
     return {
-      aiEnabled: typeof parsed?.aiEnabled === 'boolean' ? parsed.aiEnabled : DEFAULT_SETTINGS.aiEnabled,
+      aiEnabled,
       theme,
-      animatedSky: typeof parsed?.animatedSky === 'boolean' ? parsed.animatedSky : DEFAULT_SETTINGS.animatedSky,
+      animatedSky,
     };
   } catch {
     return { ...DEFAULT_SETTINGS };

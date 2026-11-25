@@ -52,9 +52,10 @@ describe('Today Screen Component Renders (SSR)', () => {
 
       for (let i = 0; i < levels.length; i++) {
         const lvl = levels[i];
-        const snapshot = getSampleScenarioSnapshot(
-          lvl === 4 ? 'severe' : lvl === 0 ? 'clear' : 'moderate',
-        );
+        let scenario: 'severe' | 'clear' | 'moderate' = 'moderate';
+        if (lvl === 4) scenario = 'severe';
+        else if (lvl === 0) scenario = 'clear';
+        const snapshot = getSampleScenarioSnapshot(scenario);
         const plan = buildDeterministicPlan(PRIYA_PRESET, snapshot);
 
         const html = renderToString(

@@ -44,24 +44,19 @@ function formatConfidenceWord(confidence?: string): string {
   }
 }
 
+function formatAxisDirText(dir?: string): string {
+  if (dir === 'reduces') return 'lowers';
+  if (dir === 'neutral') return 'no change';
+  return 'conditional';
+}
+
 const AxisPairSummary: React.FC<{
   exp: AxisDetails;
   em: AxisDetails;
   className: string;
 }> = ({ exp, em, className }) => {
-  const expText =
-    exp.direction === 'reduces'
-      ? 'lowers'
-      : exp.direction === 'neutral'
-        ? 'no change'
-        : 'conditional';
-
-  const emText =
-    em.direction === 'reduces'
-      ? 'lowers'
-      : em.direction === 'neutral'
-        ? 'no change'
-        : 'conditional';
+  const expText = formatAxisDirText(exp.direction);
+  const emText = formatAxisDirText(em.direction);
 
   return (
     <div className={`aw-axis-summary-row flex-row-center gap-2 text-xs ${className}`.trim()}>

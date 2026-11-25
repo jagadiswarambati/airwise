@@ -18,6 +18,117 @@ import {
 import { generateHourlySeries } from '../fixtures/sample-profiles';
 import { assertAllPolicyInvariants } from './predicates';
 
+function getFreshnessTimestamp(fixedNow: Date, freshness: DataFreshness): string {
+  switch (freshness) {
+    case 'fresh':
+      return fixedNow.toISOString();
+    case 'aging':
+      return new Date(fixedNow.getTime() - 5 * 3600 * 1000).toISOString();
+    case 'stale':
+      return new Date(fixedNow.getTime() - 20 * 3600 * 1000).toISOString();
+    case 'none':
+    default:
+      return new Date(fixedNow.getTime() - 60 * 3600 * 1000).toISOString();
+  }
+}
+
+interface CommuteLoopParams {
+  profile: HouseholdProfile;
+  snapshot: AirSnapshot;
+  slots: ReturnType<typeof deriveTimeSlots>;
+  expectedBase: RiskLevel;
+  commuteModes: Array<{ modes: Mode[]; transit: boolean }>;
+  cookingConfigs: Array<{ fuel: CookingFuel; hasExhaust: boolean }>;
+  scheduleConfigs: Array<{ canShiftTime: boolean; canWorkRemotely: boolean }>;
+  communityModes: boolean[];
+}
+
+function runCommuteLoops(params: CommuteLoopParams): number {
+  const {
+    profile,
+    snapshot,
+    slots,
+    expectedBase,
+    commuteModes,
+    cookingConfigs,
+    scheduleConfigs,
+    communityModes,
+  } = params;
+  let count = 0;
+  for (const commute of commuteModes) {
+    profile.travel.modes = commute.modes;
+    profile.travel.transitAvailable = commute.transit;
+
+    for (const cooking of cookingConfigs) {
+      profile.cooking = cooking;
+
+      for (const schedule of scheduleConfigs) {
+        profile.travel.canShiftTime = schedule.canShiftTime;
+        profile.travel.canWorkRemotely = schedule.canWorkRemotely;
+
+        for (const communityMode of communityModes) {
+          profile.homeHeating = 'none';
+
+          const policy = evaluatePolicy(profile, snapshot, slots, communityMode);
+          const plan = buildDeterministicPlan(profile, snapshot, { communityMode });
+
+          assertAllPolicyInvariants({
+            profile,
+            snapshot,
+            slots,
+            policy,
+            plan,
+            communityMode,
+            expectedBase,
+          });
+
+          count++;
+        }
+      }
+    }
+  }
+  return count;
+}
+
+function runHeatingSubmatrix(
+  profile: HouseholdProfile,
+  airLevels: Array<{ pm25: number; expectedBase: RiskLevel }>,
+  snapshotMatrix: Record<number, Record<DataFreshness, AirSnapshot>>,
+  slotsMap: Record<number, ReturnType<typeof deriveTimeSlots>>,
+  heatingConfigs: HomeHeating[],
+  cookingConfigs: Array<{ fuel: CookingFuel; hasExhaust: boolean }>,
+): number {
+  let count = 0;
+  for (const air of airLevels) {
+    const snapshot = snapshotMatrix[air.pm25].fresh;
+    const slots = slotsMap[air.pm25];
+
+    for (const heating of heatingConfigs) {
+      profile.homeHeating = heating;
+
+      for (const cooking of cookingConfigs) {
+        profile.cooking = cooking;
+
+        const policy = evaluatePolicy(profile, snapshot, slots, false);
+        const plan = buildDeterministicPlan(profile, snapshot);
+
+        assertAllPolicyInvariants({
+          profile,
+          snapshot,
+          slots,
+          policy,
+          plan,
+          communityMode: false,
+          expectedBase: air.expectedBase,
+        });
+
+        count++;
+      }
+    }
+  }
+  return count;
+}
+
 describe('Full Cartesian Policy Matrix (691,200 Cases + P-22 Submatrix)', () => {
   it('runs all 691,320 cases and saves execution summary to docs/matrix-run.txt', () => {
     const startTime = Date.now();
@@ -121,14 +232,7 @@ describe('Full Cartesian Policy Matrix (691,200 Cases + P-22 Submatrix)', () => 
       snapshotMatrix[air.pm25] = {} as Record<DataFreshness, AirSnapshot>;
       const hourly = generateHourlySeries(air.pm25);
       for (const fresh of freshnessTiers) {
-        const fetchedAt =
-          fresh === 'fresh'
-            ? fixedNow.toISOString()
-            : fresh === 'aging'
-              ? new Date(fixedNow.getTime() - 5 * 3600 * 1000).toISOString()
-              : fresh === 'stale'
-                ? new Date(fixedNow.getTime() - 20 * 3600 * 1000).toISOString()
-                : new Date(fixedNow.getTime() - 60 * 3600 * 1000).toISOString();
+        const fetchedAt = getFreshnessTimestamp(fixedNow, fresh);
 
         snapshotMatrix[air.pm25][fresh] = {
           pm25: { now: air.pm25, hourly },
@@ -194,38 +298,16 @@ describe('Full Cartesian Policy Matrix (691,200 Cases + P-22 Submatrix)', () => 
             for (const freshness of freshnessTiers) {
               const snapshot = snapshotMatrix[air.pm25][freshness];
 
-              for (const commute of commuteModes) {
-                testProfile.travel.modes = commute.modes;
-                testProfile.travel.transitAvailable = commute.transit;
-
-                for (const cooking of cookingConfigs) {
-                  testProfile.cooking = cooking;
-
-                  for (const schedule of scheduleConfigs) {
-                    testProfile.travel.canShiftTime = schedule.canShiftTime;
-                    testProfile.travel.canWorkRemotely = schedule.canWorkRemotely;
-
-                    for (const communityMode of communityModes) {
-                      testProfile.homeHeating = 'none';
-
-                      const policy = evaluatePolicy(testProfile, snapshot, slots, communityMode);
-                      const plan = buildDeterministicPlan(testProfile, snapshot, { communityMode });
-
-                      assertAllPolicyInvariants({
-                        profile: testProfile,
-                        snapshot,
-                        slots,
-                        policy,
-                        plan,
-                        communityMode,
-                        expectedBase: air.expectedBase,
-                      });
-
-                      casesEvaluated++;
-                    }
-                  }
-                }
-              }
+              casesEvaluated += runCommuteLoops({
+                profile: testProfile,
+                snapshot,
+                slots,
+                expectedBase: air.expectedBase,
+                commuteModes,
+                cookingConfigs,
+                scheduleConfigs,
+                communityModes,
+              });
             }
           }
         }
@@ -234,33 +316,14 @@ describe('Full Cartesian Policy Matrix (691,200 Cases + P-22 Submatrix)', () => 
 
     // P-22 Submatrix (Home heating: {none, electric, combustion} × 5 levels × 8 cooking = 120 cases)
     const heatingConfigs: HomeHeating[] = ['none', 'electric', 'combustion'];
-    for (const air of airLevels) {
-      const snapshot = snapshotMatrix[air.pm25].fresh;
-      const slots = slotsMap[air.pm25];
-
-      for (const heating of heatingConfigs) {
-        testProfile.homeHeating = heating;
-
-        for (const cooking of cookingConfigs) {
-          testProfile.cooking = cooking;
-
-          const policy = evaluatePolicy(testProfile, snapshot, slots, false);
-          const plan = buildDeterministicPlan(testProfile, snapshot);
-
-          assertAllPolicyInvariants({
-            profile: testProfile,
-            snapshot,
-            slots,
-            policy,
-            plan,
-            communityMode: false,
-            expectedBase: air.expectedBase,
-          });
-
-          casesEvaluated++;
-        }
-      }
-    }
+    casesEvaluated += runHeatingSubmatrix(
+      testProfile,
+      airLevels,
+      snapshotMatrix,
+      slotsMap,
+      heatingConfigs,
+      cookingConfigs,
+    );
 
     const elapsedMs = Date.now() - startTime;
     const elapsedSec = (elapsedMs / 1000).toFixed(2);

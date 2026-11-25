@@ -166,17 +166,24 @@ describe('Policy Matrix Invariant Suite (P-01 to P-22)', () => {
     };
   }
 
+  function getFreshnessTimestamp(fixedNow: Date, freshness: DataFreshness): string {
+    switch (freshness) {
+      case 'fresh':
+        return fixedNow.toISOString();
+      case 'aging':
+        return new Date(fixedNow.getTime() - 5 * 3600 * 1000).toISOString();
+      case 'stale':
+        return new Date(fixedNow.getTime() - 20 * 3600 * 1000).toISOString();
+      case 'none':
+      default:
+        return new Date(fixedNow.getTime() - 60 * 3600 * 1000).toISOString();
+    }
+  }
+
   function buildSnapshot(pm25Val: number, freshness: DataFreshness): AirSnapshot {
     const hourly = generateHourlySeries(pm25Val);
     const fixedNow = new Date('2026-11-23T12:00:00.000Z');
-    const fetchedAt =
-      freshness === 'fresh'
-        ? fixedNow.toISOString()
-        : freshness === 'aging'
-          ? new Date(fixedNow.getTime() - 5 * 3600 * 1000).toISOString()
-          : freshness === 'stale'
-            ? new Date(fixedNow.getTime() - 20 * 3600 * 1000).toISOString()
-            : new Date(fixedNow.getTime() - 60 * 3600 * 1000).toISOString();
+    const fetchedAt = getFreshnessTimestamp(fixedNow, freshness);
 
     return {
       pm25: { now: pm25Val, hourly },

@@ -59,12 +59,10 @@ export const ROUTE_DESCRIPTIONS: Record<AppRoute, string> = {
  * Defaults to 'today' if invalid or missing.
  */
 export function parseRouteFromHash(hash?: string): AppRoute {
-  const currentHash =
-    hash !== undefined
-      ? hash
-      : typeof window !== 'undefined'
-        ? window.location.hash
-        : '';
+  let currentHash = hash;
+  if (currentHash === undefined) {
+    currentHash = typeof window !== 'undefined' ? window.location.hash : '';
+  }
   const clean = currentHash.replace(/^#\/?/, '').trim().toLowerCase();
   if ((ALLOWED_ROUTES as readonly string[]).includes(clean)) {
     return clean as AppRoute;

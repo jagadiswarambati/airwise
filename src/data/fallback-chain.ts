@@ -122,6 +122,27 @@ export function getSampleScenarioSnapshot(
  *   is returned so Rule P-04 (cautious Level 2 defaults) applies.
  * - NEVER silently substitute sample data for live failures.
  */
+function createOfflineFallbackSnapshot(clock: Clock, fallbackReason: string): AirSnapshot {
+  return {
+    pm25: {
+      now: null,
+      hourly: [],
+    },
+    trend: 'unknown',
+    observedAt: clock().toISOString(),
+    fetchedAt: clock().toISOString(),
+    source: {
+      id: 'fallback-none',
+      name: 'Service Unavailable',
+      dataType: 'modelled',
+      resolutionNote: 'Offline fallback baseline when live and cached data are unavailable.',
+    },
+    freshness: 'none',
+    isFallback: true,
+    fallbackReason,
+  };
+}
+
 export async function getAirSnapshot(
   options: {
     location: Location;
@@ -165,7 +186,6 @@ export async function getAirSnapshot(
       },
       clock,
     );
-    // Store successful live snapshot in cache
     airCache.set(location.lat, location.lon, liveSnapshot, clock);
     return {
       snapshot: liveSnapshot,
@@ -186,28 +206,9 @@ export async function getAirSnapshot(
       };
     }
 
-    // 5. Honest Offline Fallback (Decision A-32):
-    // When live and cache both fail, return freshness 'none' with pm25.now: null.
-    // NEVER substitute a sample automatically!
+    // 5. Honest Offline Fallback (Decision A-32)
     const fallbackReason = "We couldn't reach the air data service. Using cautious defaults.";
-    const fallbackSnapshot: AirSnapshot = {
-      pm25: {
-        now: null,
-        hourly: [],
-      },
-      trend: 'unknown',
-      observedAt: clock().toISOString(),
-      fetchedAt: clock().toISOString(),
-      source: {
-        id: 'fallback-none',
-        name: 'Service Unavailable',
-        dataType: 'modelled',
-        resolutionNote: 'Offline fallback baseline when live and cached data are unavailable.',
-      },
-      freshness: 'none',
-      isFallback: true,
-      fallbackReason,
-    };
+    const fallbackSnapshot = createOfflineFallbackSnapshot(clock, fallbackReason);
 
     return {
       snapshot: fallbackSnapshot,
