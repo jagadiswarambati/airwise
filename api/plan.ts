@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import { type AIPlanInput, type AIPlanOutput, AIPlanInputSchema } from '../src/ai/schema';
 import { validateAIPlanOutput } from '../src/ai/validator';
 import { buildPlanPrompt, type CandidateSummary } from '../src/ai/prompts/planPrompt';
@@ -139,6 +140,24 @@ export async function handlePlanCore(
   );
 }
 
+export const GeminiResponseEnvelopeSchema = z.object({
+  candidates: z
+    .array(
+      z.object({
+        content: z.object({
+          parts: z
+            .array(
+              z.object({
+                text: z.string().max(8192, 'Gemini response text exceeds maximum cap'),
+              }),
+            )
+            .min(1),
+        }),
+      }),
+    )
+    .min(1),
+});
+
 /**
  * Calls Google Gemini REST endpoint requesting JSON mode.
  */
@@ -166,13 +185,29 @@ async function callGeminiJsonMode(prompt: string, apiKey: string): Promise<unkno
     throw new Error(`Gemini API error: ${res.status} ${res.statusText}`);
   }
 
-  const data = await res.json();
-  const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (!text) {
-    throw new Error('Empty response from Gemini API');
+  let rawJson: unknown;
+  try {
+    rawJson = await res.json();
+  } catch {
+    throw new Error('Malformed upstream JSON from Gemini API');
   }
 
-  return JSON.parse(text);
+  const envelopeParse = GeminiResponseEnvelopeSchema.safeParse(rawJson);
+  if (!envelopeParse.success) {
+    throw new Error(
+      `Malformed Gemini response envelope: ${envelopeParse.error.issues[0]?.message || 'Invalid envelope structure'}`,
+    );
+  }
+
+  const text = envelopeParse.data.candidates[0].content.parts[0].text;
+  let parsedContent: unknown;
+  try {
+    parsedContent = JSON.parse(text);
+  } catch {
+    throw new Error('Gemini response part is not valid JSON');
+  }
+
+  return parsedContent;
 }
 
 /**

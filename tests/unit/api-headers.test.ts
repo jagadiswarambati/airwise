@@ -33,7 +33,7 @@ describe('Security Headers Verification (vercel.json vs api/_lib/headers.ts)', (
 
     // 1. Content-Security-Policy
     expect(headersMap['Content-Security-Policy']).toBe(
-      "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; manifest-src 'self'; worker-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'",
+      "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; manifest-src 'self'; worker-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests",
     );
 
     // 2. X-Content-Type-Options
@@ -47,7 +47,7 @@ describe('Security Headers Verification (vercel.json vs api/_lib/headers.ts)', (
 
     // 5. Permissions-Policy
     expect(headersMap['Permissions-Policy']).toBe(
-      'geolocation=(self), camera=(), microphone=(), payment=(), usb=()',
+      'geolocation=(self), camera=(), microphone=(), payment=(), usb=(), accelerometer=(), gyroscope=(), magnetometer=(), browsing-topics=(), bluetooth=(), serial=()',
     );
 
     // 6. Cross-Origin-Opener-Policy

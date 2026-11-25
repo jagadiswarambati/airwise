@@ -21,7 +21,6 @@ export interface ApiErrorBody {
   error: {
     code: ApiErrorCode | string;
     message: string;
-    details?: unknown;
   };
 }
 

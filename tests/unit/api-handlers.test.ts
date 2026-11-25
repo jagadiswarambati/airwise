@@ -372,4 +372,91 @@ describe('Serverless API Handlers Contract & Safety Tests', () => {
       expect(json400.error.code).toBe('ValidationError');
     });
   });
+
+  describe('Information Leakage & Secret Sanitization Scan', () => {
+    it('verifies all 4 API handlers never leak stack traces, upstream URLs, keys, or validator internals', async () => {
+      // Collect errors across all four handlers
+      const errorResponses = await Promise.all([
+        // /api/air errors
+        handleAirCore({}, {}, 'POST'),
+        handleAirCore({ lat: '999', lon: '999' }),
+        handleAirCore({ lat: '17.38', lon: '78.49', unexpected: 'exploit' }),
+        handleAirCore({}),
+
+        // /api/geocode errors
+        handleGeocodeCore({}, {}, 'POST'),
+        handleGeocodeCore({ q: 'x' }),
+        handleGeocodeCore({ q: '<script>alert(1)</script>' }),
+        handleGeocodeCore({}),
+
+        // /api/health errors
+        handleHealthCore({}, 'POST'),
+
+        // /api/plan errors
+        handlePlanCore('', {}, 'GET'),
+        handlePlanCore('{}', { 'content-type': 'text/plain' }, 'POST'),
+        handlePlanCore('x'.repeat(9000), { 'content-type': 'application/json' }, 'POST', 9000),
+        handlePlanCore('malformed{json', { 'content-type': 'application/json' }, 'POST'),
+        handlePlanCore('{"effectiveLevel": 999}', { 'content-type': 'application/json' }, 'POST'),
+        handlePlanCore(
+          JSON.stringify({
+            effectiveLevel: 1,
+            trend: 'steady',
+            slotRisks: [],
+            radar: { memberBand: '5-12', peakSlotId: 'daytime' },
+            approvedCandidateIds: ['FAKE_ID_999'],
+            mustIncludeIds: [],
+            forbiddenActionIds: [],
+            budgetTier: 'low',
+            householdDescriptors: {
+              sensitiveCategory: 'respiratory',
+              ageGroups: [],
+              equipment: { purifier: false, windowAC: false, hvac: false, kitchenExhaust: false },
+              homeHeating: 'none',
+            },
+            confidenceCeiling: 'medium',
+            numericFacts: { pm25Now: 20, slotMeanPm25Values: [], routineTimes: [] },
+          }),
+          { 'content-type': 'application/json' },
+          'POST',
+        ),
+      ]);
+
+      const forbiddenLeakPatterns = [
+        /\bat\b\s+[\w$./\\<>]+:\d+:\d+/i, // stack frame
+        /node:/i, // node internal
+        /Error:\s/i, // raw error stack
+        /\.ts:\d+/i, // file and line references
+        /\.js:\d+/i,
+        /open-meteo\.com/i, // upstream service URL
+        /googleapis\.com/i, // upstream AI URL
+        /generativelanguage/i,
+        /AIza[0-9A-Za-z-_]{35}/, // Google API key
+        /sk-[a-zA-Z0-9]{20,}/, // general secret key
+        /x-goog-api-key/i, // internal auth header
+        /mock-test-key/i,
+        /ZodError/i, // raw schema validator internal dump
+        /"issues"\s*:\s*\[/i,
+      ];
+
+      for (const response of errorResponses) {
+        expect(response.status).toBeGreaterThanOrEqual(400);
+
+        const body = response.body as unknown as Record<string, unknown>;
+        expect(body).toHaveProperty('error');
+        const errObj = body.error as Record<string, unknown>;
+
+        // details must not exist
+        expect(errObj.details).toBeUndefined();
+        expect(typeof errObj.code).toBe('string');
+        expect(typeof errObj.message).toBe('string');
+
+        // Check for any forbidden information leak
+        const serialized = JSON.stringify(body);
+        for (const pattern of forbiddenLeakPatterns) {
+          expect(serialized).not.toMatch(pattern);
+        }
+      }
+    });
+  });
 });

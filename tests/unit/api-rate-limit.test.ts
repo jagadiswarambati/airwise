@@ -9,7 +9,7 @@ import {
 } from '../../api/_lib/rateLimit';
 
 describe('Client IP Resolution & Anti-Spoofing (api/_lib/rateLimit.ts)', () => {
-  it('extracts real client IP from platform-trusted x-real-ip header', () => {
+  it('branch 1: extracts client IP from platform-trusted x-real-ip header', () => {
     const headers = { 'x-real-ip': '203.0.113.10' };
     expect(getClientIp(headers)).toBe('203.0.113.10');
   });
@@ -22,19 +22,20 @@ describe('Client IP Resolution & Anti-Spoofing (api/_lib/rateLimit.ts)', () => {
     expect(getClientIp(headers)).toBe('203.0.113.99');
   });
 
-  it('mitigates x-forwarded-for spoofing by selecting the last proxy-appended IP', () => {
-    // Attack scenario: Attacker sends 'x-forwarded-for: 1.2.3.4 (spoofed)', upstream edge appends actual client IP
+  it('branch 2: correctly extracts from x-vercel-forwarded-for with several hops (selects last element)', () => {
+    // Several proxy hops: client -> edge proxy 1 -> edge proxy 2
     const headers = {
-      'x-forwarded-for': '1.2.3.4, 198.51.100.55',
-    };
-    expect(getClientIp(headers)).toBe('198.51.100.55');
-  });
-
-  it('correctly extracts from x-vercel-forwarded-for when present', () => {
-    const headers = {
-      'x-vercel-forwarded-for': '1.1.1.1, 203.0.113.50',
+      'x-vercel-forwarded-for': '1.1.1.1, 10.0.0.1, 172.16.0.1, 203.0.113.50',
     };
     expect(getClientIp(headers)).toBe('203.0.113.50');
+  });
+
+  it('branch 3: mitigates x-forwarded-for spoofing by selecting the last proxy-appended IP (spoofed prefix)', () => {
+    // Attack scenario: Attacker sends 'x-forwarded-for: 1.2.3.4 (spoofed)', upstream edge appends actual client IP
+    const headers = {
+      'x-forwarded-for': '1.2.3.4, 10.20.30.40, 198.51.100.55',
+    };
+    expect(getClientIp(headers)).toBe('198.51.100.55');
   });
 
   it('handles array-based headers gracefully', () => {
@@ -44,9 +45,10 @@ describe('Client IP Resolution & Anti-Spoofing (api/_lib/rateLimit.ts)', () => {
     expect(getClientIp(headers)).toBe('203.0.113.77');
   });
 
-  it('returns unknown when no IP headers are present', () => {
+  it('branch 4: returns unknown when no IP headers are present (none)', () => {
     expect(getClientIp({})).toBe('unknown');
     expect(getClientIp({ 'x-forwarded-for': '' })).toBe('unknown');
+    expect(getClientIp({ 'x-real-ip': '   ' })).toBe('unknown');
   });
 });
 

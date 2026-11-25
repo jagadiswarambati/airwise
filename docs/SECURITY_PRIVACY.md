@@ -98,11 +98,11 @@ Purpose: practical controls, with the exact settings to implement and a checklis
 ## 9. Security headers and CSP (in `vercel.json` and `api/_lib/headers.ts`)
 
 ```
-Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; manifest-src 'self'; worker-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'
+Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; manifest-src 'self'; worker-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests
 X-Content-Type-Options: nosniff
 X-Frame-Options: DENY
 Referrer-Policy: no-referrer
-Permissions-Policy: geolocation=(self), camera=(), microphone=(), payment=(), usb=()
+Permissions-Policy: geolocation=(self), camera=(), microphone=(), payment=(), usb=(), accelerometer=(), gyroscope=(), magnetometer=(), browsing-topics=(), bluetooth=(), serial=()
 Cross-Origin-Opener-Policy: same-origin
 Cross-Origin-Resource-Policy: same-origin
 Strict-Transport-Security: max-age=31536000; includeSubDomains
@@ -199,3 +199,20 @@ The AI may not: add actions, remove or demote must-include actions, introduce nu
 | 7 | Community briefing contains no profile data; demo data labelled | Verified 2026-11-25: Briefing generator accepts only anonymous aggregate numbers; society mock records tagged with demo badge in UI. |
 | 8 | Full checklist run; `npm audit` clean or waived; CSP-violation listener green; secret scan on the built bundle | Verified 2026-11-25: `npm audit --audit-level=high` reports 0 vulnerabilities; `tests/unit/api-headers.test.ts` passes; built dist grepped clean of secrets. |
 | 9 | Final scan; `.env.example` verified blank; repo history scanned once more | Verified 2026-11-25: `.env.example` contains only template variable names without secrets; git log audit verifies single-branch repo security posture. |
+
+## 19. Security evidence table
+
+Verified on 2026-11-25. All listed controls are implemented in code and verified with passing automated test suites.
+
+| Control | Target File(s) | Verification Test / Command | Verified Date |
+|---|---|---|---|
+| HTTP Security Headers | `api/_lib/headers.ts`, `vercel.json` | `tests/unit/api-headers.test.ts` | 2026-11-25 |
+| Content Security Policy | `api/_lib/headers.ts`, `vercel.json` | `tests/unit/api-headers.test.ts` | 2026-11-25 |
+| CORS Restrictions | `api/_lib/pipeline.ts` | `tests/unit/api-handlers.test.ts` | 2026-11-25 |
+| Input & Upstream Validation | `api/plan.ts`, `api/_lib/validate.ts`, `src/ai/validator.ts` | `tests/unit/api-plan.test.ts`, `tests/validator/validator-abuse.test.ts` | 2026-11-25 |
+| Rate Limiting & Anti-Spoofing IP | `api/_lib/rateLimit.ts` | `tests/unit/api-rate-limit.test.ts` | 2026-11-25 |
+| Secret Scanning & Leak Prevention | `scripts/scan-secrets.mjs`, `api/_lib/errors.ts` | `npm run scan:secrets`, `tests/unit/api-handlers.test.ts` | 2026-11-25 |
+| Dependency Auditing & Review | `package.json`, `.github/workflows/ci.yml` | `npm audit --audit-level=high` | 2026-11-25 |
+| Static Analysis (CodeQL) | `.github/workflows/codeql.yml` | GitHub CodeQL Workflow (`codeql.yml`) | 2026-11-25 |
+| Vulnerability Disclosure | `SECURITY.md`, `public/.well-known/security.txt` | RFC 9116 specification check | 2026-11-25 |
+
