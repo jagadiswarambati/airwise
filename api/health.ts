@@ -1,6 +1,7 @@
 import { type ApiResponse, type ApiErrorBody } from './_lib/errors';
 import { getSecurityHeaders } from './_lib/headers';
 import { withApiGuards } from './_lib/pipeline';
+import { parseServerlessRequest } from './_lib/request';
 
 export interface HealthResponseBody {
   status: 'ok';
@@ -47,11 +48,7 @@ export async function handleHealthCore(
  */
 export default {
   async fetch(request: Request): Promise<Response> {
-    const headers: Record<string, string> = {};
-    request.headers.forEach((value, key) => {
-      headers[key.toLowerCase()] = value;
-    });
-
+    const { headers } = parseServerlessRequest(request);
     const res = await handleHealthCore(headers, request.method);
     return new Response(JSON.stringify(res.body), {
       status: res.status,

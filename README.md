@@ -170,6 +170,7 @@ The project includes automated verification guards for testing, code quality, ac
 | `npm run check:css` | Verifies modular CSS: zero dead .aw- classes, zero duplicate selector blocks, motion-only !important |
 | `npm run check:links` | Verifies that all relative markdown links in `README.md` and `docs/*.md` resolve |
 | `npm run check:size` | Verifies repository size stays strictly within the 3 MB budget target |
+| `npm run check:traceability` | Verifies full requirement traceability from spec (P-01..P-22, F-01..F-07) to tests |
 | `npm run check:branches` | Asserts single-branch policy on remote origin (`main` only) |
 | `npm run scan:secrets` | Scans workspace for committed secrets, API keys, and sensitive tokens |
 | `npm run format:check` | Checks code formatting against Prettier rules |
@@ -186,9 +187,9 @@ The project includes automated verification guards for testing, code quality, ac
 | `GEMINI_MODEL` | Server | Target Gemini model identifier | `gemini-2.5-flash` |
 | `ALLOWED_ORIGIN` | Server | Allowed CORS origin for serverless proxy endpoints | Same-origin |
 | `RATE_LIMIT_PER_MIN` | Server | Maximum API requests allowed per client IP per minute | `20` |
-| `AIR_PRIMARY` | Server | Primary atmospheric data provider | `open-meteo` |
-| `AIR_CACHE_TTL_S` | Server | In-memory cache duration for atmospheric data | `600` |
-| `VITE_DEFAULT_SCENARIO` | Client | Default demo scenario (`live`, `clear`, `moderate`, `severe`, `stale`) | `live` |
+| `AIR_PRIMARY` | Server | Primary atmospheric data provider (defaults to open-meteo) | `open-meteo` |
+| `AIR_CACHE_TTL_S` | Server | Atmospheric data in-memory cache TTL in seconds | `600` |
+| `VITE_DEFAULT_SCENARIO` | Client | Default demo scenario for mock testing (`live`, `clear`, `moderate`, `severe`, `stale`) | `live` |
 
 *Security note: No secret credentials are ever prefixed with `VITE_`.*
 
