@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -21,6 +24,9 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Security audit
+        run: npm audit --audit-level=high
 
       - name: Run validation suite (lint, typecheck, test, UI, links, size, secrets, format)
         run: npm run validate
@@ -39,6 +45,3 @@ jobs:
 
       - name: Single branch policy check
         run: npm run check:branches
-
-      - name: Security audit
-        run: npm audit --audit-level=high

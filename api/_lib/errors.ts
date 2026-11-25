@@ -45,6 +45,7 @@ export function createErrorResponse(
     status,
     headers: getSecurityHeaders({
       'Content-Type': 'application/json',
+      'Cache-Control': 'no-store',
       ...extraHeaders,
     }),
     body: {

@@ -222,7 +222,8 @@ AirWise enforces safety and correctness through multi-layered automated testing:
 - **Local-Only Data Retention:** Household profiles, health flags, and routines remain in browser LocalStorage. No user database or analytics trackers exist.
 - **Zero PII Exposure:** AI requests contain no user names, ages, coordinates, or free text. Locations are rounded to two decimal places (~1.1 km) before geocoding.
 - **Hardened HTTP Headers:** Production deployments enforce Strict-Transport-Security, no-referrer policies, and strict Content-Security-Policy (CSP) with `frame-ancestors 'none'` and `object-src 'none'`.
-- See [`docs/SECURITY_PRIVACY.md`](./docs/SECURITY_PRIVACY.md) for threat modeling and privacy specifications.
+- **Security & Privacy Blueprint:** See [`docs/SECURITY_PRIVACY.md`](./docs/SECURITY_PRIVACY.md) for threat modeling, rate limiting rules, and privacy specifications.
+- **Vulnerability Disclosure:** See [`SECURITY.md`](./SECURITY.md) for reporting vulnerabilities, response times, and supported versions.
 
 ---
 
@@ -268,6 +269,7 @@ This project is licensed under the [MIT License](./LICENSE).
 | [`docs/DECISIONS.md`](./docs/DECISIONS.md) | Architectural Decision Records (ADRs) and amendment history |
 | [`docs/IMPACT_METHODOLOGY.md`](./docs/IMPACT_METHODOLOGY.md) | Mathematical formulas (E1, X1, C1), emission factors, and assumptions |
 | [`docs/SECURITY_PRIVACY.md`](./docs/SECURITY_PRIVACY.md) | Threat model, local storage encryption, CSP, and privacy guardrails |
+| [`SECURITY.md`](./SECURITY.md) | Vulnerability disclosure policy, response SLA, and reporting process |
 | [`docs/DATA_SOURCES.md`](./docs/DATA_SOURCES.md) | Atmospheric APIs, geocoding endpoints, update cadences, and licenses |
 | [`docs/ACCESSIBILITY.md`](./docs/ACCESSIBILITY.md) | WCAG 2.1 AA checklist, touch target rules, and screen reader tests |
 | [`docs/TEST_PLAN.md`](./docs/TEST_PLAN.md) | Testing taxonomy, policy matrix coverage, and traceability matrix |

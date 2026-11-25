@@ -11,6 +11,16 @@ export interface CacheEntry {
 
 export const AIR_CACHE_TTL_MS = 15 * 60 * 1000; // 15 minutes
 
+function isValidCacheEntry(entry: unknown): entry is CacheEntry {
+  if (!entry || typeof entry !== 'object') return false;
+  const candidate = entry as Partial<CacheEntry>;
+  return (
+    typeof candidate.cachedAt === 'number' &&
+    typeof candidate.expiresAt === 'number' &&
+    Boolean(candidate.snapshot && typeof candidate.snapshot === 'object')
+  );
+}
+
 class ClientAirCache {
   private memoryCache = new Map<string, CacheEntry>();
 
@@ -29,9 +39,11 @@ class ClientAirCache {
       if (typeof window !== 'undefined' && window.localStorage) {
         const raw = window.localStorage.getItem(key);
         if (raw) {
-          const entry: CacheEntry = JSON.parse(raw);
-          this.memoryCache.set(key, entry);
-          return entry;
+          const parsed: unknown = JSON.parse(raw);
+          if (isValidCacheEntry(parsed)) {
+            this.memoryCache.set(key, parsed);
+            return parsed;
+          }
         }
       }
     } catch (_e) {

@@ -129,7 +129,7 @@ export async function handlePlanCore(
         status: 200,
         headers: getSecurityHeaders({
           'Content-Type': 'application/json',
-          'Cache-Control': 'no-store, max-age=0',
+          'Cache-Control': 'no-store',
           ...cors.headers,
         }),
         body: planResult,

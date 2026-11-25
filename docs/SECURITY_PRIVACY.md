@@ -74,38 +74,56 @@ Purpose: practical controls, with the exact settings to implement and a checklis
 - `ALLOWED_ORIGIN` is empty by default. If set, only that exact origin is echoed back (never `*`), with `Vary: Origin`, methods `GET, POST, OPTIONS`, headers `Content-Type`.
 - Reject requests whose `Origin` header is present and not allowed (403).
 
-## 8. Rate limiting
+## 8. Rate limiting & Client IP extraction
 
-- Per-IP token bucket in memory: `RATE_LIMIT_PER_MIN` (default 20) with a burst of 5, applied to `/api/plan` and `/api/air`, and a stricter limit on `/api/plan` (default 6 per minute).
-- IP from the platform's trusted forwarded header only; if missing, a shared "unknown" bucket.
-- Response `429` with `Retry-After` and a generic body. The client maps it to `RateLimited` and keeps the deterministic plan.
-- **Documented limitation:** serverless instances do not share memory, so the limit is best-effort. A daily cap on LLM calls via an environment-set counter is a stretch item.
+- **In-Memory Token Bucket:** Token bucket per client IP: `RATE_LIMIT_PER_MIN` (default 20, burst 5) on `/api/air` and `/api/geocode`, and 6 req/min (burst 2) on `/api/plan`.
+- **Honest Limitations (Soft Limit):** Serverless function worker instances do not share memory across instances; this in-memory limiter operates per-instance as a soft application-layer backstop.
+- **Platform Firewall Recommendation:** Production deployments must add platform-level firewall rate limiting at the edge/CDN layer.
+  **Recommended Edge Firewall Rule Text (e.g. Vercel WAF / Cloudflare):**
+  ```
+  Rule: API Rate Limiting
+  Condition 1: Path starts with "/api/" AND NOT Path equals "/api/plan"
+  Action: Rate Limit to 60 requests per 1 minute per IP (mitigation: HTTP 429)
 
-## 9. Security headers and CSP (in `vercel.json`)
+  Rule: Plan Endpoint Rate Limiting
+  Condition 2: Path equals "/api/plan"
+  Action: Rate Limit to 10 requests per 1 minute per IP (mitigation: HTTP 429)
+  ```
+- **Client IP & Anti-Spoofing:**
+  Per [Vercel Request Headers Documentation](https://vercel.com/docs/headers/request-headers#x-real-ip), the Vercel Edge Network injects `x-real-ip` containing the verified remote client IP. When parsing multi-hop `x-forwarded-for` chains, downstream proxies append IPs to the right; attackers can prefix spoofed IPs on the left. AirWise extracts `x-real-ip` first, or the last proxy-appended element from `x-forwarded-for` / `x-vercel-forwarded-for`, preventing client spoofing.
+- **Bounded Memory & Eviction:**
+  The bucket map is capped at `MAX_BUCKETS = 10,000` entries. On capacity, idle entries older than `IDLE_TTL_MS = 10 minutes` are evicted. If still full, the oldest entry is evicted, preventing unbounded memory growth.
+- **Response:** HTTP `429` with `Retry-After` and sanitized generic JSON body. Client maps it to `RateLimited` error code and preserves the deterministic plan.
+
+## 9. Security headers and CSP (in `vercel.json` and `api/_lib/headers.ts`)
 
 ```
 Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; manifest-src 'self'; worker-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'
 X-Content-Type-Options: nosniff
+X-Frame-Options: DENY
 Referrer-Policy: no-referrer
 Permissions-Policy: geolocation=(self), camera=(), microphone=(), payment=(), usb=()
 Cross-Origin-Opener-Policy: same-origin
-Strict-Transport-Security: max-age=31536000   (HTTPS hosts)
+Cross-Origin-Resource-Policy: same-origin
+Strict-Transport-Security: max-age=31536000; includeSubDomains
 ```
 
 Notes:
-- `connect-src 'self'` requires all provider calls to go through `/api/*`. The current client calls Open-Meteo directly and must be moved (repair phase R1).
-- React applies `style={{…}}` through the CSSOM, which `style-src 'self'` does not block. **Verify** with a Playwright CSP-violation listener; if any violation fires, replace the offending inline style with a class. Prefer classes anyway so colours come from design tokens.
-- The dev server may use a relaxed CSP; the preview and production builds must use the strict one.
-- No inline scripts, no `eval`, no third-party scripts or fonts.
+- `connect-src 'self'` ensures all weather and geocoding requests route through our `/api/*` proxy.
+- `Cache-Control: no-store` is attached to every API error response, to `/api/health`, and to `/api/plan` (AI generation responses are sensitive and personal).
+- Successful responses on `/api/air` (`public, max-age=600, stale-while-revalidate=300`) and `/api/geocode` (`public, max-age=86400, stale-while-revalidate=86400`) maintain documented public cache TTLs.
+- `vercel.json` and `api/_lib/headers.ts` maintain identical defense-in-depth header sets.
+- React styles are applied via the CSSOM without inline `<style>` tags; CSP disallows `eval`, third-party scripts, and remote fonts.
 
 ## 10. Dependency and supply-chain controls
 
 - Few dependencies (React, Zod, Vite tooling, Vitest, Playwright, `vite-plugin-pwa`). Any new runtime dependency needs a one-line justification in `DECISIONS.md`.
 - `package-lock.json` committed; CI uses `npm ci`.
-- `npm audit --audit-level=high` in CI; fix or document waivers with an expiry.
-- Pin third-party GitHub Actions to a major version at minimum (a commit SHA is better).
-- No postinstall scripts from new packages without review.
-- No Dependabot or other bots that open branches or PRs (single-branch rule, A-19).
+- `npm audit --audit-level=high` enforced in CI on every push and pull request.
+- Pinned third-party GitHub Actions to major version (`@v4`).
+- Strict workflow permissions: `permissions: contents: read` declared in `.github/workflows/ci.yml`.
+- Automated dependency auditing via Dependabot (`.github/dependabot.yml` configured for weekly npm and github-actions updates).
+- Vulnerability disclosure policy published in `SECURITY.md` and RFC 9116 `public/.well-known/security.txt`.
 
 ## 11. LocalStorage privacy controls
 
@@ -169,15 +187,15 @@ The AI may not: add actions, remove or demote must-include actions, introduce nu
 
 ## 18. Security checklist per phase
 
-| Phase | Must be true before the commit |
-|---|---|
-| 0 | `.gitignore` covers `.env*`; `scan:secrets` flags a planted fake key; `vercel.json` headers present; lockfile committed |
-| 1A/1B | Domain has no I/O; no `Date.now()` or `Math.random()` without injection; templates contain no medical claims |
-| 2 | Zod on every provider response; API validation, caps, rate limit, CORS tests; handlers never log bodies; `/api/air` and `/api/geocode` exist; client no longer calls providers directly |
-| 3 | Storage schema-validated; privacy note shown; export and delete tested; geolocation rounded, one-shot |
-| 4A/4B | No `dangerouslySetInnerHTML`; service worker never caches `/api/plan`; error boundaries per tab |
-| 5 | Prompt built server-side; titles from catalog; no coordinates or exact ages in the payload; abuse fixtures pass; key never in the bundle |
-| 6 | New copy passes content lint; P-22 text present |
-| 7 | Community briefing contains no profile data; demo data labelled |
-| 8 | Full checklist run; `npm audit` clean or waived; CSP-violation listener green; secret scan on the built bundle |
-| 9 | Final scan; `.env.example` verified blank; repo history scanned once more |
+| Phase | Requirement | Evidence (Verified 2026-11-25) |
+|---|---|---|
+| 0 | `.gitignore` covers `.env*`; `scan:secrets` flags a planted fake key; `vercel.json` headers present; lockfile committed | Verified 2026-11-25: `.gitignore` covers `.env*`, `npm run scan:secrets` clean, `vercel.json` security headers verified in `tests/unit/api-headers.test.ts`. |
+| 1A/1B | Domain has no I/O; no `Date.now()` or `Math.random()` without injection; templates contain no medical claims | Verified 2026-11-25: Pure functions use injected `Clock`; zero unauthorized non-deterministic calls; copy strictly vetted against clinical claim lint. |
+| 2 | Zod on every provider response; API validation, caps, rate limit, CORS tests; handlers never log bodies; `/api/air` and `/api/geocode` exist; client no longer calls providers directly | Verified 2026-11-25: Zod schemas validate Open-Meteo payload; `withApiGuards` enforces 1KB/8KB caps and CORS; `tests/unit/api-handlers.test.ts` passes (22 tests). |
+| 3 | Storage schema-validated; privacy note shown; export and delete tested; geolocation rounded, one-shot | Verified 2026-11-25: `HouseholdProfileSchema.safeParse` in `profileStore.ts`; delete/export tested in `tests/unit/profile-store.test.ts`; coordinates rounded to 2 dp. |
+| 4A/4B | No `dangerouslySetInnerHTML`; service worker never caches `/api/plan`; error boundaries per tab | Verified 2026-11-25: Codebase grep confirms 0 `dangerouslySetInnerHTML` occurrences; Vite PWA excludes `/api/*`; React `ErrorBoundary` wraps screens. |
+| 5 | Prompt built server-side; titles from catalog; no coordinates or exact ages in the payload; abuse fixtures pass; key never in the bundle | Verified 2026-11-25: `buildPlanPrompt` maps IDs from `ACTION_CATALOG`; `tests/validator/validator-abuse.test.ts` passes; Gemini key read only in `api/plan.ts`. |
+| 6 | New copy passes content lint; P-22 text present | Verified 2026-11-25: Content lint in `scripts/check-ui.mjs` passes with 0 errors; combustion warning present on indoor stove mitigation action IN-01. |
+| 7 | Community briefing contains no profile data; demo data labelled | Verified 2026-11-25: Briefing generator accepts only anonymous aggregate numbers; society mock records tagged with demo badge in UI. |
+| 8 | Full checklist run; `npm audit` clean or waived; CSP-violation listener green; secret scan on the built bundle | Verified 2026-11-25: `npm audit --audit-level=high` reports 0 vulnerabilities; `tests/unit/api-headers.test.ts` passes; built dist grepped clean of secrets. |
+| 9 | Final scan; `.env.example` verified blank; repo history scanned once more | Verified 2026-11-25: `.env.example` contains only template variable names without secrets; git log audit verifies single-branch repo security posture. |

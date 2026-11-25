@@ -24,14 +24,13 @@ export async function handleHealthCore(
     { headers, method },
     async (cors) => {
       const llmProvider = process.env.LLM_PROVIDER || 'none';
-      const hasKey = Boolean(process.env.GEMINI_API_KEY?.trim());
-      const llmEnabled = llmProvider !== 'none' && hasKey;
+      const llmEnabled = llmProvider !== 'none';
 
       return {
         status: 200,
         headers: getSecurityHeaders({
           'Content-Type': 'application/json',
-          'Cache-Control': 'no-store, max-age=0',
+          'Cache-Control': 'no-store',
           ...cors.headers,
         }),
         body: {
