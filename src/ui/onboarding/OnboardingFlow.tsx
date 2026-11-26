@@ -136,16 +136,22 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
 }) => {
   const [step, setStep] = useState<number>(1);
   const h1Ref = useRef<HTMLHeadingElement>(null);
+  const isFirstMountRef = useRef<boolean>(true);
 
   const draft = useOnboardingDraft(initialProfile);
   const validation = useStepValidation();
+  const { setErrors } = validation;
 
-  // Focus h1 and announce on step change
+  // Focus h1 and announce on step change (skip on initial mount)
   useEffect(() => {
+    if (isFirstMountRef.current) {
+      isFirstMountRef.current = false;
+      return;
+    }
     h1Ref.current?.focus();
     announce(`Step ${step} of 5: ${STEP_TITLES[step - 1]}`);
-    validation.setErrors([]);
-  }, [step, validation]);
+    setErrors([]);
+  }, [step, setErrors]);
 
   const handleStepSubmit = (e: React.FormEvent) => {
     e.preventDefault();

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 
 export const SETTINGS_STORAGE_KEY = 'airwise_settings_v1';
 
@@ -119,5 +119,5 @@ export function useSettings(): [AirWiseSettings, (updates: Partial<AirWiseSettin
     setLocalState(next);
   }, []);
 
-  return [settings, update];
+  return useMemo(() => [settings, update], [settings, update]);
 }

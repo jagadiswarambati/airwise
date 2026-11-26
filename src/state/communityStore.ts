@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { STORAGE_KEY_COMMUNITY_PLEDGE } from './keys';
 
 const PLEDGE_CHANGE_EVENT = 'airwise_community_pledge_changed';
@@ -63,5 +63,5 @@ export function useCommunityPledge(): [boolean, (pledged: boolean) => void] {
     setPledged(next);
   }, []);
 
-  return [pledged, update];
+  return useMemo(() => [pledged, update], [pledged, update]);
 }

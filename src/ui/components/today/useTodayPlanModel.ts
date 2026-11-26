@@ -59,16 +59,30 @@ export function useTodayPlanModel(
     effectiveLevel === 4 || isManualSevere || snapshot?.officialAlert?.active,
   );
 
-  return {
-    effectiveLevel,
-    radar,
-    deterministicPlan,
-    plan,
-    topActions,
-    quickChecks,
-    settings,
-    announcement,
-    isReady,
-    isSevere,
-  };
+  return useMemo(
+    () => ({
+      effectiveLevel,
+      radar,
+      deterministicPlan,
+      plan,
+      topActions,
+      quickChecks,
+      settings,
+      announcement,
+      isReady,
+      isSevere,
+    }),
+    [
+      effectiveLevel,
+      radar,
+      deterministicPlan,
+      plan,
+      topActions,
+      quickChecks,
+      settings,
+      announcement,
+      isReady,
+      isSevere,
+    ],
+  );
 }

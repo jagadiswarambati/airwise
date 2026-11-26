@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { type ErrorItem } from '../../primitives/ErrorSummary';
 import { type HouseholdProfile, type Member, type Mode } from '../../../domain/types';
 import {
@@ -51,15 +51,27 @@ export function useStepValidation() {
     return profile;
   }, []);
 
-  return {
-    errors,
-    setErrors,
-    getFieldError,
-    validateStep1,
-    validateStep2,
-    validateStep3,
-    validateStep4,
-    validateStep5,
-    validateFullProfile: validateFull,
-  };
+  return useMemo(
+    () => ({
+      errors,
+      setErrors,
+      getFieldError,
+      validateStep1,
+      validateStep2,
+      validateStep3,
+      validateStep4,
+      validateStep5,
+      validateFullProfile: validateFull,
+    }),
+    [
+      errors,
+      getFieldError,
+      validateStep1,
+      validateStep2,
+      validateStep3,
+      validateStep4,
+      validateStep5,
+      validateFull,
+    ],
+  );
 }

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { type AirSnapshot, type HouseholdProfile, type Plan, type TimeSlot } from '../../domain/types';
 import { type PolicyEvaluationResult } from '../../domain/policy';
 import { getPersonalizedPlan } from '../../ai/client';
@@ -97,9 +97,12 @@ export function usePersonalizedPlan(
     };
   }, [basePlan, snapshot, profile, slots, policyResult, enabled]);
 
-  return {
-    plan: activePlan,
-    isAiPersonalized,
-    isSwapping,
-  };
+  return useMemo(
+    () => ({
+      plan: activePlan,
+      isAiPersonalized,
+      isSwapping,
+    }),
+    [activePlan, isAiPersonalized, isSwapping],
+  );
 }

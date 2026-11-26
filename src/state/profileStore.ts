@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { type HouseholdProfile, HouseholdProfileSchema, roleLabelFor } from '../domain/types';
 import { STORAGE_KEY_PROFILE } from './keys';
 import { getSettings, setSettings, type AirWiseSettings } from './settingsStore';
@@ -203,11 +203,14 @@ export function useProfile(): {
     };
   }, []);
 
-  return {
-    profile,
-    save: saveProfile,
-    remove: deleteProfile,
-    loadPriya: loadPriyaPreset,
-  };
+  return useMemo(
+    () => ({
+      profile,
+      save: saveProfile,
+      remove: deleteProfile,
+      loadPriya: loadPriyaPreset,
+    }),
+    [profile],
+  );
 }
 

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 
 export type AppRoute =
   | 'today'
@@ -157,5 +157,5 @@ export function useRoute(): {
     navigate(target);
   }, []);
 
-  return { route, navigate: goTo };
+  return useMemo(() => ({ route, navigate: goTo }), [route, goTo]);
 }

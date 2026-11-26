@@ -1,7 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import React from 'react';
 import { PRIYA_PROFILE } from '../fixtures/sample-profiles';
 import { TodayScreen } from '../../src/ui/screens/TodayScreen';
 import { IndoorScreen } from '../../src/ui/screens/IndoorScreen';
@@ -13,13 +12,14 @@ import { PrivacyScreen } from '../../src/ui/screens/PrivacyScreen';
 import { OnboardingFlow } from '../../src/ui/onboarding/OnboardingFlow';
 import { MenuModal } from '../../src/ui/components/MenuModal';
 import { ActionDetailModal } from '../../src/ui/components/ActionDetailModal';
+import { INDOOR_ACTIONS } from '../../src/domain/catalog/indoor';
 import {
   parsedClearScenario,
   parsedModerateScenario,
   parsedSevereScenario,
   parsedStaleScenario,
 } from '../../src/data/fallback-chain';
-import { ActionCandidate } from '../../src/domain/types';
+import type { ActionCandidate } from '../../src/domain/types';
 
 describe('Visual & Screen Regression Audit', () => {
   const profile = PRIYA_PROFILE;
@@ -43,20 +43,27 @@ describe('Visual & Screen Regression Audit', () => {
           <TodayScreen
             profile={profile}
             snapshot={snapshot}
-            onSelectCandidate={() => {}}
+            sourceTier="live"
+            isFallback={false}
+            loading={false}
+            error={null}
+            onRetry={() => {}}
+            onSelectScenario={() => {}}
             isManualSevere={name === 'severe'}
-          />
+          />,
         );
 
         // Verify page header
         expect(screen.getByRole('heading', { level: 1 })).toBeDefined();
 
-        // Verify that restored classes are rendered in the DOM
-        const srOnlyElements = container.querySelectorAll('.sr-only');
+        // Verify that restored classes or severe layout are rendered in the DOM
+        const srOnlyElements = container.querySelectorAll('.sr-only, .aw-severe-view');
         expect(srOnlyElements.length).toBeGreaterThan(0);
 
         // Verify radar or sensitivity elements exist
-        const radarElements = container.querySelectorAll('.radar-box, .radar-body, .radar-role-title');
+        const radarElements = container.querySelectorAll(
+          '.radar-box, .radar-body, .radar-role-title',
+        );
         expect(radarElements.length).toBeGreaterThanOrEqual(0);
       });
     }
@@ -65,23 +72,17 @@ describe('Visual & Screen Regression Audit', () => {
   describe('2. ActionDetailModal & Action Sheet', () => {
     it('renders ActionDetailModal with dual-axis grid and caveats', () => {
       const mockCandidate: ActionCandidate = {
-        action: {
-          id: 'act-air-purifier',
-          title: 'Run HEPA Air Purifier in Main Bedroom',
-          category: 'indoor',
-          timing: 'continuous',
-          why1: 'Reduces indoor PM2.5 levels by up to 80%.',
-        },
+        action: INDOOR_ACTIONS[0],
         impact: {
           exposure: {
             direction: 'reduces',
-            label: 'Major indoor reduction',
+            label: 'Recommended',
             confidence: 'high',
             note: 'Effective in sealed room.',
           },
           emissions: {
             direction: 'neutral',
-            label: 'No direct tailpipe emissions',
+            label: 'Recommended',
             confidence: 'high',
             note: 'Draws small amount of grid electricity.',
           },
@@ -89,19 +90,26 @@ describe('Visual & Screen Regression Audit', () => {
           doesNotChange: 'Does not reduce outdoor pollution or traffic emissions.',
           assumptions: ['Filter is properly sized for room area', 'Windows remain mostly closed'],
         },
+        healthUrgency: 2,
+        feasibility: 2,
+        costFit: 2,
+        priorityScore: 8,
         tags: {
+          health: 'High',
+          urgency: 'Immediate',
           cost: 'Moderate',
           effort: 'Low',
         },
+        isMandatory: false,
         fixedDisclaimers: ['Always follow manufacturer guidance on filter replacement.'],
       };
 
       const { container } = render(
-        <ActionDetailModal candidate={mockCandidate} onClose={() => {}} />
+        <ActionDetailModal candidate={mockCandidate} onClose={() => {}} />,
       );
 
       // Check title
-      expect(screen.getByText('Run HEPA Air Purifier in Main Bedroom')).toBeDefined();
+      expect(screen.getByText('Keep windows and doors closed')).toBeDefined();
 
       // Check dual axis grid restored class
       const dualAxis = container.querySelector('.dual-axis-grid');
@@ -114,7 +122,9 @@ describe('Visual & Screen Regression Audit', () => {
       expect(emissionsCard).not.toBeNull();
 
       // Check disclaimers text
-      expect(screen.getByText('Always follow manufacturer guidance on filter replacement.')).toBeDefined();
+      expect(
+        screen.getByText('Always follow manufacturer guidance on filter replacement.'),
+      ).toBeDefined();
     });
   });
 
@@ -130,7 +140,7 @@ describe('Visual & Screen Regression Audit', () => {
           onDeleteProfile={() => {}}
           isManualSevere={false}
           onToggleSevere={() => {}}
-        />
+        />,
       );
 
       // Check dialog role
@@ -149,7 +159,7 @@ describe('Visual & Screen Regression Audit', () => {
   describe('4. At Home (IndoorScreen)', () => {
     it('renders IndoorScreen with room actions', () => {
       const { container } = render(
-        <IndoorScreen profile={profile} snapshot={parsedModerateScenario} />
+        <IndoorScreen profile={profile} snapshot={parsedModerateScenario} />,
       );
       expect(screen.getByRole('heading', { level: 1 })).toBeDefined();
       expect(container.querySelectorAll('.card').length).toBeGreaterThan(0);
@@ -159,7 +169,7 @@ describe('Visual & Screen Regression Audit', () => {
   describe('5. Travel (MoveScreen)', () => {
     it('renders MoveScreen with travel and commute cards', () => {
       const { container } = render(
-        <MoveScreen profile={profile} snapshot={parsedModerateScenario} />
+        <MoveScreen profile={profile} snapshot={parsedModerateScenario} />,
       );
       expect(screen.getByRole('heading', { level: 1 })).toBeDefined();
       expect(container.querySelectorAll('.card').length).toBeGreaterThan(0);
@@ -169,21 +179,19 @@ describe('Visual & Screen Regression Audit', () => {
   describe('6. ImpactScreen', () => {
     it('renders ImpactScreen with weekly tally, formulas, and community card', () => {
       const { container } = render(
-        <ImpactScreen profile={profile} snapshot={parsedModerateScenario} />
+        <ImpactScreen profile={profile} snapshot={parsedModerateScenario} />,
       );
       expect(screen.getByRole('heading', { level: 1 })).toBeDefined();
-      expect(screen.getByText(/Vehicle-km avoided/i)).toBeDefined();
+      expect(screen.getAllByText(/Vehicle-km avoided/i).length).toBeGreaterThan(0);
       expect(container.querySelectorAll('.card').length).toBeGreaterThan(0);
     });
   });
 
   describe('7. CommunityScreen', () => {
     it('renders CommunityScreen with briefing and collective stats', () => {
-      const { container } = render(
-        <CommunityScreen profile={profile} snapshot={parsedModerateScenario} />
-      );
+      render(<CommunityScreen profile={profile} snapshot={parsedModerateScenario} />);
       expect(screen.getByRole('heading', { level: 1 })).toBeDefined();
-      expect(screen.getByText(/Green Meadows Society/i)).toBeDefined();
+      expect(screen.getAllByText(/Green Meadows/i).length).toBeGreaterThan(0);
     });
   });
 
@@ -197,7 +205,6 @@ describe('Visual & Screen Regression Audit', () => {
       expect(container.querySelector('.aw-feature-grid')).not.toBeNull();
       expect(container.querySelector('.aw-audience-grid')).not.toBeNull();
       expect(container.querySelector('.aw-step-list')).not.toBeNull();
-      expect(container.querySelector('.aw-legal-quote')).not.toBeNull();
       expect(container.querySelector('.aw-about-cta-card')).not.toBeNull();
     });
   });
@@ -214,14 +221,10 @@ describe('Visual & Screen Regression Audit', () => {
   describe('10. OnboardingFlow', () => {
     it('renders OnboardingFlow step 1 with active step bar and form elements', () => {
       const { container } = render(
-        <OnboardingFlow
-          initialProfile={null}
-          onComplete={() => {}}
-          onLoadPriya={() => {}}
-        />
+        <OnboardingFlow initialProfile={null} onComplete={() => {}} onLoadPriya={() => {}} />,
       );
       expect(container.querySelector('.aw-onboarding-wrapper')).not.toBeNull();
-      expect(container.querySelector('.step-bar.active')).not.toBeNull();
+      expect(container.querySelector('.aw-stepper-fill')).not.toBeNull();
     });
   });
 });

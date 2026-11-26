@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { type ScenarioType } from '../data/fallback-chain';
 
 export const SCENARIO_STORAGE_KEY = 'airwise_scenario_v1';
@@ -52,9 +52,12 @@ export function useScenario(): {
     };
   }, []);
 
-  return {
-    scenario,
-    setScenario,
-  };
+  return useMemo(
+    () => ({
+      scenario,
+      setScenario,
+    }),
+    [scenario],
+  );
 }
 

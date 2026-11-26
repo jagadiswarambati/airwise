@@ -80,27 +80,22 @@ for (const file of cssFiles) {
 // ---------------------------------------------------------------------------
 const usedClasses = new Map(); // className -> Set of file paths
 
+const IGNORED_CLASS_TOKENS = new Set(['$', '${}', 'null', 'undefined', 'true', 'false']);
+const PUNCT_REGEX = /^[()?:;,|&!=<>+*/~^]+$/;
+const STRIP_PUNCT_REGEX = /^[^a-zA-Z0-9_-]+|[^a-zA-Z0-9_-]+$/g;
+
+function isValidClassToken(token) {
+  if (!token || IGNORED_CLASS_TOKENS.has(token)) return false;
+  return !PUNCT_REGEX.test(token);
+}
+
 function registerClass(cls, file) {
   if (!cls || typeof cls !== 'string') return;
   const relFile = path.relative(process.cwd(), file).replace(/\\/g, '/');
-  const tokens = cls.split(/\s+/);
-  for (const token of tokens) {
+  for (const token of cls.split(/\s+/)) {
     const cleaned = token.trim();
-    if (
-      !cleaned ||
-      cleaned === '$' ||
-      cleaned === '${}' ||
-      cleaned === 'null' ||
-      cleaned === 'undefined' ||
-      cleaned === 'true' ||
-      cleaned === 'false'
-    ) {
-      continue;
-    }
-    if (/^[()?:;,|&!=<>+*/~^]+$/.test(cleaned)) {
-      continue;
-    }
-    const normalized = cleaned.replace(/^[^a-zA-Z0-9_-]+|[^a-zA-Z0-9_-]+$/g, '');
+    if (!isValidClassToken(cleaned)) continue;
+    const normalized = cleaned.replace(STRIP_PUNCT_REGEX, '');
     if (!normalized) continue;
 
     if (!usedClasses.has(normalized)) {
@@ -127,6 +122,23 @@ function extractStringsFromNode(node, file) {
   extractStringsFromExpression(node, file);
 }
 
+function handleComplexExpression(expr, file) {
+  if (ts.isCallExpression(expr)) {
+    if (ts.isPropertyAccessExpression(expr.expression)) {
+      extractStringsFromExpression(expr.expression.expression, file);
+    }
+    for (const arg of expr.arguments) {
+      extractStringsFromExpression(arg, file);
+    }
+  } else if (ts.isParenthesizedExpression(expr)) {
+    extractStringsFromExpression(expr.expression, file);
+  } else if (ts.isArrayLiteralExpression(expr)) {
+    for (const el of expr.elements) {
+      extractStringsFromExpression(el, file);
+    }
+  }
+}
+
 function extractStringsFromExpression(expr, file) {
   if (!expr) return;
   if (ts.isStringLiteral(expr) || ts.isNoSubstitutionTemplateLiteral(expr)) {
@@ -143,19 +155,8 @@ function extractStringsFromExpression(expr, file) {
   } else if (ts.isBinaryExpression(expr)) {
     extractStringsFromExpression(expr.left, file);
     extractStringsFromExpression(expr.right, file);
-  } else if (ts.isCallExpression(expr)) {
-    if (ts.isPropertyAccessExpression(expr.expression)) {
-      extractStringsFromExpression(expr.expression.expression, file);
-    }
-    for (const arg of expr.arguments) {
-      extractStringsFromExpression(arg, file);
-    }
-  } else if (ts.isParenthesizedExpression(expr)) {
-    extractStringsFromExpression(expr.expression, file);
-  } else if (ts.isArrayLiteralExpression(expr)) {
-    for (const el of expr.elements) {
-      extractStringsFromExpression(el, file);
-    }
+  } else {
+    handleComplexExpression(expr, file);
   }
 }
 
@@ -163,6 +164,12 @@ const sourceFiles = [
   ...scanFiles('src', (f) => /\.(tsx|ts|html)$/.test(f)),
   ...(fs.existsSync('index.html') ? ['index.html'] : []),
 ];
+
+function isClassPropName(nameNode) {
+  if (!nameNode) return false;
+  const txt = ts.isIdentifier(nameNode) || ts.isStringLiteral(nameNode) ? nameNode.text : '';
+  return txt === 'className' || txt === 'class';
+}
 
 for (const file of sourceFiles) {
   const content = fs.readFileSync(file, 'utf8');
@@ -177,22 +184,13 @@ for (const file of sourceFiles) {
   const sourceFile = ts.createSourceFile(file, content, ts.ScriptTarget.Latest, true);
 
   function visit(node) {
-    if (
-      ts.isJsxAttribute(node) &&
-      (node.name.text === 'className' || node.name.text === 'class') &&
-      node.initializer
-    ) {
+    if (ts.isJsxAttribute(node) && isClassPropName(node.name) && node.initializer) {
       if (ts.isStringLiteral(node.initializer)) {
         registerClass(node.initializer.text, file);
       } else if (ts.isJsxExpression(node.initializer) && node.initializer.expression) {
         extractStringsFromNode(node.initializer.expression, file);
       }
-    } else if (
-      ts.isPropertyAssignment(node) &&
-      node.name &&
-      ((ts.isIdentifier(node.name) && (node.name.text === 'className' || node.name.text === 'class')) ||
-        (ts.isStringLiteral(node.name) && (node.name.text === 'className' || node.name.text === 'class')))
-    ) {
+    } else if (ts.isPropertyAssignment(node) && isClassPropName(node.name)) {
       extractStringsFromNode(node.initializer, file);
     }
     ts.forEachChild(node, visit);
@@ -222,10 +220,14 @@ missingClasses.sort((a, b) => a.cls.localeCompare(b.cls));
 // ---------------------------------------------------------------------------
 console.log('--- AirWise Used CSS Classes Audit ---');
 console.log(`Source files scanned: ${sourceFiles.length}`);
-console.log(`CSS stylesheets scanned: ${cssFiles.length} (${cssFiles.map((f) => path.basename(f)).join(', ')})`);
+console.log(
+  `CSS stylesheets scanned: ${cssFiles.length} (${cssFiles.map((f) => path.basename(f)).join(', ')})`,
+);
 console.log(`Distinct classes defined in CSS: ${definedClasses.size}`);
 console.log(`Distinct classes referenced in src/: ${usedClasses.size}`);
-console.log(`Allow-listed dynamic class prefixes: ${DYNAMIC_PREFIXES.length} (${DYNAMIC_PREFIXES.join(', ')})`);
+console.log(
+  `Allow-listed dynamic class prefixes: ${DYNAMIC_PREFIXES.length} (${DYNAMIC_PREFIXES.join(', ')})`,
+);
 
 if (missingClasses.length > 0) {
   console.error(`\nFAIL: Found ${missingClasses.length} referenced class(es) with NO CSS rule:`);

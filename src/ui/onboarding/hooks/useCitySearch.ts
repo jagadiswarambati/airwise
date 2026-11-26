@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import citiesData from '../../../data/samples/cities.json';
 import { searchCities, type GeocodeResult } from '../../../data/providers/geocodeClient';
 import { announce } from '../../components/liveRegionAnnouncer';
@@ -55,11 +55,14 @@ export function useCitySearch() {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  return {
-    searchQuery,
-    setSearchQuery,
-    searchResults,
-    setSearchResults,
-    isSearching,
-  };
+  return useMemo(
+    () => ({
+      searchQuery,
+      setSearchQuery,
+      searchResults,
+      setSearchResults,
+      isSearching,
+    }),
+    [searchQuery, searchResults, isSearching],
+  );
 }

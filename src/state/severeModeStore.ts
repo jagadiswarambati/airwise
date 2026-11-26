@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 
 let manualSevereMode = false;
 const severeListeners = new Set<() => void>();
@@ -37,10 +37,13 @@ export function useManualSevereMode(): {
     };
   }, []);
 
-  return {
-    isManualSevereMode,
-    setSevereMode: setManualSevereMode,
-    toggleSevereMode: toggleManualSevereMode,
-  };
+  return useMemo(
+    () => ({
+      isManualSevereMode,
+      setSevereMode: setManualSevereMode,
+      toggleSevereMode: toggleManualSevereMode,
+    }),
+    [isManualSevereMode],
+  );
 }
 

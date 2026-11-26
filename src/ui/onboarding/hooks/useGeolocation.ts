@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback, useMemo, useRef } from 'react';
 import { announce } from '../../components/liveRegionAnnouncer';
 
 interface UseGeolocationOptions {
@@ -8,8 +8,10 @@ interface UseGeolocationOptions {
 export function useGeolocation({ onLocationSuccess }: UseGeolocationOptions) {
   const [locationMessage, setLocationMessage] = useState<string | null>(null);
   const [locationStatus, setLocationStatus] = useState<'idle' | 'success' | 'denied'>('idle');
+  const onLocationSuccessRef = useRef(onLocationSuccess);
+  onLocationSuccessRef.current = onLocationSuccess;
 
-  const handleUseLocation = () => {
+  const handleUseLocation = useCallback(() => {
     if (typeof navigator === 'undefined' || !navigator.geolocation) {
       setLocationStatus('denied');
       setLocationMessage('Geolocation is not supported by your browser.');
@@ -25,7 +27,7 @@ export function useGeolocation({ onLocationSuccess }: UseGeolocationOptions) {
       (pos) => {
         const roundedLat = Math.round(pos.coords.latitude * 100) / 100;
         const roundedLon = Math.round(pos.coords.longitude * 100) / 100;
-        onLocationSuccess(roundedLat, roundedLon, 'My location');
+        onLocationSuccessRef.current(roundedLat, roundedLon, 'My location');
         setLocationStatus('success');
         setLocationMessage(`Location set to ${roundedLat}, ${roundedLon} (~1.1 km precision).`);
         announce(`Location set to latitude ${roundedLat}, longitude ${roundedLon}.`);
@@ -41,11 +43,14 @@ export function useGeolocation({ onLocationSuccess }: UseGeolocationOptions) {
       },
       { timeout: 8000 },
     );
-  };
+  }, []);
 
-  return {
-    handleUseLocation,
-    locationMessage,
-    locationStatus,
-  };
+  return useMemo(
+    () => ({
+      handleUseLocation,
+      locationMessage,
+      locationStatus,
+    }),
+    [handleUseLocation, locationMessage, locationStatus],
+  );
 }
