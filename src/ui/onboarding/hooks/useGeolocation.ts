@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo, useRef } from 'react';
+import citiesData from '../../../data/samples/cities.json';
 import { announce } from '../../components/liveRegionAnnouncer';
 
 interface UseGeolocationOptions {
@@ -27,10 +28,24 @@ export function useGeolocation({ onLocationSuccess }: UseGeolocationOptions) {
       (pos) => {
         const roundedLat = Math.round(pos.coords.latitude * 100) / 100;
         const roundedLon = Math.round(pos.coords.longitude * 100) / 100;
-        onLocationSuccessRef.current(roundedLat, roundedLon, 'My location');
+
+        // Resolve closest known city if within ~50 km, else label as My location
+        let matchedCityLabel = 'My location';
+        let minDiff = 0.5;
+        for (const city of citiesData) {
+          const diff = Math.hypot(city.lat - roundedLat, city.lon - roundedLon);
+          if (diff < minDiff) {
+            minDiff = diff;
+            matchedCityLabel = `${city.name}, ${city.country === 'IN' ? 'India' : city.country}`;
+          }
+        }
+
+        onLocationSuccessRef.current(roundedLat, roundedLon, matchedCityLabel);
         setLocationStatus('success');
-        setLocationMessage(`Location set to ${roundedLat}, ${roundedLon} (~1.1 km precision).`);
-        announce(`Location set to latitude ${roundedLat}, longitude ${roundedLon}.`);
+        setLocationMessage(
+          `Location set to ${matchedCityLabel} (${roundedLat}, ${roundedLon}, ~1.1 km precision).`,
+        );
+        announce(`Location set to ${matchedCityLabel}, latitude ${roundedLat}, longitude ${roundedLon}.`);
       },
       (err) => {
         setLocationStatus('denied');

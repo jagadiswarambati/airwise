@@ -4,7 +4,7 @@ import { announce } from '../components/liveRegionAnnouncer';
 import { ErrorSummary } from '../primitives/ErrorSummary';
 import { Stepper } from '../primitives/Stepper';
 import { STEP_TITLES } from './options';
-import { useOnboardingDraft } from './hooks/useOnboardingDraft';
+import { useOnboardingDraft, clearSessionDraft } from './hooks/useOnboardingDraft';
 import { useStepValidation } from './hooks/useStepValidation';
 import { WhereStep } from './steps/WhereStep';
 import { HouseholdStep } from './steps/HouseholdStep';
@@ -169,16 +169,26 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
 
       const rawProfile = draft.buildRawProfile();
       const parsed = validation.validateFullProfile(rawProfile);
-      if (parsed) onComplete(parsed);
+      if (parsed) {
+        clearSessionDraft();
+        onComplete(parsed);
+      }
     }
   };
+
+  const handleCancel = onCancel
+    ? () => {
+        clearSessionDraft();
+        onCancel();
+      }
+    : undefined;
 
   const stepProps: StepProps = {
     h1Ref,
     draft,
     validation,
     onLoadPriya,
-    onCancel,
+    onCancel: handleCancel,
     onSetStep: setStep,
   };
 

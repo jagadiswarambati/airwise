@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Icon } from '../../icons';
 import { useGeolocation } from '../hooks/useGeolocation';
 import { PrivacyDisclosure } from '../components/PrivacyDisclosure';
@@ -130,6 +130,20 @@ export const WhereStep: React.FC<WhereStepProps> = ({
       setCityLabel(newLabel);
     },
   });
+
+  // Automatically fetch and populate coordinates if user has already granted geolocation permission
+  useEffect(() => {
+    if (typeof navigator !== 'undefined' && navigator.permissions?.query) {
+      navigator.permissions
+        .query({ name: 'geolocation' as PermissionName })
+        .then((perm) => {
+          if (perm.state === 'granted') {
+            handleUseLocation();
+          }
+        })
+        .catch(() => {});
+    }
+  }, [handleUseLocation]);
 
   return (
     <div className="card">

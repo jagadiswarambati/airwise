@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   type BudgetTier,
   type CookingFuel,
@@ -12,6 +12,45 @@ import {
   roleLabelFor,
 } from '../../../domain/types';
 import { announce } from '../../components/liveRegionAnnouncer';
+
+const ONBOARDING_SESSION_CACHE_KEY = 'airwise_onboarding_session_draft_v1';
+
+/**
+ * Retrieves temporary session-cached draft to preserve inputs across browser session refreshes.
+ */
+export function getSessionDraft(): HouseholdProfile | null {
+  if (typeof window === 'undefined' || !window.sessionStorage) return null;
+  try {
+    const raw = window.sessionStorage.getItem(ONBOARDING_SESSION_CACHE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Persists active draft to sessionStorage.
+ */
+export function saveSessionDraft(draft: HouseholdProfile): void {
+  if (typeof window === 'undefined' || !window.sessionStorage) return;
+  try {
+    window.sessionStorage.setItem(ONBOARDING_SESSION_CACHE_KEY, JSON.stringify(draft));
+  } catch {
+    // Ignore storage write errors (e.g. quota limits)
+  }
+}
+
+/**
+ * Clears temporary session draft upon onboarding completion or reset.
+ */
+export function clearSessionDraft(): void {
+  if (typeof window === 'undefined' || !window.sessionStorage) return;
+  try {
+    window.sessionStorage.removeItem(ONBOARDING_SESSION_CACHE_KEY);
+  } catch {
+    // Ignore cleanup errors
+  }
+}
 
 function useLocationDraft(initial?: HouseholdProfile | null) {
   const [cityLabel, setCityLabel] = useState(initial?.location.label || 'Hyderabad, India');
@@ -173,13 +212,14 @@ function useRoutineDraft(initial?: HouseholdProfile | null) {
 }
 
 export function useOnboardingDraft(initialProfile?: HouseholdProfile | null) {
-  const loc = useLocationDraft(initialProfile);
-  const mem = useMembersDraft(initialProfile);
-  const home = useHomeDraft(initialProfile);
-  const com = useCommuteDraft(initialProfile);
-  const rout = useRoutineDraft(initialProfile);
+  const effectiveInitial = initialProfile || getSessionDraft();
+  const loc = useLocationDraft(effectiveInitial);
+  const mem = useMembersDraft(effectiveInitial);
+  const home = useHomeDraft(effectiveInitial);
+  const com = useCommuteDraft(effectiveInitial);
+  const rout = useRoutineDraft(effectiveInitial);
 
-  const buildRawProfile = (): HouseholdProfile => ({
+  const buildRawProfile = useCallback((): HouseholdProfile => ({
     schemaVersion: 1,
     location: {
       lat: Math.round(loc.lat * 100) / 100,
@@ -209,7 +249,38 @@ export function useOnboardingDraft(initialProfile?: HouseholdProfile | null) {
       cooking: ['07:00', '19:30'],
       bed: rout.bed,
     },
-  });
+  }), [
+    loc.cityLabel,
+    loc.lat,
+    loc.lon,
+    loc.country,
+    mem.members,
+    home.tenure,
+    home.housingType,
+    home.fuel,
+    home.hasExhaust,
+    home.homeHeating,
+    home.hasPurifier,
+    home.hasWindowAC,
+    home.hasHvac,
+    home.budget,
+    com.modes,
+    com.oneWayKm,
+    com.tripsPerWeek,
+    com.transitAvailable,
+    com.canShiftTime,
+    com.canWorkRemotely,
+    com.outdoorWorker,
+    rout.wake,
+    rout.leave,
+    rout.returnHome,
+    rout.bed,
+  ]);
+
+  // Automatically sync active draft to session storage for seamless session persistence
+  useEffect(() => {
+    saveSessionDraft(buildRawProfile());
+  }, [buildRawProfile]);
 
   return { ...loc, ...mem, ...home, ...com, ...rout, buildRawProfile };
 }

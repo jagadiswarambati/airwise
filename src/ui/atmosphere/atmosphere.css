@@ -18,7 +18,7 @@
   }
 }
 
-/* 1. Sky Tint Layer */
+/* 1. Sky Tint Layer with Dynamic Atmospheric Gradients */
 .aw-atmosphere-sky {
   position: absolute;
   inset: 0;
@@ -26,15 +26,52 @@
 }
 
 .aw-atmosphere-sky[data-phase="day"] {
-  background-color: var(--sky-day);
+  background: linear-gradient(135deg, var(--sky-day) 0%, #bae6fd 50%, #e0f2fe 100%);
+  background-size: 200% 200%;
+  animation: aw-sky-shimmer 24s ease infinite;
 }
 
 .aw-atmosphere-sky[data-phase="dusk"] {
-  background-color: var(--sky-dusk);
+  background: linear-gradient(135deg, var(--sky-dusk) 0%, #fdba74 50%, #fed7aa 100%);
+  background-size: 200% 200%;
+  animation: aw-sky-shimmer 24s ease infinite;
 }
 
 .aw-atmosphere-sky[data-phase="night"] {
-  background-color: var(--sky-night);
+  background: linear-gradient(135deg, var(--sky-night) 0%, #1e293b 50%, #0f172a 100%);
+  background-size: 200% 200%;
+  animation: aw-sky-shimmer 24s ease infinite;
+}
+
+@keyframes aw-sky-shimmer {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Atmospheric Online Video Layer */
+.aw-atmosphere-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.32;
+  pointer-events: none;
+  filter: contrast(1.1) saturate(1.1);
+  mix-blend-mode: overlay;
+  transition: opacity var(--transition-fast);
+}
+
+[data-theme="dark"] .aw-atmosphere-video {
+  opacity: 0.25;
+  mix-blend-mode: screen;
 }
 
 /* 2. Celestial Body (Sun / Moon) */

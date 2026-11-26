@@ -7,6 +7,14 @@ export interface StepperProps {
   className?: string;
 }
 
+const STAGE_TITLES = [
+  'Where you live',
+  'Who lives here',
+  'Your home',
+  'Getting around',
+  'Daily routine',
+];
+
 export const Stepper: React.FC<StepperProps> = ({
   currentStep,
   totalSteps,
@@ -35,6 +43,23 @@ export const Stepper: React.FC<StepperProps> = ({
           className="aw-stepper-fill"
           style={{ ['--stepper-progress' as string]: `${progressPercent}%` }}
         />
+      </div>
+
+      {/* Visual stage indicators for all 5 initial stages */}
+      <div className="aw-stepper-stages" aria-label="Stages overview">
+        {Array.from({ length: totalSteps }, (_, idx) => {
+          const stepNum = idx + 1;
+          const isActive = stepNum === currentStep;
+          const isComplete = stepNum < currentStep;
+          return (
+            <div
+              key={stepNum}
+              className={`step-bar ${isActive ? 'active' : ''} ${isComplete ? 'complete' : ''}`.trim()}
+              title={`Stage ${stepNum}: ${STAGE_TITLES[idx] || `Stage ${stepNum}`}`}
+              aria-current={isActive ? 'step' : undefined}
+            />
+          );
+        })}
       </div>
     </div>
   );
