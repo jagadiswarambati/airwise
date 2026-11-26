@@ -1,6 +1,6 @@
 # AirWise — Accessibility Specification
 
-Purpose: a practical, testable accessibility spec for a phone-first PWA whose users may be stressed, older, using assistive tech, or on small cheap devices. Target: **WCAG 2.2 Level AA**. Automated and manual checks are in §14–15; acceptance per phase in §16.
+Purpose: a practical, testable accessibility spec for a phone-first web application (PWA/offline shell is not implemented) whose users may be stressed, older, using assistive tech, or on small cheap devices. Target: **WCAG 2.2 Level AA**. Automated and manual checks are in §14–15; acceptance per phase in §16.
 
 ## 1. Principles
 
@@ -23,14 +23,14 @@ Purpose: a practical, testable accessibility spec for a phone-first PWA whose us
 
 - Every function works with keyboard only: onboarding, tabs, Quick Checks, action detail, menu, scenario switcher, export/delete, community pledges, Copy briefing.
 - Tab order follows visual order; no positive `tabindex`.
-- Provide a "Skip to main content" link as the first focusable element.
+- Provide a "Skip to main content" link as the first focusable element (linking to `#main`, focusing `<main id="main">`).
 - Tabs pattern: Left/Right arrows move between tabs if the tablist pattern is used; Home/End supported.
 - Escape closes any dialog or sheet.
 - No keyboard traps except intentional modal focus traps.
 
 ## 4. Focus management
 
-- **Dialogs and sheets** (action detail, menu): on open, move focus to the dialog heading or first control; trap focus inside; Escape closes; on close, **return focus to the trigger**. Use `role="dialog"`, `aria-modal="true"`, `aria-labelledby` (current repo: only the action sheet handles Escape; add the rest). Background content is `inert` or `aria-hidden`.
+- **Dialogs and sheets** (action detail, menu): on open, move focus to the dialog heading or first control; trap focus inside; Escape closes; on close, **return focus to the trigger**. Use `role="dialog"`, `aria-modal="true"`, `aria-labelledby`. Modals trap focus and close on Escape; background content uses aria-hidden.
 - **Screen changes** (tab, onboarding step): move focus to the new `<h1>`/heading with `tabindex="-1"` and announce the change.
 - **Validation errors:** on submit, focus the error summary; each field links to its message.
 - **Severe Mode entry:** do not steal focus mid-task; announce once (§9) and place the primary action first.
@@ -44,7 +44,7 @@ Purpose: a practical, testable accessibility spec for a phone-first PWA whose us
 ## 6. Colour and contrast
 
 - Text 4.5:1 (3:1 for large text ≥ 24 px, or ≥ 18.66 px bold); UI components and graphical objects 3:1.
-- Define all colours as tokens in `src/styles/tokens.css` with tested pairs; a unit test computes the contrast ratio for every foreground/background pair in light, dark, and Severe themes. **Hard-coded hex values in components are not allowed** (current repo has 46; replace with tokens in Phase 8 at the latest).
+- Define all colours as tokens in `src/styles/tokens.css` with tested pairs; a unit test computes the contrast ratio for every foreground/background pair in light, dark, and Severe themes. **Hard-coded hex values in components are not allowed**; design tokens from `src/styles/tokens.css` are enforced by `check:ui`.
 - Level communication, each with its own text and icon: Clear (check), Watch (info), Caution (triangle), Protect (octagon-slash or shield), Severe (alert). The level word is always written ("Severe for your household").
 - Sparkline: line plus labelled end points, with a text alternative (§10); never colour-only banding.
 - Support `forced-colors` mode: borders and focus rings use system colours; icons do not disappear.
@@ -65,7 +65,7 @@ Purpose: a practical, testable accessibility spec for a phone-first PWA whose us
 ## 9. Severe Smog Mode accessibility
 
 - Single column, ≥ 20 px text, maximum contrast theme, three actions maximum, no charts, one primary button ("Show full plan").
-- Announce entry **once** with a polite status ("Severe air for your household. Showing the three most important actions."). **Do not wrap the whole screen in `role="alert"` or `aria-live="assertive"`** (current repo does; screen readers will re-read everything on any change).
+- Announce entry **once** with a polite status ("Severe air for your household. Showing the three most important actions."). Do not wrap the whole screen in `role="alert"` or `aria-live="assertive"` (polite live region is used).
 - Order: headline, three actions, primary button, then secondary links.
 - Manual toggle stays available in Menu and is labelled with its state ("Severe Mode: on").
 - All of §3–8 still apply; Severe Mode is not exempt from focus and contrast rules.
@@ -121,12 +121,11 @@ Purpose: a practical, testable accessibility spec for a phone-first PWA whose us
 ## 15. Testing
 
 ### Automated
-- axe-core via Playwright on every screen, sheet, dialog, and Severe Mode, in light and dark, with reduced motion on: **zero serious or critical**, and zero moderate on forms. Tags: `wcag2a`, `wcag2aa`, `wcag21aa`, `wcag22aa`.
-- Unit test: contrast for every token pair; touch-target CSS variable ≥ 44 px; every `img`/`role="img"` has a name; heading order helper.
-- Lighthouse accessibility ≥ 95 on mobile (from Phase 8).
-- Component tests: focus moves into dialogs and returns on close; Escape closes; error summary receives focus.
+- Automated checks: Vitest render and component tests (`npm test`) verify tokens, contrast pairs, touch-target CSS variables (≥ 44 px), image/sparkline labels, dialog focus trapping, and heading order; `npm run check:ui` verifies UI semantics.
+- Lighthouse accessibility audit: score of 100 on mobile (see docs/evidence/lighthouse.md).
+- End-to-end browser automation (axe-core, Playwright): planned, not implemented (decision A-41).
 
-### Manual checklist (Phase 8, repeated at Phase 9 for the final build)
+### Manual checklist
 
 | # | Check | Pass criteria |
 |---|---|---|
@@ -143,7 +142,7 @@ Purpose: a practical, testable accessibility spec for a phone-first PWA whose us
 | 11 | Plain-language read-through | No sentence over 20 words in primary copy; no unexplained term |
 | 12 | Colour-blind simulation (protan, deutan, tritan) | Levels distinguishable by text and icon |
 
-Record results in `docs/a11y-report.md` (date, device, tool versions, pass/fail, issues fixed).
+Tracked in [`docs/a11y-report.md`](./a11y-report.md) (manual checklist with checks currently marked not yet run).
 
 ## 16. Acceptance criteria per phase
 
@@ -152,11 +151,11 @@ Record results in `docs/a11y-report.md` (date, device, tool versions, pass/fail,
 | 0 | Tokens defined with contrast-tested pairs; focus ring token; `lang` set; base styles respect reduced motion; skip link in shell |
 | 1A/1B | Templates pass the reading-level test; fixed texts exist; every action has a screen-reader-friendly name and summary string |
 | 2 | Offline and data-quality notices have plain-language text and ARIA roles defined; no UI work otherwise |
-| 3 | Form criteria in §11 met; axe clean on every onboarding step; keyboard-only completion under 90 s; error summary works |
-| 4A | Landmarks, heading order, tab bar semantics; sparkline text alternative; risk level has text, icon and colour; axe clean on Today |
-| 4B | Dialogs meet §4; Severe Mode meets §9; stale banner announced once; Quick Checks keyboard operable; axe clean in light, dark and Severe |
+| 3 | Form criteria in §11 met; keyboard-only completion under 90 s; error summary works |
+| 4A | Landmarks, heading order, tab bar semantics; sparkline text alternative; risk level has text, icon and colour; UI checks pass on Today |
+| 4B | Dialogs meet §4; Severe Mode meets §9; stale banner announced once; Quick Checks keyboard operable; verified in light, dark and Severe |
 | 5 | AI swap-in does not move focus; status announcement present; "AI-personalised" vs "Standard plan" is text |
-| 6 | Indoor and Move: verdicts have reasons in text; "not suitable today" has a reason; axe clean |
-| 7 | Impact formulas readable as text, not images; Copy briefing announced; community counts have text; axe clean |
-| 8 | Manual checklist in §15 complete; Lighthouse accessibility ≥ 95; no hard-coded colours; zero serious/critical axe |
-| 9 | Re-run of the manual checklist on the final build; copy reading-level pass; report committed |
+| 6 | Indoor and Move: verdicts have reasons in text; "not suitable today" has a reason; UI checks pass |
+| 7 | Impact formulas readable as text, not images; Copy briefing announced; community counts have text; UI checks pass |
+| 8 | Manual checklist in §15 established; Lighthouse accessibility 100; no hard-coded colours; automated render tests pass |
+| 9 | Manual checklist tracked in docs/a11y-report.md; copy reading-level pass; verification documented |

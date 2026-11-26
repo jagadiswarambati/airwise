@@ -1,6 +1,6 @@
 # AirWise — Lighthouse Audit Evidence (Mobile)
 
-Audit Date: 2026-11-24  
+Audit Date: 2026-11-24 (Manual run on 2026-11-24, summary only; raw reports are not committed)  
 Device Emulation: Mobile (Moto G4 / Pixel 5, 390x844 viewport, 4G throttling, 4x CPU slowdown)  
 Target URLs: `#/about`, `#/today`, `#/community`
 
@@ -28,7 +28,7 @@ Target URLs: `#/about`, `#/today`, `#/community`
 
 ### Optimization Factors
 1. **Self-Hosted Font**: Self-hosted `Atkinson Hyperlegible Next` variable font in WOFF2 format (`34.0 KB`) preloaded with `font-display: swap`, avoiding layout shift and blocking third-party network roundtrips.
-2. **Chunking & Tree-Shaking**: Vite code splitting isolates heavy sub-screens into lazy chunks (`IndoorScreen`, `MoveScreen`, `CommunityScreen`, `ImpactScreen`, `AboutScreen`, `PrivacyScreen`, `TermsScreen`), keeping the entry chunk small (`~124 KB` gzip).
+2. **Chunking & Tree-Shaking**: Vite code splitting isolates heavy sub-screens into lazy chunks (`IndoorScreen`, `MoveScreen`, `CommunityScreen`, `ImpactScreen`, `AboutScreen`, `PrivacyScreen`, `TermsScreen`), keeping the entry chunk small (measured `dist/assets/index-*.js`: 433.6 KB raw / 433,594 bytes, 130.8 KB gzip / 130,788 bytes; verify via `npm run build && node -e "const fs = require('fs'), zlib = require('zlib'); const f = fs.readdirSync('dist/assets').find(x => x.startsWith('index-') && x.endsWith('.js')); const b = fs.readFileSync('dist/assets/' + f); console.log(b.length, zlib.gzipSync(b).length);"`).
 3. **No Heavy CSS Frameworks**: Hand-crafted CSS using custom property tokens without runtime style injection or CSS-in-JS overhead.
 
 ---
@@ -53,7 +53,7 @@ Every page was verified against WCAG 2.2 Level AA requirements:
   - Visible focus rings with high contrast (`3px solid var(--accent); outline-offset: 2px`).
   - Route transitions focus the page `<h1>`.
   - Dialogs trap focus and restore focus to trigger element upon closing.
-  - Skip link (`#main-content`) available on keyboard Tab.
+  - Skip link (`#main`) available on keyboard Tab.
 
 ---
 
