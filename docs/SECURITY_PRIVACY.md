@@ -33,8 +33,8 @@ Purpose: practical controls, with the exact settings to implement and a checklis
 ## 3. Input validation
 
 - **Everywhere:** Zod schemas at every boundary (API request, provider response, LocalStorage read, imported JSON if added). Parse, never cast.
-- **API requests:** method allow-list, `Content-Type: application/json`, body cap (8 KB for `/api/plan`, 1 KB for `/api/air` and `/api/geocode`) enforced on `Content-Length` and on the actual bytes read; unknown keys rejected (`.strict()`); numbers range-checked (lat −90..90, lon −180..180, rounded server-side to 2 dp); strings limited by enum, regex or max length.
-- **Geocode query:** trimmed, 2–60 characters, letters, digits, spaces, apostrophes, hyphens and commas only.
+- **API requests:** method allow-list, `Content-Type: application/json`, body cap (8 KB for `/api/plan`, 1 KB for `/api/air` and `/api/geocode`) enforced on `Content-Length` and on the actual bytes read (the `/api/plan` body stream is read with an early-cancel byte limit before JSON parsing); unknown keys rejected (`.strict()`); numbers range-checked (lat −90..90, lon −180..180, rounded server-side to 2 dp; finite numbers only); strings limited by enum, regex or max length.
+- **Geocode query:** trimmed, 2–60 characters, Unicode letters, marks, digits, spaces, apostrophes, commas, periods, and hyphens only (`^[\p{L}\p{M}\p{Nd}\s',.-]+$`), with control characters and angle brackets strictly rejected.
 - **LocalStorage:** parse with the profile schema; on failure, safe reset with a one-line notice (never crash).
 
 ## 4. Output validation
@@ -71,7 +71,8 @@ Purpose: practical controls, with the exact settings to implement and a checklis
 ## 7. CORS and origin policy
 
 - No CORS headers by default: the browser calls the API same-origin.
-- `ALLOWED_ORIGIN` is empty by default. If set, only that exact origin is echoed back (never `*`), with `Vary: Origin`, methods `GET, POST, OPTIONS`, headers `Content-Type`.
+- Cross-origin use requires configuring `ALLOWED_ORIGIN`. `ALLOWED_ORIGIN` is empty by default. If set, only that exact origin is echoed back (never `*`), with `Vary: Origin`, methods `GET, POST, OPTIONS`, headers `Content-Type`.
+- CORS preflight: `OPTIONS` requests from an allowed Origin receive HTTP 204 with CORS headers and `Access-Control-Max-Age: 600`. `OPTIONS` requests without an Origin header return 405 Method Not Allowed.
 - Reject requests whose `Origin` header is present and not allowed (403).
 
 ## 8. Rate limiting & Client IP extraction

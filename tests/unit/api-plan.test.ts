@@ -248,9 +248,7 @@ describe('/api/plan Serverless Handler Contract & Safety Suite', () => {
     const body = res.body as { success: boolean; fallback: boolean; message: string };
     expect(body.success).toBe(false);
     expect(body.fallback).toBe(true);
-    expect(body.message).toContain(
-      'Failed to contact LLM service; falling back to deterministic plan',
-    );
+    expect(body.message).toBe('AI personalisation is unavailable right now.');
   });
 
   it('safely falls back when Gemini response text is non-JSON', async () => {
@@ -366,6 +364,6 @@ describe('/api/plan Serverless Handler Contract & Safety Suite', () => {
     const body = res.body as { success: boolean; fallback: boolean; message: string };
     expect(body.success).toBe(false);
     expect(body.fallback).toBe(true);
-    expect(body.message).toContain('falling back to deterministic plan');
+    expect(body.message).toBe('AI personalisation is unavailable right now.');
   });
 });

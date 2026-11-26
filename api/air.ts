@@ -20,10 +20,33 @@ interface CacheEntry {
   expiresAt: number;
 }
 
+export const MAX_AIR_CACHE_ENTRIES = 500;
 const serverAirCache = new Map<string, CacheEntry>();
 
 export function clearAirCache(): void {
   serverAirCache.clear();
+}
+
+export function getAirCacheSize(): number {
+  return serverAirCache.size;
+}
+
+export function pruneExpiredAirCache(now: number): void {
+  for (const [key, entry] of serverAirCache.entries()) {
+    if (now >= entry.expiresAt) {
+      serverAirCache.delete(key);
+    }
+  }
+}
+
+export function setAirCacheEntry(key: string, data: ApiAirResponseData, expiresAt: number, now: number): void {
+  pruneExpiredAirCache(now);
+  while (serverAirCache.size >= MAX_AIR_CACHE_ENTRIES) {
+    const oldestKey = serverAirCache.keys().next().value;
+    if (oldestKey === undefined) break;
+    serverAirCache.delete(oldestKey);
+  }
+  serverAirCache.set(key, { data, expiresAt });
 }
 
 export function parseAirRequest(
@@ -89,10 +112,8 @@ export async function handleAirCore(
 
       const responseData = normalizeUpstream(upstream.airJson, upstream.weatherJson, clock);
       const dateHour = clock().toISOString().slice(0, 13);
-      serverAirCache.set(`${lat},${lon}_${dateHour}`, {
-        data: responseData,
-        expiresAt: clock().getTime() + 600 * 1000,
-      });
+      const now = clock().getTime();
+      setAirCacheEntry(`${lat},${lon}_${dateHour}`, responseData, now + 600 * 1000, now);
 
       return {
         status: 200,

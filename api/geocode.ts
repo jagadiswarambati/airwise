@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import { createErrorResponse, type ApiResponse, type ApiErrorBody } from './_lib/errors';
 import { getSecurityHeaders } from './_lib/headers';
 import { parseQuery, GeocodeQuerySchema } from './_lib/validate';
@@ -13,26 +14,28 @@ export interface GeocodeItem {
   timezone?: string;
 }
 
-interface UpstreamGeocodeResult {
-  name?: string;
-  admin1?: string;
-  country_code?: string;
-  latitude?: number;
-  longitude?: number;
-  timezone?: string;
-}
+export const UpstreamGeocodeItemSchema = z.object({
+  name: z.string().optional(),
+  admin1: z.string().optional(),
+  country_code: z.string().optional(),
+  latitude: z.number().finite().min(-90).max(90),
+  longitude: z.number().finite().min(-180).max(180),
+  timezone: z.string().optional(),
+});
 
-interface UpstreamGeocodeResponse {
-  results?: UpstreamGeocodeResult[];
-}
+export const UpstreamGeocodeResponseSchema = z.object({
+  results: z.array(UpstreamGeocodeItemSchema).optional(),
+});
 
-function mapGeocodeResults(results: UpstreamGeocodeResult[]): GeocodeItem[] {
+export type UpstreamGeocodeItem = z.infer<typeof UpstreamGeocodeItemSchema>;
+
+function mapGeocodeResults(results: UpstreamGeocodeItem[]): GeocodeItem[] {
   return results.map((r) => ({
     name: String(r.name || ''),
     adminRegion: String(r.admin1 || ''),
     countryCode: String(r.country_code || ''),
-    lat: Math.round(Number(r.latitude) * 100) / 100,
-    lon: Math.round(Number(r.longitude) * 100) / 100,
+    lat: Math.round(r.latitude * 100) / 100,
+    lon: Math.round(r.longitude * 100) / 100,
     timezone: r.timezone ? String(r.timezone) : undefined,
   }));
 }
@@ -78,8 +81,17 @@ export async function handleGeocodeCore(
           );
         }
 
-        const data = (await res.json()) as UpstreamGeocodeResponse;
-        const results = Array.isArray(data?.results) ? data.results : [];
+        const rawJson: unknown = await res.json();
+        const parsedData = UpstreamGeocodeResponseSchema.safeParse(rawJson);
+        if (!parsedData.success) {
+          return createErrorResponse(
+            502,
+            'DataUnavailable',
+            'Geocoding service returned an unexpected response',
+          );
+        }
+
+        const results = parsedData.data.results || [];
         const items = mapGeocodeResults(results);
 
         return {

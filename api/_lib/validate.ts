@@ -21,7 +21,17 @@ export const AirQuerySchema = z
   })
   .strict();
 
-export const GEOCODE_QUERY_REGEX = /^[a-zA-Z0-9\s',.-]+$/;
+export const GEOCODE_QUERY_REGEX = /^[\p{L}\p{M}\p{Nd}\s',.-]+$/u;
+
+export function hasControlCharacters(val: string): boolean {
+  for (let i = 0; i < val.length; i++) {
+    const cp = val.charCodeAt(i);
+    if ((cp >= 0 && cp <= 0x1f) || (cp >= 0x7f && cp <= 0x9f)) {
+      return true;
+    }
+  }
+  return false;
+}
 
 export const GeocodeQuerySchema = z
   .object({
@@ -33,6 +43,10 @@ export const GeocodeQuerySchema = z
       .regex(
         GEOCODE_QUERY_REGEX,
         "Query contains disallowed characters. Only letters, numbers, spaces, apostrophes, commas, periods, and hyphens are permitted.",
+      )
+      .refine(
+        (val) => !hasControlCharacters(val),
+        'Query must not contain control characters',
       ),
     count: z.coerce.number().int().min(1).max(10).default(5),
   })

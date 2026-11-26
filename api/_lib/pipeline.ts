@@ -1,4 +1,5 @@
 import { createErrorResponse, type ApiResponse, type ApiErrorBody } from './errors';
+import { getSecurityHeaders } from './headers';
 import { validateCorsOrigin, type CorsValidationResult } from './cors';
 import { checkRateLimit, getClientIp } from './rateLimit';
 import { validatePayloadSize } from './validate';
@@ -32,6 +33,35 @@ function checkMethod(method: string, config: GuardConfig): ApiResponse<ApiErrorB
     );
   }
   return null;
+}
+
+function handleOptionsPreflight<T>(
+  method: string,
+  origin: string | undefined,
+  cors: CorsValidationResult,
+  config: GuardConfig,
+): ApiResponse<T | ApiErrorBody> | null {
+  if (method !== 'OPTIONS') return null;
+
+  if (origin) {
+    return {
+      status: 204,
+      headers: getSecurityHeaders({
+        ...cors.headers,
+        'Access-Control-Max-Age': '600',
+      }),
+      body: null as unknown as ApiErrorBody,
+    };
+  }
+
+  const primaryMethod = config.allowedMethods[0];
+  const allowHeader = config.allowHeader ?? config.allowedMethods.join(', ');
+  return createErrorResponse(
+    405,
+    'MethodNotAllowed',
+    `Only ${primaryMethod} method is supported on ${config.endpointName}`,
+    { Allow: allowHeader },
+  );
 }
 
 function checkContentType(
@@ -90,16 +120,21 @@ export async function withApiGuards<T>(
 ): Promise<ApiResponse<T | ApiErrorBody>> {
   const method = (ctx.method || 'GET').toUpperCase();
   const headers = ctx.headers || {};
-
-  const methodErr = checkMethod(method, config);
-  if (methodErr) return methodErr;
-
   const origin = typeof headers['origin'] === 'string' ? headers['origin'] : undefined;
   const host = typeof headers['host'] === 'string' ? headers['host'] : undefined;
   const cors = validateCorsOrigin(origin, host);
+
+  // If Origin header is present and disallowed, reject with 403
   if (!cors.allowed) {
     return createErrorResponse(403, 'Forbidden', 'Cross-origin request not permitted');
   }
+
+  // Handle CORS preflight (OPTIONS)
+  const preflightResponse = handleOptionsPreflight<T>(method, origin, cors, config);
+  if (preflightResponse) return preflightResponse;
+
+  const methodErr = checkMethod(method, config);
+  if (methodErr) return methodErr;
 
   const contentErr = checkContentType(headers, config.requireJsonContentType);
   if (contentErr) return contentErr;

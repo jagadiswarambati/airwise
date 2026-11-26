@@ -244,6 +244,28 @@ export function checkNumbers(
   return null;
 }
 
+function toAsciiDigit(ch: string): string {
+  const cp = ch.codePointAt(0);
+  if (cp === undefined) return ch;
+  if (cp >= 0x30 && cp <= 0x39) return ch;
+  let zero = cp;
+  while (zero > 0 && /^\p{Nd}$/u.test(String.fromCodePoint(zero - 1)) && cp - zero < 9) {
+    zero--;
+  }
+  return String(cp - zero);
+}
+
+/**
+ * Normalises all Unicode decimal digits to ASCII.
+ * Applies NFKC first (handles full-width digits like '８' -> '8'),
+ * then maps any remaining Unicode decimal digits (\p{Nd}, e.g. Devanagari '१', Telugu '౧')
+ * to standard ASCII '0'-'9'.
+ */
+export function normalizeUnicodeDigitsToAscii(str: string): string {
+  const nfkc = str.normalize('NFKC');
+  return nfkc.replace(/\p{Nd}/gu, toAsciiDigit);
+}
+
 export function buildNormalizedTextCorpus(output: AIPlanOutput): string[] {
   return [
     output.headline,
@@ -251,7 +273,7 @@ export function buildNormalizedTextCorpus(output: AIPlanOutput): string[] {
     ...output.timeline.map((t) => t.note),
     ...Object.values(output.explanations),
     ...output.assumptions,
-  ].map((t) => t.normalize('NFKC'));
+  ].map((t) => normalizeUnicodeDigitsToAscii(t));
 }
 
 /**

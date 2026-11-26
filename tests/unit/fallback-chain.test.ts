@@ -1,5 +1,12 @@
 import { describe, expect, it, beforeEach } from 'vitest';
-import { getAirSnapshot } from '../../src/data/fallback-chain';
+import {
+  getAirSnapshot,
+  parsedClearScenario,
+  parsedModerateScenario,
+  parsedSevereScenario,
+  parsedStaleScenario,
+} from '../../src/data/fallback-chain';
+import { AirSnapshotSchema } from '../../src/domain/types';
 import { airCache } from '../../src/data/cache';
 import { buildDeterministicPlan } from '../../src/domain/plan-builder';
 import { evaluatePolicy } from '../../src/domain/policy';
@@ -99,5 +106,15 @@ describe('Fallback Chain & Honest Offline Behaviour (Decision A-32)', () => {
     expect(plan).toBeDefined();
     expect(plan.topActionIds).toHaveLength(3);
     expect(plan.planConfidence).toBe('low');
+  });
+
+  it('validates all bundled sample scenarios against AirSnapshotSchema at load time without casts', () => {
+    expect(AirSnapshotSchema.safeParse(parsedClearScenario).success).toBe(true);
+    expect(AirSnapshotSchema.safeParse(parsedModerateScenario).success).toBe(true);
+    expect(AirSnapshotSchema.safeParse(parsedSevereScenario).success).toBe(true);
+    expect(AirSnapshotSchema.safeParse(parsedStaleScenario).success).toBe(true);
+
+    expect(parsedClearScenario.pm25.hourly.length).toBeGreaterThanOrEqual(24);
+    expect(parsedSevereScenario.pm25.now).toBeGreaterThan(150);
   });
 });

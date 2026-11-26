@@ -1,4 +1,4 @@
-import { type AirSnapshot, type Location } from '../domain/types';
+import { type AirSnapshot, type Location, AirSnapshotSchema } from '../domain/types';
 import { getNowInLocation, parseLocalHour } from '../domain/time';
 import { airCache } from './cache';
 import { fetchApiAir } from './providers/apiAir';
@@ -9,6 +9,12 @@ import clearScenario from './samples/clear.json';
 import moderateScenario from './samples/moderate.json';
 import severeScenario from './samples/severe.json';
 import staleScenario from './samples/stale.json';
+
+// Parse and validate sample scenarios at load time with the domain schema
+export const parsedClearScenario: AirSnapshot = AirSnapshotSchema.parse(clearScenario);
+export const parsedModerateScenario: AirSnapshot = AirSnapshotSchema.parse(moderateScenario);
+export const parsedSevereScenario: AirSnapshot = AirSnapshotSchema.parse(severeScenario);
+export const parsedStaleScenario: AirSnapshot = AirSnapshotSchema.parse(staleScenario);
 
 export type ScenarioType = 'live' | 'clear' | 'moderate' | 'severe' | 'stale';
 
@@ -36,16 +42,16 @@ export function getSampleScenarioSnapshot(
   let template: AirSnapshot;
   switch (scenario) {
     case 'clear':
-      template = clearScenario as unknown as AirSnapshot;
+      template = parsedClearScenario;
       break;
     case 'moderate':
-      template = moderateScenario as unknown as AirSnapshot;
+      template = parsedModerateScenario;
       break;
     case 'severe':
-      template = severeScenario as unknown as AirSnapshot;
+      template = parsedSevereScenario;
       break;
     case 'stale':
-      template = staleScenario as unknown as AirSnapshot;
+      template = parsedStaleScenario;
       break;
   }
 

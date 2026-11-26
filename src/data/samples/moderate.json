@@ -47,5 +47,7 @@
     "sunrise": "2026-11-20T06:00:00",
     "sunset": "2026-11-20T18:00:00"
   },
-  "freshness": "fresh"
+  "freshness": "fresh",
+  "observedAt": "2026-11-20T00:00:00Z",
+  "fetchedAt": "2026-11-20T00:00:00Z"
 }

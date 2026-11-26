@@ -3,7 +3,20 @@ import { type AIPlanInput, type AIPlanOutput } from './schema';
 import { PROMPT_VERSION } from './prompts/planPrompt';
 import { type Clock, systemClock } from '../lib/clock';
 
+export const MAX_PLAN_CACHE_ENTRIES = 50;
 const planMemoryCache = new Map<string, { plan: AIPlanOutput; expiresAt: number }>();
+
+export function getPlanCacheSize(): number {
+  return planMemoryCache.size;
+}
+
+export function pruneExpiredPlanCache(now: number): void {
+  for (const [k, entry] of planMemoryCache.entries()) {
+    if (now > entry.expiresAt) {
+      planMemoryCache.delete(k);
+    }
+  }
+}
 
 /**
  * Creates a deterministic, privacy-preserving hash of household profile attributes.
@@ -83,6 +96,7 @@ export function getCachedPlan(key: string, clock: Clock = systemClock): AIPlanOu
 
 /**
  * Stores a personalized plan in the in-memory cache with an hourly expiration TTL.
+ * Prunes expired entries and caps cache to MAX_PLAN_CACHE_ENTRIES with oldest-first eviction.
  */
 export function setCachedPlan(
   key: string,
@@ -90,9 +104,16 @@ export function setCachedPlan(
   ttlMs: number = 60 * 60 * 1000,
   clock: Clock = systemClock,
 ): void {
+  const now = clock().getTime();
+  pruneExpiredPlanCache(now);
+  while (planMemoryCache.size >= MAX_PLAN_CACHE_ENTRIES) {
+    const oldestKey = planMemoryCache.keys().next().value;
+    if (oldestKey === undefined) break;
+    planMemoryCache.delete(oldestKey);
+  }
   planMemoryCache.set(key, {
     plan,
-    expiresAt: clock().getTime() + ttlMs,
+    expiresAt: now + ttlMs,
   });
 }
 

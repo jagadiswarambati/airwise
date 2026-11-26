@@ -6,14 +6,13 @@ import { ACTION_CATALOG } from '../src/domain/catalog/actions';
 import { createErrorResponse, type ApiResponse, type ApiErrorBody } from './_lib/errors';
 import { getSecurityHeaders } from './_lib/headers';
 import { withApiGuards } from './_lib/pipeline';
-import { createFetchHandler } from './_lib/http';
+import { createFetchHandler, readBodyWithLimit } from './_lib/http';
 
 export interface PlanApiResponse {
   success: boolean;
   plan?: AIPlanOutput;
   fallback?: boolean;
   message?: string;
-  error?: unknown;
 }
 
 const CATALOG_ID_SET = new Set(ACTION_CATALOG.map((a) => a.id));
@@ -66,17 +65,20 @@ function validatePlanCatalog(input: AIPlanInput): ApiResponse<ApiErrorBody> | nu
 }
 
 function buildCandidateSummaries(approvedCandidateIds: string[]): CandidateSummary[] {
-  return approvedCandidateIds.map((id) => {
-    const action = ACTION_CATALOG.find((a) => a.id === id)!;
-    return {
+  const summaries: CandidateSummary[] = [];
+  for (const id of approvedCandidateIds) {
+    const action = ACTION_CATALOG.find((a) => a.id === id);
+    if (!action) continue;
+    summaries.push({
       id: action.id,
       title: action.title,
       category: action.category,
       costTier: action.cost,
       exposureImpact: `${action.impactSpec.exposure.direction} (${action.impactSpec.exposure.label})`,
       emissionsImpact: `${action.impactSpec.emissions.direction} (${action.impactSpec.emissions.label})`,
-    };
-  });
+    });
+  }
+  return summaries;
 }
 
 /**
@@ -161,12 +163,17 @@ export const GeminiResponseEnvelopeSchema = z.object({
 /**
  * Calls Google Gemini REST endpoint requesting JSON mode.
  */
-async function callGeminiJsonMode(prompt: string, apiKey: string): Promise<unknown> {
+async function callGeminiJsonMode(
+  prompt: string,
+  apiKey: string,
+  signal: AbortSignal,
+): Promise<unknown> {
   const model = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
 
   const res = await fetch(url, {
     method: 'POST',
+    signal,
     headers: {
       'Content-Type': 'application/json',
       'x-goog-api-key': apiKey,
@@ -182,7 +189,7 @@ async function callGeminiJsonMode(prompt: string, apiKey: string): Promise<unkno
   });
 
   if (!res.ok) {
-    throw new Error(`Gemini API error: ${res.status} ${res.statusText}`);
+    throw new Error('Gemini API request failed');
   }
 
   let rawJson: unknown;
@@ -194,9 +201,7 @@ async function callGeminiJsonMode(prompt: string, apiKey: string): Promise<unkno
 
   const envelopeParse = GeminiResponseEnvelopeSchema.safeParse(rawJson);
   if (!envelopeParse.success) {
-    throw new Error(
-      `Malformed Gemini response envelope: ${envelopeParse.error.issues[0]?.message || 'Invalid envelope structure'}`,
-    );
+    throw new Error('Malformed Gemini response envelope');
   }
 
   const text = envelopeParse.data.candidates[0].content.parts[0].text;
@@ -224,21 +229,45 @@ export async function handlePlanRequest(
     return {
       success: false,
       fallback: true,
-      message: 'LLM_PROVIDER is none or API key is not configured',
+      message: 'AI personalisation is unavailable right now.',
     };
   }
 
   const prompt = buildPlanPrompt(input, candidateSummaries);
+  const startTime = Date.now();
+  const TOTAL_BUDGET_MS = 12000;
+  const ATTEMPT_TIMEOUT_MS = 6000;
+  const MIN_RETRY_REMAINING_MS = 3000;
 
   try {
-    const rawResult = await callGeminiJsonMode(prompt, apiKey);
+    const elapsed1 = Date.now() - startTime;
+    const remaining1 = TOTAL_BUDGET_MS - elapsed1;
+    const timeout1 = Math.min(ATTEMPT_TIMEOUT_MS, Math.max(0, remaining1));
+    const rawResult = await callGeminiJsonMode(prompt, apiKey, AbortSignal.timeout(timeout1));
     const validation = validateAIPlanOutput(rawResult, input);
     if (validation.valid) {
       return { success: true, plan: validation.output };
     }
 
-    const retryPrompt = `${prompt}\n\n=== PREVIOUS ATTEMPT FAILED SAFETY VALIDATION ===\nError: ${validation.error.message} (${validation.error.code})\nPlease fix this violation and generate valid strict JSON meeting all rules.`;
-    const retryResult = await callGeminiJsonMode(retryPrompt, apiKey);
+    // Skip retry if less than 3 seconds remain of total budget
+    const elapsedAfterAttempt1 = Date.now() - startTime;
+    const remainingForRetry = TOTAL_BUDGET_MS - elapsedAfterAttempt1;
+    if (remainingForRetry < MIN_RETRY_REMAINING_MS) {
+      return {
+        success: false,
+        fallback: true,
+        message: 'AI personalisation is unavailable right now.',
+      };
+    }
+
+    const retryTimeout = Math.min(ATTEMPT_TIMEOUT_MS, remainingForRetry);
+    // Retry prompt includes only fixed internal error codes, never text from model or validator free-text fields
+    const retryPrompt = `${prompt}\n\n=== PREVIOUS ATTEMPT FAILED SAFETY VALIDATION ===\nViolation code: ${validation.error.code}\nPlease fix this violation and generate valid strict JSON meeting all rules.`;
+    const retryResult = await callGeminiJsonMode(
+      retryPrompt,
+      apiKey,
+      AbortSignal.timeout(retryTimeout),
+    );
     const retryValidation = validateAIPlanOutput(retryResult, input);
     if (retryValidation.valid) {
       return { success: true, plan: retryValidation.output };
@@ -247,16 +276,13 @@ export async function handlePlanRequest(
     return {
       success: false,
       fallback: true,
-      error: retryValidation.error,
-      message: 'AI output failed safety validation twice; falling back to deterministic plan',
+      message: 'AI personalisation is unavailable right now.',
     };
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Unknown error';
+  } catch (_err: unknown) {
     return {
       success: false,
       fallback: true,
-      error: message,
-      message: 'Failed to contact LLM service; falling back to deterministic plan',
+      message: 'AI personalisation is unavailable right now.',
     };
   }
 }
@@ -264,6 +290,15 @@ export async function handlePlanRequest(
 /**
  * Vercel Serverless Function entry point.
  */
-export default createFetchHandler(async (req, { headers }) =>
-  handlePlanCore(await req.text(), headers, req.method),
-);
+export default createFetchHandler(async (req, { headers }) => {
+  const MAX_BYTES = 8192;
+  const readResult = await readBodyWithLimit(req, MAX_BYTES);
+  if ('tooLarge' in readResult) {
+    return createErrorResponse(
+      413,
+      'PayloadTooLarge',
+      `Payload exceeds maximum size limit of ${MAX_BYTES} bytes`,
+    );
+  }
+  return handlePlanCore(readResult.text, headers, req.method, readResult.bytes);
+});

@@ -48,6 +48,8 @@
     "sunset": "2026-11-20T18:00:00"
   },
   "freshness": "fresh",
+  "observedAt": "2026-11-20T00:00:00Z",
+  "fetchedAt": "2026-11-20T00:00:00Z",
   "officialAlert": {
     "active": true,
     "text": "Severe Pollution Advisory: GRAP Stage III precautions active."

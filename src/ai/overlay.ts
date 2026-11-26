@@ -35,10 +35,15 @@ export function applyAIOverlay(basePlan: Plan, aiOutput: AIPlanOutput): Plan {
     if (!aiSlot) return slot;
 
     const existingIds = new Set(slot.actions.map((a) => a.action.id));
-    const reorderedActions = aiSlot.actionIds
-      .filter((id) => existingIds.has(id))
-      .map((id) => slot.actions.find((a) => a.action.id === id)!)
-      .filter(Boolean);
+    const reorderedActions: ActionCandidate[] = [];
+    for (const id of aiSlot.actionIds) {
+      if (existingIds.has(id)) {
+        const found = slot.actions.find((a) => a.action.id === id);
+        if (found) {
+          reorderedActions.push(found);
+        }
+      }
+    }
 
     const reorderedIds = new Set(reorderedActions.map((a) => a.action.id));
     for (const act of slot.actions) {
