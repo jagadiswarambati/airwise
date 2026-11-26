@@ -3,7 +3,7 @@ import { ACTION_CATALOG } from '../../src/domain/catalog/actions';
 import { type Action } from '../../src/domain/types';
 
 /**
- * Baseline snapshot of the complete 24-action catalog.
+ * Baseline snapshot of the complete 25-action catalog.
  * Guarantees that splitting catalog files does not alter IDs, ordering, or fields.
  */
 export const BASELINE_ACTION_CATALOG: Action[] = [

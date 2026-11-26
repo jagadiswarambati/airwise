@@ -56,7 +56,7 @@ Snapshots of headline, radar, top 3, timeline IDs, plan confidence for: Priya ×
 ## 7. Content lint (`tests/content`)
 Banned phrases (diagnose, treat, cure, dose, medication, "saved the planet", "guaranteed", unsourced `%`), reading level (mean ≤ 16 words/sentence and syllable heuristic ≈ grade 6–8) over all templates and fixed texts, every template key referenced exists, every catalog action has all impact fields, no names in samples/demo data, no mention of Measured in MVP UI strings, attribution string present.
 
-## 8. End-to-end (Playwright, `tests/e2e`)
+## 8. End-to-end (Playwright, tests/e2e — planned, not implemented per decision A-41)
 Planned, not implemented (decision A-41).
 End-to-end browser automation is not implemented; see decision A-41. Core journey logic and offline scenarios are verified via Vitest render and unit smoke tests (`tests/render/render-smoke.test.tsx`, `tests/unit/pages-smoke.test.tsx`).
 
