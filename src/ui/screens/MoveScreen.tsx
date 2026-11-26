@@ -8,7 +8,7 @@ import { ActionRow } from '../components/ActionRow';
 import { ActionDetailModal } from '../components/ActionDetailModal';
 import { PageHeader } from '../shell/PageHeader';
 import { CompareBars } from '../components/CompareBars';
-import { Stat } from '../components/Stat';
+import { Stat } from '../primitives/Stat';
 import { Disclosure } from '../primitives/Disclosure';
 import { ROUTE_DESCRIPTIONS } from '../../state/route';
 import { Icon } from '../icons';

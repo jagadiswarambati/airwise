@@ -1,6 +1,6 @@
 # AirWise — Build Plan
 
-Purpose: the phase-by-phase execution plan for Antigravity. Source of truth for scope is `README.md` as amended by `DECISIONS.md` (Amendment Register A-xx). Paste-ready prompts are in `ANTIGRAVITY_PROMPTS.md`.
+Purpose: the phase-by-phase execution plan for Antigravity. Source of truth for scope is `README.md` as amended by `DECISIONS.md` (Amendment Register A-xx). Master agent instructions are in `AGENTS.md`.
 
 ## Sequence changes versus the README baseline
 
@@ -130,7 +130,7 @@ Cut from Attempt 1: CO₂e, carpool board, weekly history, Hindi/Telugu, OpenAQ,
 
 ## Development workflow for Antigravity
 
-1. Save the **Shared Context Block** from `docs/ANTIGRAVITY_PROMPTS.md` as `AGENTS.md` in the repo root (and, if your Antigravity version supports workspace rules, as a rule too).
+1. Save the **Shared Context Block** as `AGENTS.md` in the repo root (and, if your Antigravity version supports workspace rules, as a rule too).
 2. Run **one phase at a time**. Paste that phase's prompt. Require the agent to produce a plan first, then implement.
 3. The agent must run lint, typecheck and tests, and report results, before declaring done.
 4. **You review the diff and the acceptance checklist.** Do not start the next phase until the current one passes and is committed and pushed.
@@ -138,9 +138,8 @@ Cut from Attempt 1: CO₂e, carpool board, weekly history, Hindi/Telugu, OpenAQ,
 6. After each phase, tick the checklist in `docs/BUILD_PLAN.md`.
 7. Ask the agent to open the running app and test it in the browser at the end of Phases 4, 6, 7 and 8.
 
-## Layer-by-layer prompts & demo script
+## Demonstration script
 
-- Self-contained Antigravity prompts for Phases 0–9 and repairs R1–R3 are in [`docs/ANTIGRAVITY_PROMPTS.md`](./ANTIGRAVITY_PROMPTS.md).
 - Rehearsed 90-second judge demonstration script and fallback procedure are in [`docs/DEMO_SCRIPT.md`](./DEMO_SCRIPT.md).
 
 ## Global product acceptance criteria

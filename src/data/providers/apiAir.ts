@@ -10,14 +10,10 @@ export interface ApiAirResponse {
     aqi?: number | null;
   }>;
   weather?: {
-    temperature2m?: number | null;
     windSpeed10m?: number | null;
-    relativeHumidity2m?: number | null;
     hourly?: Array<{
       time: string;
-      temperature2m?: number | null;
       windSpeed10m?: number | null;
-      relativeHumidity2m?: number | null;
     }>;
     daylight?: {
       sunrise: string;

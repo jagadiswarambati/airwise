@@ -14,7 +14,7 @@ export { Stat } from './Stat';
 export type { StatProps } from './Stat';
 
 export { AxisPair } from './AxisPair';
-export type { AxisPairProps } from './AxisPair';
+export type { AxisPairProps, AxisDetails } from './AxisPair';
 
 export { Disclosure } from './Disclosure';
 export type { DisclosureProps } from './Disclosure';

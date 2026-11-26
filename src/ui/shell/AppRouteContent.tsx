@@ -19,7 +19,7 @@ export interface AppRouteContentProps {
   profile: HouseholdProfile | null;
   airData: {
     snapshot: AirSnapshot | null;
-    sourceTier: 'live' | 'cached' | 'sample';
+    sourceTier: 'live' | 'cached' | 'sample' | 'none';
     isFallback: boolean;
     fallbackReason?: string;
     loading: boolean;

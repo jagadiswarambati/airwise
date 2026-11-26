@@ -11,10 +11,6 @@ export interface VentilationEngineInputs {
   snapshot: AirSnapshot;
   effectiveLevel: RiskLevel;
   slots: TimeSlot[];
-  indoorSources?: {
-    hasActiveCooking?: boolean;
-    hasIndoorSmoke?: boolean;
-  };
   targetRegion?: 'IN' | 'US';
 }
 
@@ -67,7 +63,7 @@ function evaluateCautionVentilation(
 
 /**
  * Ventilation decision engine:
- * Inputs: outdoor PM2.5/AQI, trend, time, indoor-source flags, equipment, and household vulnerability.
+ * Inputs: outdoor PM2.5/AQI, trend, time, equipment, and household vulnerability.
  * Outputs: Keep closed, Brief ventilation window, or Ventilate.
  */
 export function decideVentilation(inputs: VentilationEngineInputs): VentilationDecision {

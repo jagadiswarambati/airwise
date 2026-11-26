@@ -9,7 +9,7 @@ import {
   FORMULA_E1_SUMMARY,
   FORMULA_E1_EQUATIONS,
 } from '../../../domain/config/impact-copy';
-import { Stat } from '../Stat';
+import { Stat } from '../../primitives/Stat';
 import { Disclosure } from '../../primitives/Disclosure';
 
 export interface VkmItem {

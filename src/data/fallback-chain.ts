@@ -20,7 +20,7 @@ export type ScenarioType = 'live' | 'clear' | 'moderate' | 'severe' | 'stale';
 
 export interface AirDataResult {
   snapshot: AirSnapshot;
-  sourceTier: 'live' | 'cached' | 'sample';
+  sourceTier: 'live' | 'cached' | 'sample' | 'none';
   isFallback: boolean;
   fallbackReason?: string;
 }
@@ -218,7 +218,7 @@ export async function getAirSnapshot(
 
     return {
       snapshot: fallbackSnapshot,
-      sourceTier: 'live',
+      sourceTier: 'none',
       isFallback: true,
       fallbackReason,
     };

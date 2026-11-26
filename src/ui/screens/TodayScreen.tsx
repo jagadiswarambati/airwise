@@ -13,7 +13,7 @@ import { TodayPlanView } from '../components/today/TodayPlanView';
 export interface TodayScreenProps {
   profile: HouseholdProfile;
   snapshot: AirSnapshot | null;
-  sourceTier: 'live' | 'cached' | 'sample';
+  sourceTier: 'live' | 'cached' | 'sample' | 'none';
   isFallback: boolean;
   fallbackReason?: string;
   loading: boolean;

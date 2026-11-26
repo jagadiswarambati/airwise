@@ -6,7 +6,6 @@ This directory contains the complete technical specifications, architectural des
 
 - [`ACCESSIBILITY.md`](./ACCESSIBILITY.md) — WCAG 2.1 AA accessibility audit, screen reader support, keyboard navigation patterns, and token contrast guarantees.
 - [`AGENTS.md`](./AGENTS.md) — Core system instructions, shared context, and non-negotiable safety rules for AI coding assistants.
-- [`ANTIGRAVITY_PROMPTS.md`](./ANTIGRAVITY_PROMPTS.md) — Step-by-step layer prompts, acceptance criteria, and prompt repairs used to build AirWise.
 - [`ARCHITECTURE.md`](./ARCHITECTURE.md) — Layering contracts, dependency boundaries, data flow diagrams, and architectural specifications.
 - [`BUILD_PLAN.md`](./BUILD_PLAN.md) — Phase-by-phase implementation plan, milestone acceptance gates, attempt strategy, and risk register.
 - [`DATA_SOURCES.md`](./DATA_SOURCES.md) — Catalog of atmospheric data providers, geocoding endpoints, update intervals, and licensing terms.

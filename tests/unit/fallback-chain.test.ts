@@ -68,7 +68,7 @@ describe('Fallback Chain & Honest Offline Behaviour (Decision A-32)', () => {
     });
 
     // Never substitute a sample scenario automatically!
-    expect(result.sourceTier).toBe('live');
+    expect(result.sourceTier).toBe('none');
     expect(result.isFallback).toBe(true);
     expect(result.fallbackReason).toBe(
       "We couldn't reach the air data service. Using cautious defaults.",

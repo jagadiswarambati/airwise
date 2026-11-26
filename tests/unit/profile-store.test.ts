@@ -62,4 +62,11 @@ describe('Profile Store & Storage', () => {
     deleteProfile();
     expect(getProfile()).toBeNull();
   });
+
+  it('caches the parsed profile object reference when localStorage raw string has not changed', () => {
+    loadPriyaPreset();
+    const firstCall = getProfile();
+    const secondCall = getProfile();
+    expect(firstCall).toBe(secondCall); // Referential equality via raw localStorage cache
+  });
 });

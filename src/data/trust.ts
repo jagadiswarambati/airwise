@@ -7,7 +7,7 @@ export interface TrustModel {
   freshnessBadge: 'Fresh' | 'Aging' | 'Stale' | 'Unavailable';
   freshnessNote: string;
   resolutionNote: string;
-  sourceTier: 'live' | 'cached' | 'sample';
+  sourceTier: 'live' | 'cached' | 'sample' | 'none';
   isFallback: boolean;
   fallbackReason?: string;
   planSource: string;
@@ -20,7 +20,7 @@ export function buildTrustModel(
   snapshot: AirSnapshot,
   planConfidence: Confidence,
   confidenceReason: string,
-  sourceTier: 'live' | 'cached' | 'sample',
+  sourceTier: 'live' | 'cached' | 'sample' | 'none',
   isFallback: boolean,
   fallbackReason?: string,
   planSource?: string,

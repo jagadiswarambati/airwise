@@ -22,9 +22,7 @@ export interface UpstreamWeatherResponse {
   };
   hourly?: {
     time?: string[];
-    temperature_2m?: Array<number | null>;
     wind_speed_10m?: Array<number | null>;
-    relative_humidity_2m?: Array<number | null>;
   };
 }
 
@@ -36,18 +34,14 @@ export interface ApiHourlyPoint {
 
 export interface ApiWeatherHourlyPoint {
   time: string;
-  temperature2m?: number | null;
   windSpeed10m?: number | null;
-  relativeHumidity2m?: number | null;
 }
 
 export interface ApiAirResponseData {
   currentPm25: number | null;
   hourly: ApiHourlyPoint[];
   weather?: {
-    temperature2m?: number | null;
     windSpeed10m?: number | null;
-    relativeHumidity2m?: number | null;
     hourly?: ApiWeatherHourlyPoint[];
     daylight?: {
       sunrise: string;
@@ -79,7 +73,7 @@ export async function fetchUpstream(
   | { success: false; response: ApiResponse<ApiErrorBody> }
 > {
   const airUrl = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&hourly=pm2_5,us_aqi,european_aqi&current=pm2_5&timezone=auto`;
-  const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=temperature_2m,wind_speed_10m,relative_humidity_2m&daily=sunrise,sunset&timezone=auto`;
+  const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=wind_speed_10m&daily=sunrise,sunset&timezone=auto`;
 
   try {
     const [airRes, weatherRes] = await Promise.allSettled([
@@ -121,12 +115,10 @@ function parseDaylight(daily?: UpstreamWeatherResponse['daily']): ApiAirResponse
 
 function parseWeatherHourly(hourly?: UpstreamWeatherResponse['hourly']): ApiWeatherHourlyPoint[] {
   if (!hourly?.time) return [];
-  const { time, temperature_2m: temp = [], wind_speed_10m: wind = [], relative_humidity_2m: hum = [] } = hourly;
+  const { time, wind_speed_10m: wind = [] } = hourly;
   return time.map((t, i) => ({
     time: t,
-    temperature2m: temp[i] ?? null,
     windSpeed10m: wind[i] ?? null,
-    relativeHumidity2m: hum[i] ?? null,
   }));
 }
 
@@ -137,16 +129,12 @@ function parseWeatherSection(weatherJson: UpstreamWeatherResponse | null): {
   if (!weatherJson) return {};
   const daylight = parseDaylight(weatherJson.daily);
   const hourly = parseWeatherHourly(weatherJson.hourly);
-  const wTemp = weatherJson.hourly?.temperature_2m ?? [];
   const wWind = weatherJson.hourly?.wind_speed_10m ?? [];
-  const wHum = weatherJson.hourly?.relative_humidity_2m ?? [];
 
   return {
     daylight,
     weather: {
-      temperature2m: wTemp[0] ?? null,
       windSpeed10m: wWind[0] ?? null,
-      relativeHumidity2m: wHum[0] ?? null,
       hourly,
       daylight,
     },

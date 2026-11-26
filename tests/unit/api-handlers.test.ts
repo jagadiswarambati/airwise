@@ -241,7 +241,7 @@ describe('Serverless API Handlers Contract & Safety Tests', () => {
           json: () =>
             Promise.resolve({
               daily: { sunrise: ['2026-11-22T06:15:00Z'], sunset: ['2026-11-22T17:45:00Z'] },
-              hourly: { time: ['2026-11-22T10:00:00Z'], temperature_2m: [25] },
+              hourly: { time: ['2026-11-22T10:00:00Z'], wind_speed_10m: [10] },
             }),
         });
       });
@@ -308,7 +308,7 @@ describe('Serverless API Handlers Contract & Safety Tests', () => {
           json: () =>
             Promise.resolve({
               daily: { sunrise: ['2026-11-22T06:15:00Z'], sunset: ['2026-11-22T17:45:00Z'] },
-              hourly: { time: ['2026-11-22T10:00:00Z'], temperature_2m: [25] },
+              hourly: { time: ['2026-11-22T10:00:00Z'], wind_speed_10m: [10] },
             }),
         });
       });

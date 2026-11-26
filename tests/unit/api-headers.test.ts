@@ -136,7 +136,7 @@ describe('Security Headers Verification (vercel.json vs api/_lib/headers.ts)', (
           json: () =>
             Promise.resolve({
               daily: { sunrise: ['2026-11-25T06:00:00Z'], sunset: ['2026-11-25T18:00:00Z'] },
-              hourly: { time: ['2026-11-25T10:00:00Z'], temperature_2m: [24] },
+              hourly: { time: ['2026-11-25T10:00:00Z'], wind_speed_10m: [10] },
             }),
         });
       }

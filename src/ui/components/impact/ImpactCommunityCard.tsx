@@ -1,5 +1,5 @@
 import { Icon } from '../../icons';
-import { Stat } from '../Stat';
+import { Stat } from '../../primitives/Stat';
 import {
   GREEN_MEADOWS_SOCIETY,
   SEEDED_CARPOOL_HOUSEHOLDS,

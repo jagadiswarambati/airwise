@@ -33,10 +33,8 @@ function addPm25Facts(input: AIPlanInput, allowedValues: Set<number>): void {
 function addRoutineTimeFacts(
   routineTimes: string[],
   allowedValues: Set<number>,
-  routineTimePairs: Set<string>,
 ): void {
   for (const timeStr of routineTimes) {
-    routineTimePairs.add(timeStr);
     const [hStr, mStr] = timeStr.split(':');
     const h = parseInt(hStr, 10);
     const m = parseInt(mStr, 10);
@@ -44,7 +42,6 @@ function addRoutineTimeFacts(
       allowedValues.add(h);
       if (h > 12) allowedValues.add(h - 12);
       if (h === 0) allowedValues.add(12);
-      routineTimePairs.add(`${h}:${mStr}`);
     }
     if (!isNaN(m)) {
       allowedValues.add(m);
@@ -70,18 +67,16 @@ export function deriveAllowedNumericValues(
   extraNumbers?: string[],
 ): {
   allowedValues: Set<number>;
-  routineTimePairs: Set<string>;
 } {
   const allowedValues = new Set<number>();
-  const routineTimePairs = new Set<string>();
 
   addConstantNumbers(allowedValues);
   allowedValues.add(input.effectiveLevel);
   addPm25Facts(input, allowedValues);
-  addRoutineTimeFacts(input.numericFacts.routineTimes, allowedValues, routineTimePairs);
+  addRoutineTimeFacts(input.numericFacts.routineTimes, allowedValues);
   addExtraNumbers(extraNumbers, allowedValues);
 
-  return { allowedValues, routineTimePairs };
+  return { allowedValues };
 }
 
 export function sanitizeAuthorizedTokens(rawText: string, allowedValues: Set<number>): string {

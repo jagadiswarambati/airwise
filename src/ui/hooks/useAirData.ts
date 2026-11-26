@@ -4,7 +4,7 @@ import { getAirSnapshot, type ScenarioType } from '../../data/fallback-chain';
 
 export interface AirDataState {
   snapshot: AirSnapshot | null;
-  sourceTier: 'live' | 'cached' | 'sample';
+  sourceTier: 'live' | 'cached' | 'sample' | 'none';
   isFallback: boolean;
   fallbackReason?: string;
   loading: boolean;
@@ -17,7 +17,7 @@ export function useAirData(
   scenario: ScenarioType,
 ): AirDataState {
   const [snapshot, setSnapshot] = useState<AirSnapshot | null>(null);
-  const [sourceTier, setSourceTier] = useState<'live' | 'cached' | 'sample'>('sample');
+  const [sourceTier, setSourceTier] = useState<'live' | 'cached' | 'sample' | 'none'>('sample');
   const [isFallback, setIsFallback] = useState<boolean>(false);
   const [fallbackReason, setFallbackReason] = useState<string | undefined>();
   const [loading, setLoading] = useState<boolean>(true);

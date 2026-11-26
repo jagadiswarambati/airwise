@@ -6,7 +6,6 @@ import { getPersonalizedPlan } from '../../ai/client';
 export interface UsePersonalizedPlanResult {
   plan: Plan | null;
   isAiPersonalized: boolean;
-  statusMessage?: string;
   isSwapping: boolean;
 }
 
@@ -31,7 +30,6 @@ export function usePersonalizedPlan(
 ): UsePersonalizedPlanResult {
   const [activePlan, setActivePlan] = useState<Plan | null>(basePlan);
   const [isAiPersonalized, setIsAiPersonalized] = useState<boolean>(false);
-  const [statusMessage, setStatusMessage] = useState<string | undefined>();
   const [isSwapping, setIsSwapping] = useState<boolean>(false);
 
   // Keep ref to latest basePlan to ensure immediate fallback on dependency change
@@ -53,7 +51,6 @@ export function usePersonalizedPlan(
     if (!enabled || !snapshot || !profile || !policyResult) {
       updateActivePlan(basePlan);
       setIsAiPersonalized(false);
-      setStatusMessage(undefined);
       setIsSwapping(false);
       return;
     }
@@ -84,15 +81,13 @@ export function usePersonalizedPlan(
         setIsSwapping(false);
         updateActivePlan(result.plan);
         setIsAiPersonalized(result.isAIPersonalized);
-        setStatusMessage(result.statusMessage);
       })
-      .catch((err: unknown) => {
+      .catch(() => {
         if (!isMounted) return;
         clearTimeout(timeoutId);
         setIsSwapping(false);
         updateActivePlan(basePlanRef.current);
         setIsAiPersonalized(false);
-        setStatusMessage(err instanceof Error ? err.message : 'Plan personalization failed');
       });
 
     return () => {
@@ -105,7 +100,6 @@ export function usePersonalizedPlan(
   return {
     plan: activePlan,
     isAiPersonalized,
-    statusMessage,
     isSwapping,
   };
 }

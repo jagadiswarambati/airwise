@@ -3,7 +3,7 @@ import { type ActionCandidate } from '../../../domain/types';
 import { Icon } from '../../icons';
 import { Chip } from '../../primitives/Chip';
 import { ActionRow } from '../ActionRow';
-import { AxisPair } from '../AxisPair';
+import { AxisPair } from '../../primitives/AxisPair';
 
 const CATEGORY_CHIPS = [
   { key: 'all', label: 'All' },

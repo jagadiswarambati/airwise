@@ -43,6 +43,8 @@ export const PRIYA_PRESET: HouseholdProfile = {
 };
 
 let inMemoryProfile: HouseholdProfile | null = null;
+let cachedRawJson: string | null = null;
+let cachedProfile: HouseholdProfile | null = null;
 const listeners = new Set<() => void>();
 
 function notifyListeners() {
@@ -58,7 +60,15 @@ export function getProfile(): HouseholdProfile | null {
 
   try {
     const raw = window.localStorage.getItem(PROFILE_STORAGE_KEY);
-    if (!raw) return inMemoryProfile;
+    if (!raw) {
+      cachedRawJson = null;
+      cachedProfile = null;
+      return inMemoryProfile;
+    }
+
+    if (raw === cachedRawJson && cachedProfile !== null) {
+      return cachedProfile;
+    }
 
     const parsed = JSON.parse(raw);
     const validated = HouseholdProfileSchema.safeParse(parsed);
@@ -71,9 +81,13 @@ export function getProfile(): HouseholdProfile | null {
           roleLabel: roleLabelFor(m),
         })),
       };
+      cachedRawJson = raw;
+      cachedProfile = normalised;
       inMemoryProfile = normalised;
       return normalised;
     } else {
+      cachedRawJson = null;
+      cachedProfile = null;
       logWarn('Stored profile corrupted, resetting storage', validated.error.name);
       deleteProfile();
       return null;
@@ -96,7 +110,10 @@ export function saveProfile(profile: HouseholdProfile): void {
 
   try {
     if (typeof window !== 'undefined' && window.localStorage) {
-      window.localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(validated));
+      const jsonStr = JSON.stringify(validated);
+      window.localStorage.setItem(PROFILE_STORAGE_KEY, jsonStr);
+      cachedRawJson = jsonStr;
+      cachedProfile = validated;
     }
   } catch (error) {
     const errorName = error instanceof Error ? error.name : 'StorageError';
@@ -108,6 +125,8 @@ export function saveProfile(profile: HouseholdProfile): void {
 
 export function deleteProfile(): void {
   inMemoryProfile = null;
+  cachedRawJson = null;
+  cachedProfile = null;
   try {
     if (typeof window !== 'undefined' && window.localStorage) {
       window.localStorage.removeItem(PROFILE_STORAGE_KEY);

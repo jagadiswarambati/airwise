@@ -39,10 +39,6 @@ export interface PolicyEvaluationResult {
   };
 }
 
-export interface EvaluatePolicyOptions {
-  disabledRules?: string[];
-}
-
 export const ORDERED_POLICY_RULES: Array<{ id: string; rule: PolicyRuleFunction }> = [
   { id: 'P-01', rule: ruleSevere },
   { id: 'P-03_P-04', rule: ruleStaleData },
@@ -119,11 +115,8 @@ function applyOrderedRules(
   forbiddenSet: Set<string>,
   mustIncludeSet: Set<string>,
   urgentSet: Set<string>,
-  disabledRules?: string[],
 ): void {
-  const disabled = new Set(disabledRules ?? []);
-  for (const { id, rule } of ORDERED_POLICY_RULES) {
-    if (disabled.has(id)) continue;
+  for (const { rule } of ORDERED_POLICY_RULES) {
     const partial = rule(ruleCtx);
     partial.forbiddenActionIds?.forEach((aId) => forbiddenSet.add(aId));
     partial.mustIncludeActionIds?.forEach((aId) => mustIncludeSet.add(aId));
@@ -178,7 +171,6 @@ export function evaluatePolicy(
   communityMode: boolean = false,
   targetRegion: 'IN' | 'US' = 'IN',
   currentTime?: Date | string,
-  options?: EvaluatePolicyOptions,
 ): PolicyEvaluationResult {
   const baseLevel = computeBaseLevel(snapshot.pm25.now, targetRegion);
   const effectiveLevel = computeEffectiveLevel(baseLevel, profile.members);
@@ -207,7 +199,7 @@ export function evaluatePolicy(
     ...flags,
   };
 
-  applyOrderedRules(ruleCtx, forbiddenSet, mustIncludeSet, urgentSet, options?.disabledRules);
+  applyOrderedRules(ruleCtx, forbiddenSet, mustIncludeSet, urgentSet);
 
   const approvedCandidates = filterAndBuildCandidates(
     profile,

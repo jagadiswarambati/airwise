@@ -27,7 +27,7 @@ export interface TodayPlanViewProps {
   quickChecks?: QuickCheckResult[];
   settings: AirWiseSettings;
   announcement: string;
-  sourceTier: 'live' | 'cached' | 'sample';
+  sourceTier: 'live' | 'cached' | 'sample' | 'none';
   isFallback: boolean;
   fallbackReason?: string;
   onSelectScenario: (s: ScenarioType) => void;
