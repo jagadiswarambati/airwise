@@ -38,7 +38,7 @@
     "test:matrix": "node scripts/run-matrix.mjs",
     "check:traceability": "node scripts/check-traceability.mjs",
     "check:ui": "node scripts/check-ui.mjs",
-    "check:css": "node scripts/check-css.mjs",
+    "check:css": "node scripts/check-css.mjs && node scripts/check-css-used.mjs",
     "check:links": "node scripts/check-links.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check .",

@@ -1,6 +1,7 @@
 /* AirWise Legal & About: long-form documentation layout, sticky navigation, and informational showcases. */
 
-ErrorBoundary Card .aw-error-boundary-card {
+/* ErrorBoundary Card */
+.aw-error-boundary-card {
   padding: var(--space-5);
   margin: var(--space-4) 0;
 }
@@ -32,7 +33,8 @@ ErrorBoundary Card .aw-error-boundary-card {
   border: 1px solid var(--line);
 }
 
-Prose & Reading Layouts .aw-prose {
+/* Prose & Reading Layouts */
+.aw-prose {
   max-width: 70ch;
   line-height: 1.6;
   width: 100%;
@@ -55,7 +57,8 @@ Prose & Reading Layouts .aw-prose {
   outline-offset: var(--focus-offset);
 }
 
-Legal & Documentation Layout .aw-legal-layout {
+/* Legal & Documentation Layout */
+.aw-legal-layout {
   display: flex;
   flex-direction: column;
   gap: var(--space-5);
@@ -137,7 +140,8 @@ Legal & Documentation Layout .aw-legal-layout {
   min-width: 0;
 }
 
-Feature Cards .aw-feature-grid {
+/* Feature Cards */
+.aw-feature-grid {
   display: grid;
   grid-template-columns: 1fr;
   gap: var(--space-4);
@@ -187,7 +191,8 @@ Feature Cards .aw-feature-grid {
   line-height: 1.5;
 }
 
-Numbered Step List .aw-step-list {
+/* Numbered Step List */
+.aw-step-list {
   list-style: none;
   margin: var(--space-4) 0;
   padding: 0;
@@ -240,7 +245,8 @@ Numbered Step List .aw-step-list {
   line-height: 1.5;
 }
 
-Audience Cards .aw-audience-grid {
+/* Audience Cards */
+.aw-audience-grid {
   display: grid;
   grid-template-columns: 1fr;
   gap: var(--space-4);
@@ -378,7 +384,8 @@ Audience Cards .aw-audience-grid {
   margin-top: var(--space-1);
 }
 
-About Screen CTA & Onboarding Privacy Notice .aw-about-cta-card {
+/* About Screen CTA & Onboarding Privacy Notice */
+.aw-about-cta-card {
   padding: var(--space-5);
   background-color: var(--surface);
   border: 1px solid var(--line);

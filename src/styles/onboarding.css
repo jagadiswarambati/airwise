@@ -1,6 +1,7 @@
 /* AirWise Onboarding: multi-step onboarding wizard, household configuration, and profile review. */
 
-F6 Onboarding and Profile Accessible Form Primitives .aw-onboarding-wrapper {
+/* F6 Onboarding and Profile Accessible Form Primitives */
+.aw-onboarding-wrapper {
   width: 100%;
   display: flex;
   justify-content: center;

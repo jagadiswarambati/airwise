@@ -11,3 +11,5 @@
 @import "./community.css";
 @import "./onboarding.css";
 @import "./legal.css";
+/* Restored from Attempt 1 stylesheet: rules removed by CSS split while code still uses them */
+@import "./restored.css";
