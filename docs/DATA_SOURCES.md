@@ -64,7 +64,7 @@ Everything from Open-Meteo is **Modelled**. The `observed` data type exists in t
 - Coordinates sent to `/api/air` are the rounded values.
 
 ## 9. Offline and sample data
-- `src/data/samples/{clear,moderate,severe,stale}.json` plus `cities.json`; each snapshot is a fully valid `AirSnapshot` with `source.dataType = 'sample'`; timestamps are generated relative to "now" at load (except `stale`, which is fixed ≥ 24 h old). Total ≤ 200 KB.
+- `src/data/samples/` (`clear.json`, `moderate.json`, `severe.json`, `stale.json`, `cities.json`); each snapshot is a fully valid `AirSnapshot` with `source.dataType = 'sample'`; timestamps are generated relative to "now" at load (except `stale`, which is fixed ≥ 24 h old). Total ≤ 200 KB.
 - Service worker caches shell and last live snapshot only.
 
 ## 10. Caching

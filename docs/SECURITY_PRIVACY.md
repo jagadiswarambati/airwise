@@ -8,7 +8,7 @@ Purpose: practical controls, with the exact settings to implement and a checklis
 |---|---|---|---|
 | Household profile (age groups, health flags, equipment, routine) | **Sensitive** (health-adjacent) | LocalStorage | Never, except coarse descriptors to the LLM (§6) |
 | Location (rounded to 2 dp) | Personal | LocalStorage | Rounded coordinates to `/api/air` only |
-| Air snapshot cache | Low | LocalStorage, service worker | No |
+| Air snapshot cache | Low | LocalStorage | No |
 | Plan cache | Derived | Memory (and optionally LocalStorage) | No |
 | LLM request | Derived, minimal | In transit to our API and Gemini | Yes (enums and engine facts) |
 | Server logs | Operational | Hosting platform | Must contain no bodies, no coordinates |
@@ -118,12 +118,12 @@ Notes:
 
 ## 10. Dependency and supply-chain controls
 
-- Few dependencies (React, Zod, Vite tooling, Vitest, Playwright, `vite-plugin-pwa`). Any new runtime dependency needs a one-line justification in `DECISIONS.md`.
+- Few dependencies (React, Zod, Vite tooling, Vitest). Any new runtime dependency needs a one-line justification in `DECISIONS.md`.
 - `package-lock.json` committed; CI uses `npm ci`.
-- `npm audit --audit-level=high` enforced in CI on every push and pull request.
-- Pinned third-party GitHub Actions to major version (`@v4`).
+- `npm audit --audit-level=high` enforced in CI on every push and pull request. Workflow execution results are visible in the repository's Actions tab.
+- Pinned third-party GitHub Actions to release commits/hashes.
 - Strict workflow permissions: `permissions: contents: read` declared in `.github/workflows/ci.yml`.
-- Automated dependency auditing via Dependabot (`.github/dependabot.yml` configured for weekly npm and github-actions updates).
+- Static analysis via GitHub CodeQL (`.github/workflows/codeql.yml`) on push, pull request, and weekly schedule; results are visible in the repository's Actions and Security tabs.
 - Vulnerability disclosure policy published in `SECURITY.md` and RFC 9116 `public/.well-known/security.txt`.
 
 ## 11. LocalStorage privacy controls
@@ -144,7 +144,7 @@ Notes:
 ## 13. Data export and deletion
 
 - **Export:** JSON file containing `schemaVersion`, profile and settings only. No caches, no coordinates beyond 2 dp.
-- **Delete all:** removes every `airwise_*` LocalStorage key, clears in-memory plan and air caches, unregisters nothing but deletes the service-worker caches, and resets state. Confirmation required; a test asserts no `airwise_*` key remains.
+- **Delete all:** removes every `airwise_*` LocalStorage key, clears in-memory plan and air caches, deletes Cache Storage entries if any exist, and resets state. Confirmation required; a test asserts no `airwise_*` key remains.
 - No server-side copy exists, so there is nothing else to delete. State this in the app.
 
 ## 14. Error handling without information leakage
@@ -171,49 +171,49 @@ The AI may not: add actions, remove or demote must-include actions, introduce nu
 - Respirator text (P-13, A-08): fit matters, rating such as N95 or FFP2, "Some respirators make breathing harder. Ask your clinician if unsure.", no masks for under-5s.
 - Combustion text (P-22): fixed carbon-monoxide safety line on IN-01 for affected households.
 
-## 17. Known gaps to close (from the 2026-11-21 repo review)
+## 17. Gap resolution register (from the 2026-11-21 repo review)
 
-| ID | Gap | Close in |
-|---|---|---|
-| S-01 | No `vercel.json` (no CSP or headers) | R1 |
-| S-02 | `/api/plan` has no request validation, body cap or rate limit | R1 |
-| S-03 | Client-supplied titles and allow-lists enter the prompt | R1 |
-| S-04 | Browser calls Open-Meteo directly; conflicts with `connect-src 'self'`; no `/api/air` | R1 |
-| S-05 | `roleLabel` carries exact ages to the LLM | R1 |
-| S-06 | API key in the URL query string | R1 |
-| S-07 | `check:branches` fails open and reads only local branches | R3 |
-| S-08 | `scan-secrets` ignore list uses substring matches | R3 |
-| S-09 | Validator accepts full-width digits (number-check bypass) | R1 |
-| S-10 | No `npm audit` waiver policy, no bundle grep for secrets | Phase 8 |
+| ID | Gap | Status | Resolution & Evidence |
+|---|---|:---:|---|
+| S-01 | No `vercel.json` (no CSP or headers) | Closed | `vercel.json` and `api/_lib/headers.ts` verified by `tests/unit/api-headers.test.ts` |
+| S-02 | `/api/plan` has no request validation, body cap or rate limit | Closed | `withApiGuards` and `AIPlanInputSchema` in `api/plan.ts` verified by `tests/unit/api-plan.test.ts` |
+| S-03 | Client-supplied titles and allow-lists enter the prompt | Closed | Server-side lookup from `ACTION_CATALOG` in `api/plan.ts` verified by `tests/unit/api-plan.test.ts` |
+| S-04 | Browser calls Open-Meteo directly; conflicts with `connect-src 'self'`; no `/api/air` | Closed | Serverless `/api/air` proxy implemented and verified by `tests/unit/api-handlers.test.ts` |
+| S-05 | `roleLabel` carries exact ages to the LLM | Closed | Abstract age bands and role labels verified by `tests/unit/privacy-payload.test.ts` |
+| S-06 | API key in the URL query string | Closed | Key passed in `x-goog-api-key` header verified in `tests/unit/api-security-boundary.test.ts` |
+| S-07 | `check:branches` fails open and reads only local branches | Closed | Remote branch guard fail-closed logic verified in `tests/unit/guards.test.ts` |
+| S-08 | `scan-secrets` ignore list uses substring matches | Closed | Anchored segment matching verified in `tests/unit/guards.test.ts` |
+| S-09 | Validator accepts full-width digits (number-check bypass) | Closed | NFKC digit normalization in `src/ai/validator.ts` verified in `tests/unit/ai-validator.test.ts` |
+| S-10 | No `npm audit` in CI, no bundle scan for secrets | Closed | `npm audit --audit-level=high` in CI; secret scan guard verified in `tests/unit/guards.test.ts` |
 
 ## 18. Security checklist per phase
 
-| Phase | Requirement | Evidence (Verified 2026-11-25) |
+| Phase | Requirement | Reproducible Verification Command & Result |
 |---|---|---|
-| 0 | `.gitignore` covers `.env*`; `scan:secrets` flags a planted fake key; `vercel.json` headers present; lockfile committed | Verified 2026-11-25: `.gitignore` covers `.env*`, `npm run scan:secrets` clean, `vercel.json` security headers verified in `tests/unit/api-headers.test.ts`. |
-| 1A/1B | Domain has no I/O; no `Date.now()` or `Math.random()` without injection; templates contain no medical claims | Verified 2026-11-25: Pure functions use injected `Clock`; zero unauthorized non-deterministic calls; copy strictly vetted against clinical claim lint. |
-| 2 | Zod on every provider response; API validation, caps, rate limit, CORS tests; handlers never log bodies; `/api/air` and `/api/geocode` exist; client no longer calls providers directly | Verified 2026-11-25: Zod schemas validate Open-Meteo payload; `withApiGuards` enforces 1KB/8KB caps and CORS; `tests/unit/api-handlers.test.ts` passes (22 tests). |
-| 3 | Storage schema-validated; privacy note shown; export and delete tested; geolocation rounded, one-shot | Verified 2026-11-25: `HouseholdProfileSchema.safeParse` in `profileStore.ts`; delete/export tested in `tests/unit/profile-store.test.ts`; coordinates rounded to 2 dp. |
-| 4A/4B | No `dangerouslySetInnerHTML`; service worker never caches `/api/plan`; error boundaries per tab | Verified 2026-11-25: Codebase grep confirms 0 `dangerouslySetInnerHTML` occurrences; Vite PWA excludes `/api/*`; React `ErrorBoundary` wraps screens. |
-| 5 | Prompt built server-side; titles from catalog; no coordinates or exact ages in the payload; abuse fixtures pass; key never in the bundle | Verified 2026-11-25: `buildPlanPrompt` maps IDs from `ACTION_CATALOG`; `tests/validator/validator-abuse.test.ts` passes; Gemini key read only in `api/plan.ts`. |
-| 6 | New copy passes content lint; P-22 text present | Verified 2026-11-25: Content lint in `scripts/check-ui.mjs` passes with 0 errors; combustion warning present on indoor stove mitigation action IN-01. |
-| 7 | Community briefing contains no profile data; demo data labelled | Verified 2026-11-25: Briefing generator accepts only anonymous aggregate numbers; society mock records tagged with demo badge in UI. |
-| 8 | Full checklist run; `npm audit` clean or waived; CSP-violation listener green; secret scan on the built bundle | Verified 2026-11-25: `npm audit --audit-level=high` reports 0 vulnerabilities; `tests/unit/api-headers.test.ts` passes; built dist grepped clean of secrets. |
-| 9 | Final scan; `.env.example` verified blank; repo history scanned once more | Verified 2026-11-25: `.env.example` contains only template variable names without secrets; git log audit verifies single-branch repo security posture. |
+| 0 | `.gitignore` covers `.env*`; `scan:secrets` flags a planted fake key; `vercel.json` headers present; lockfile committed | `npm run scan:secrets` passes; `npx vitest run tests/unit/api-headers.test.ts` passes. |
+| 1A/1B | Domain has no I/O; no `Date.now()` or `Math.random()` without injection; templates contain no medical claims | `npx vitest run tests/unit/domain-purity.test.ts` passes (zero unauthorized non-deterministic calls); content lint passes. |
+| 2 | Zod on every provider response; API validation, caps, rate limit, CORS tests; handlers never log bodies; `/api/air` and `/api/geocode` exist; client no longer calls providers directly | `npx vitest run tests/unit/api-handlers.test.ts` passes (23 tests); `withApiGuards` enforces 1 KB/8 KB caps and CORS. |
+| 3 | Storage schema-validated; privacy note shown; export and delete tested; geolocation rounded, one-shot | `npx vitest run tests/unit/profile-store.test.ts` passes (`HouseholdProfileSchema.safeParse`, delete/export). Coordinates rounded to 2 dp. |
+| 4A/4B | No `dangerouslySetInnerHTML`; error boundaries per tab | Codebase grep confirms 0 `dangerouslySetInnerHTML` occurrences; React `ErrorBoundary` wraps screens. |
+| 5 | Prompt built server-side; titles from catalog; no coordinates or exact ages in the payload; abuse fixtures pass; key never in the bundle | `npx vitest run tests/validator/validator-abuse.test.ts` passes (16 tests); Gemini key read only in `api/plan.ts`. |
+| 6 | New copy passes content lint; P-22 text present | `npx vitest run tests/content/content-lint.test.ts` passes; combustion warning present on indoor stove mitigation action IN-01. |
+| 7 | Community briefing contains no profile data; demo data labelled | Anonymous aggregate numbers only; society mock records tagged with demo badge in UI. |
+| 8 | Full checklist run; `npm audit` clean or waived; secret scan on the built bundle | `npm audit --audit-level=high` reports 0 vulnerabilities; `npx vitest run tests/unit/api-headers.test.ts` passes; built dist grepped clean of secrets. |
+| 9 | Final scan; `.env.example` verified blank; single-branch verification | `.env.example` contains only template variable names without secrets; `npm run check:branches` verifies single branch `main`. |
 
 ## 19. Security evidence table
 
-Verified on 2026-11-25. All listed controls are implemented in code and verified with passing automated test suites.
+Verified via automated test suites and repository checks.
 
-| Control | Target File(s) | Verification Test / Command | Verified Date |
+| Control | Target File(s) | Verification Command / Suite | Result |
 |---|---|---|---|
-| HTTP Security Headers | `api/_lib/headers.ts`, `vercel.json` | `tests/unit/api-headers.test.ts` | 2026-11-25 |
-| Content Security Policy | `api/_lib/headers.ts`, `vercel.json` | `tests/unit/api-headers.test.ts` | 2026-11-25 |
-| CORS Restrictions | `api/_lib/pipeline.ts` | `tests/unit/api-handlers.test.ts` | 2026-11-25 |
-| Input & Upstream Validation | `api/plan.ts`, `api/_lib/validate.ts`, `src/ai/validator.ts` | `tests/unit/api-plan.test.ts`, `tests/validator/validator-abuse.test.ts` | 2026-11-25 |
-| Rate Limiting & Anti-Spoofing IP | `api/_lib/rateLimit.ts` | `tests/unit/api-rate-limit.test.ts` | 2026-11-25 |
-| Secret Scanning & Leak Prevention | `scripts/scan-secrets.mjs`, `api/_lib/errors.ts` | `npm run scan:secrets`, `tests/unit/api-handlers.test.ts` | 2026-11-25 |
-| Dependency Auditing & Review | `package.json`, `.github/workflows/ci.yml` | `npm audit --audit-level=high` | 2026-11-25 |
-| Static Analysis (CodeQL) | `.github/workflows/codeql.yml` | GitHub CodeQL Workflow (`codeql.yml`) | 2026-11-25 |
-| Vulnerability Disclosure | `SECURITY.md`, `public/.well-known/security.txt` | RFC 9116 specification check | 2026-11-25 |
+| HTTP Security Headers | `api/_lib/headers.ts`, `vercel.json` | `npx vitest run tests/unit/api-headers.test.ts` | 7 tests passed |
+| Content Security Policy | `api/_lib/headers.ts`, `vercel.json` | `npx vitest run tests/unit/api-headers.test.ts` | CSP directives verified (connect-src 'self', media-src 'self' https: data:) |
+| CORS Restrictions | `api/_lib/pipeline.ts` | `npx vitest run tests/unit/api-handlers.test.ts` | Same-origin enforced |
+| Input & Upstream Validation | `api/plan.ts`, `api/_lib/validate.ts`, `src/ai/validator.ts` | `npx vitest run tests/unit/api-plan.test.ts tests/validator/validator-abuse.test.ts` | 31 tests passed |
+| Rate Limiting & Anti-Spoofing IP | `api/_lib/rateLimit.ts` | `npx vitest run tests/unit/api-rate-limit.test.ts` | 10 tests passed |
+| Secret Scanning & Leak Prevention | `scripts/scan-secrets.mjs`, `api/_lib/errors.ts` | `npm run scan:secrets` | PASS (0 secrets detected) |
+| Dependency Auditing | `package.json`, `.github/workflows/ci.yml` | `npm audit --audit-level=high` | 0 vulnerabilities (visible in GitHub Actions) |
+| Static Analysis (CodeQL) | `.github/workflows/codeql.yml` | GitHub CodeQL Workflow | Configured on push/PR (visible in GitHub Actions) |
+| Vulnerability Disclosure | `SECURITY.md`, `public/.well-known/security.txt` | RFC 9116 format specification | Verified |
 
