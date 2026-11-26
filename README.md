@@ -2,7 +2,7 @@
 
 > Household clean-air decision assistant for urban winter smog: understand your air, protect your family, and track dual-axis impact.
 
-AirWise bridges the gap between public air quality indices and household daily decisions. Instead of stopping at a single abstract AQI number or offering generic chatbot advice, AirWise combines local atmospheric forecasts with household profiles to generate a prioritized, explainable Clean-Air Plan. It operates with honest dual-axis impact accounting (exposure reduction vs. emissions avoidance), visible data confidence, and complete local-first functionality without purifiers or network connectivity.
+AirWise bridges the gap between public air quality indices and household daily decisions. Instead of stopping at a single abstract AQI number or offering generic chatbot advice, AirWise combines local atmospheric forecasts with household profiles to generate a prioritized, explainable Clean-Air Plan. It operates with honest dual-axis impact accounting (exposure reduction vs. emissions avoidance), visible data confidence, and works without API keys (rules-only mode); live air data needs network. An offline shell/PWA is not implemented.
 
 **Documentation Index:** [`docs/README.md`](./docs/README.md) · [`ARCHITECTURE.md`](./docs/ARCHITECTURE.md) · [`BUILD_PLAN.md`](./docs/BUILD_PLAN.md) · [`DECISIONS.md`](./docs/DECISIONS.md) · [`IMPACT_METHODOLOGY.md`](./docs/IMPACT_METHODOLOGY.md) · [`SECURITY_PRIVACY.md`](./docs/SECURITY_PRIVACY.md) · [`DATA_SOURCES.md`](./docs/DATA_SOURCES.md) · [`ACCESSIBILITY.md`](./docs/ACCESSIBILITY.md) · [`TEST_PLAN.md`](./docs/TEST_PLAN.md) · [`Lighthouse Evidence`](./docs/evidence/lighthouse.md)
 
@@ -19,7 +19,7 @@ During winter smog, millions of households check AQI numbers but cannot turn the
 AirWise answers these questions with:
 1. **Household Risk Radar:** Pinpoints the most vulnerable member and their highest-risk exposure window (e.g. child during the 7:30–8:15 AM school run).
 2. **Dual-Axis Impact Explainer:** Separates Exposure Reduction (protecting yourself) from Emissions Avoidance (reducing collective pollution). Every action carries explicit labels (*Estimated* or *Recommended*), assumptions, and boundary disclosures.
-3. **Smart Ventilation Advisor:** Evaluates hourly temperature inversions and PM2.5 forecasts to recommend safe, brief ventilation windows or advise keeping windows sealed.
+3. **Smart Ventilation Advisor:** Evaluates hourly PM2.5 forecast hours and data freshness to recommend safe, brief ventilation windows or advise keeping windows closed.
 4. **Severe Smog & Low-Cost Modes:** High-contrast, distraction-free view during hazardous smog, and free-first prioritization for households without purifiers, AC, or kitchen exhaust.
 5. **Trust Panel:** Displays data provenance (Open-Meteo / CAMS modeled data), observation freshness, and degrades plan confidence when data is stale.
 6. **Community Action:** Privacy-preserving collective pledges and copy-ready society notice-board briefings with zero personally identifiable data.
@@ -36,7 +36,7 @@ AirWise is designed around a **deterministic core with an optional AI overlay**:
                ▼
 ┌────────────────────────────────────────────────────────┐
 │  Pure Deterministic Policy Engine (src/domain)         │
-│  - Evaluates 22 inviolable safety rules (P-01 to P-22)  │
+│  - Evaluates rules P-01 to P-22 (shared rule modules)  │
 │  - Filters approved candidate actions by gating/budget │
 │  - Computes baseline dual-axis impact and confidence   │
 │  - Produces complete, safe, valid Clean-Air Plan       │
@@ -51,10 +51,10 @@ AirWise is designed around a **deterministic core with an optional AI overlay**:
                                   │
                                   ▼
                    ┌──────────────────────────────────────────────┐
-                   │  Strict Server-Side Validator (7 checks)     │
+                   │  Strict Server-Side Validator (8 checks)     │
                    │  - Candidate IDs must match approved subset  │
                    │  - Forbids hallucinated stats & advice       │
-                   │  - Discards output on any schema failure     │
+                   │  - Discards output on any validation failure │
                    └──────────────────────────────────────────────┘
                                   │
                          Passed validation?
@@ -64,7 +64,7 @@ AirWise is designed around a **deterministic core with an optional AI overlay**:
 
 1. **Rules Decide:** Safety, ranking, numbers, and candidate selection are computed in pure TypeScript. The LLM never decides safety, never creates numbers, and cannot introduce unapproved actions.
 2. **Gemini Reorders & Explains:** When enabled, Google Gemini reorders the pre-approved actions to fit the family's daily routine and writes short, contextual explanations.
-3. **Strict Validation & Fallback:** The server validates model responses against strict Zod schemas and catalog ID allowlists. Any malformed response, timeout, or policy violation falls back to the deterministic plan instantly.
+3. **Strict Validation & Fallback:** The server validates model responses against strict Zod schemas and eight deterministic validator functions (`checkSchema`, `checkIds`, `checkMustInclude`, `checkLinks`, `checkBannedPhrases`, `checkReadingLevel`, `checkConfidenceCeiling`, and `checkNumbers`). Any malformed response, timeout, or policy violation falls back to the deterministic plan instantly.
 
 ---
 
@@ -109,15 +109,15 @@ airwise/
 │   └── _lib/              # Serverless utilities (CORS, rate limiting, security headers, validation)
 ├── docs/                  # Project specifications, ADRs, build plan, and methodology
 │   └── evidence/          # Lighthouse audits and verification artifacts
-├── public/                # Static assets (favicons, Open Graph metadata, web manifest)
+├── public/                # Static assets (favicons, Open Graph metadata)
 ├── scripts/               # Quality guards (branch policy, link integrity, repo size, secret scan)
 ├── src/
 │   ├── ai/                # AI contracts, prompt builders, client, and response validators
 │   ├── assets/            # Fonts and static images
-│   ├── config/            # Site metadata, routes, and environment configuration
-│   ├── data/              # Atmospheric data providers, sample scenarios, and trust model
+│   ├── config/            # Site constants and metadata
+│   ├── data/              # Atmospheric data providers (apiAir.ts, geocodeClient.ts), sample scenarios, and trust model
 │   ├── domain/            # Pure domain models, policy rules, plan builder, impact formulas
-│   ├── state/             # Local storage persistence adapters and React profile stores
+│   ├── state/             # Local storage persistence adapters, profile stores, and hash routes (src/state/route.ts)
 │   ├── styles/            # CSS design tokens, base typography, and layout primitives
 │   └── ui/                # Accessible React shell, screen views, and UI components
 └── tests/                 # Unit, contract, integration, golden persona, and policy matrix tests
@@ -140,7 +140,7 @@ git clone https://github.com/jagadiswarambati/airwise.git && cd airwise
 # Install dependencies
 npm ci
 
-# Optional: configure local environment (app runs 100% offline without keys)
+# Optional: configure local environment (works without API keys in rules-only mode; live air data needs network)
 cp .env.example .env
 
 # Start the Vite local development server
@@ -162,10 +162,10 @@ The project includes automated verification guards for testing, code quality, ac
 | `npm run build` | Validates TypeScript types (`tsc --noEmit`) and compiles optimized production bundles |
 | `npm run lint` | Runs ESLint across all source and test files |
 | `npm run typecheck` | Strict compiler typechecking without emitting JavaScript files |
-| `npm test` | Executes all 56 Vitest unit, contract, integration, and golden test suites |
-| `npm run test:policy` | Executes Cartesian policy matrix invariant tests (P-01 to P-22) and mutation checks |
+| `npm test` | Executes Vitest unit, contract, integration, and golden test suites (see npm test) |
+| `npm run test:policy` | Runs policy oracle tests and negative-oracle (bad-output) checks (P-01 to P-22) |
 | `npm run test:tz` | Tests slot and timeline invariance across UTC, Asia/Kolkata, and America/Los_Angeles |
-| `npm run test:matrix` | Executes full Cartesian policy matrix expansion |
+| `npm run test:matrix` | Runs full Cartesian policy matrix locally (not in CI); output saved in docs/matrix-run.txt (2026-11-24) |
 | `npm run check:ui` | Validates CSS tokens, ensures zero literal colors, and blocks banned alert roles |
 | `npm run check:css` | Verifies modular CSS: zero dead .aw- classes, zero duplicate selector blocks, motion-only !important |
 | `npm run check:links` | Verifies that all relative markdown links in `README.md` and `docs/*.md` resolve |
@@ -204,8 +204,8 @@ AirWise enforces safety and correctness through multi-layered automated testing:
    ```bash
    npm run test:policy
    ```
-2. **Mutation Testing:**
-   Injects deliberate bugs into policy logic to prove that invariant tests fail closed if safety gates are bypassed.
+2. **Negative-Oracle Tests:**
+   Injects deliberate bugs and bad outputs into policy logic to prove that invariant tests fail closed if safety gates are bypassed.
 3. **Time-Zone Invariance Tests:**
    Verifies that diurnal risk calculation, commute shifts, and ventilation windows remain stable across disparate timezones (`UTC`, `Asia/Kolkata`, `America/Los_Angeles`).
    ```bash
@@ -220,8 +220,8 @@ AirWise enforces safety and correctness through multi-layered automated testing:
 
 ## Security & Privacy
 
-- **Local-Only Data Retention:** Household profiles, health flags, and routines remain in browser LocalStorage. No user database or analytics trackers exist.
-- **Zero PII Exposure:** AI requests contain no user names, ages, coordinates, or free text. Locations are rounded to two decimal places (~1.1 km) before geocoding.
+- **Local-Only Data Retention:** Household profile is stored unencrypted in the browser (localStorage). No user database or analytics trackers exist.
+- **Zero PII Exposure:** AI requests contain no user names, ages, coordinates, or free text. Coordinates are rounded to two decimal places (~1.1 km) when sent to the air endpoint; place-name search text is sent as typed.
 - **Hardened HTTP Headers:** Production deployments enforce Strict-Transport-Security, no-referrer policies, and strict Content-Security-Policy (CSP) with `frame-ancestors 'none'` and `object-src 'none'`.
 - **Security & Privacy Blueprint:** See [`docs/SECURITY_PRIVACY.md`](./docs/SECURITY_PRIVACY.md) for threat modeling, rate limiting rules, and privacy specifications.
 - **Vulnerability Disclosure:** See [`SECURITY.md`](./SECURITY.md) for reporting vulnerabilities, response times, and supported versions.
@@ -230,7 +230,7 @@ AirWise enforces safety and correctness through multi-layered automated testing:
 
 ## Accessibility (a11y)
 
-- **WCAG 2.1 AA Compliance:** Minimum 4.5:1 text contrast on light/dark themes, 3:1 graphical element contrast, and visible `:focus-visible` focus rings.
+- **WCAG 2.2 AA Compliance:** Minimum 4.5:1 text contrast on light/dark themes, 3:1 graphical element contrast, and visible `:focus-visible` focus rings.
 - **Touch Target Sizing:** Interactive buttons, inputs, and toggles enforce a minimum 44×44px hit target (`var(--target-min)`).
 - **Assistive Technology Support:** Semantic headings (`<h1>` through `<h3>`), explicit `<fieldset>` groups, ARIA labels, polite live region announcements, and full keyboard navigation.
 - See [`docs/ACCESSIBILITY.md`](./docs/ACCESSIBILITY.md) for the accessibility audit and screen reader verification guide.
@@ -269,10 +269,10 @@ This project is licensed under the [MIT License](./LICENSE).
 | [`docs/BUILD_PLAN.md`](./docs/BUILD_PLAN.md) | Phase-by-phase implementation plan, acceptance gates, and attempt strategy |
 | [`docs/DECISIONS.md`](./docs/DECISIONS.md) | Architectural Decision Records (ADRs) and amendment history |
 | [`docs/IMPACT_METHODOLOGY.md`](./docs/IMPACT_METHODOLOGY.md) | Mathematical formulas (E1, X1, C1), emission factors, and assumptions |
-| [`docs/SECURITY_PRIVACY.md`](./docs/SECURITY_PRIVACY.md) | Threat model, local storage encryption, CSP, and privacy guardrails |
+| [`docs/SECURITY_PRIVACY.md`](./docs/SECURITY_PRIVACY.md) | Threat model, local storage privacy, CSP, and privacy guardrails |
 | [`SECURITY.md`](./SECURITY.md) | Vulnerability disclosure policy, response SLA, and reporting process |
 | [`docs/DATA_SOURCES.md`](./docs/DATA_SOURCES.md) | Atmospheric APIs, geocoding endpoints, update cadences, and licenses |
-| [`docs/ACCESSIBILITY.md`](./docs/ACCESSIBILITY.md) | WCAG 2.1 AA checklist, touch target rules, and screen reader tests |
+| [`docs/ACCESSIBILITY.md`](./docs/ACCESSIBILITY.md) | WCAG 2.2 AA checklist, touch target rules, and screen reader tests |
 | [`docs/TEST_PLAN.md`](./docs/TEST_PLAN.md) | Testing taxonomy, policy matrix coverage, and traceability matrix |
 | [`docs/DEMO_SCRIPT.md`](./docs/DEMO_SCRIPT.md) | Rehearsed 90-second judge walkthrough script and scenario map |
 | [`docs/SUBMISSION_CHECKLIST.md`](./docs/SUBMISSION_CHECKLIST.md) | Competition submission criteria and verification sign-offs |

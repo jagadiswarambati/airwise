@@ -12,14 +12,13 @@
 
 ```mermaid
 flowchart LR
-  U[User on phone] --> PWA[AirWise PWA<br/>Vite + React + TS]
-  PWA -->|/api/air| API[Serverless API<br/>Vercel functions]
-  PWA -->|/api/plan| API
+  U[User on phone] --> APP[AirWise Web App<br/>Vite + React + TS]
+  APP -->|/api/air| API[Serverless API<br/>Vercel functions]
+  APP -->|/api/plan| API
   API --> OM[Open-Meteo<br/>Air Quality, Forecast, Geocoding]
   API --> LLM[Gemini API]
-  PWA --> LS[(LocalStorage<br/>profile + settings)]
-  PWA --> SW[Service worker<br/>shell + last data]
-  PWA --> SAMPLE[Bundled sample scenarios]
+  APP --> LS[(LocalStorage<br/>profile + settings)]
+  APP --> SAMPLE[Bundled sample scenarios]
 ```
 
 ## 3. Runtime decision flow
@@ -64,7 +63,7 @@ The deterministic plan renders first. The AI result swaps in when and if it vali
 | `radar.ts` | Most vulnerable member × highest-risk slot. |
 | `ventilation.ts` | Closed/brief/open verdict and window selection (P-05…P-07). |
 | `catalog/` | Static action catalog split into category modules (`indoor.ts`, `personal.ts`, `mobility.ts`, `community.ts`, `index.ts`) with impact specs and template keys. |
-| `policy.ts` | Candidate filtering, mustInclude, forbidden set (P-01…P-21). |
+| `policy.ts` | Candidate filtering, mustInclude, forbidden set (P-01…P-22). |
 | `plan-builder.ts` | Complete deterministic plan from candidates. |
 | `impact.ts` | Formulas E1, E2, X1, C1; qualitative impact statements. |
 | `confidence.ts` | `min(evidence, freshness, dataType)` rule. |
@@ -74,7 +73,7 @@ The deterministic plan renders first. The AI result swaps in when and if it vali
 ### `src/data`
 | Module | Responsibility |
 |---|---|
-| `providers/openMeteoAir.ts`, `openMeteoWeather.ts`, `geocode.ts` | Thin adapters behind interfaces; Zod-parse responses. |
+| `providers/apiAir.ts`, `geocodeClient.ts` | Thin adapters behind interfaces; Zod-parse responses. |
 | `fallback-chain.ts` | Primary (live) → cached reading (aging/stale) → honest offline fallback (none), never silently substituting sample data (Decision A-32). |
 | `cache.ts` | TTL cache (client) with explicit timestamps. |
 | `samples/` | `clear.json`, `moderate.json`, `severe.json`, `stale.json`, and a tiny city list. |
@@ -86,8 +85,8 @@ The deterministic plan renders first. The AI result swaps in when and if it vali
 | `client.ts` | Calls `/api/plan`; timeout and abort handling. |
 | `prompts/` | Versioned prompt builders; `PROMPT_VERSION`. |
 | `schema.ts` | Zod schema for model output. |
-| `validator.ts` | Seven validator checks, all deterministic. |
-| `overlay.ts` | Merge validated output onto the deterministic plan; enforce the confidence ceiling. |
+| `validator.ts` | Eight validator checks (including confidence ceiling enforcement), all deterministic. |
+| `overlay.ts` | Merge validated output onto the deterministic plan. |
 | `plan-cache.ts` | Cache by `hash(profile)+hourBucket+dataSignature+PROMPT_VERSION`. |
 
 ### `api/` (serverless, thin)
@@ -113,7 +112,7 @@ Screens (Today, Indoor, Move, Impact, Community, Onboarding), shared components 
 
 **Plan builder.** Takes approved candidates, assigns each to the slot where it matters, and ranks by urgency, feasibility and cost fit, free-first for free budgets. Ensures mustInclude and top-3 composition (at least one exposure action and, where available, one emissions action).
 
-**Impact.** Static `ImpactSpec` per action in the catalog; `impact.ts` resolves it with profile and snapshot (formulas, confidence). The UI only renders what the engine returns, so impact cannot be invented in the view layer.
+**Impact.** Static `ImpactSpec` per action in the catalog; `impact.ts` resolves it with profile and snapshot (formulas, confidence). The Today hook re-sorts (mandatory actions first) and truncates to the top 3 actions for presentation.
 
 **LLM overlay.** The server constructs the prompt from the validated body. The client never sends prompt text. Output is parsed, schema-validated server-side and again client-side (defence in depth).
 
@@ -124,15 +123,14 @@ Screens (Today, Indoor, Move, Impact, Community, Onboarding), shared components 
 | Server air | rounded lat/lon + date-hour | 10 min | Reduces provider calls. |
 | Client air | rounded lat/lon | 15 min | Persisted for offline; timestamp always shown. |
 | Plan | profile hash + hour bucket + data signature + PROMPT_VERSION | Hour bucket | Avoids repeat LLM calls. |
-| Service worker | App shell + last air snapshot | n/a | Offline support. |
 
 ## 7. Error taxonomy
 
-`DataUnavailable`, `DataStale`, `ProviderSchemaError`, `LlmUnavailable`, `LlmInvalid`, `GeolocationDenied`, `StorageUnavailable`, `RateLimited`, `ValidationError`. Each maps to a user-visible state in the README's degradation table and has a test.
+`DataUnavailable`, `DataStale`, `ProviderSchemaError`, `LlmUnavailable`, `LlmInvalid`, `GeolocationDenied`, `StorageUnavailable`, `RateLimited`, `ValidationError`. Each maps to a user-visible state with fixed user-safe messages and has automated tests.
 
 ## 8. Security architecture
 
-Boundary validation with Zod on both ends; CSP with `connect-src 'self'`; secrets only in serverless env; no `dangerouslySetInnerHTML`; model output rendered as text; per-IP rate limit; body-size cap; no request-body logging; privacy-preserving location rounding; CI secret scan and dependency audit. See README §20 and `docs/security-checklist.md`.
+Boundary validation with Zod on both ends; CSP with `connect-src 'self'`; secrets only in serverless env; no `dangerouslySetInnerHTML`; model output rendered as text; per-IP rate limit; body-size cap; no request-body logging; privacy-preserving location rounding; CI secret scan and dependency audit. See `docs/SECURITY_PRIVACY.md`.
 
 ## 9. Testing architecture
 
@@ -144,4 +142,4 @@ Vercel (static + serverless) with environment variables set in the dashboard; pr
 
 ## 11. Performance model
 
-Initial route loads only Today. Other tabs are lazy chunks. Sparkline is inline SVG. Domain computations are O(members × slots), trivial. LLM call is a single request with a compact JSON prompt. Budgets and checks are in README §22.
+Initial route loads only Today. Other tabs are lazy chunks. Sparkline is inline SVG. Domain computations are O(members × slots), trivial. LLM call is a single request with a compact JSON prompt.
