@@ -126,7 +126,7 @@ npm run lint && npm run typecheck && npm run format:check
 npm test && npm run test:policy
 npm run build && npm run check:size && npm run scan:secrets && npm run check:branches
 npm audit --audit-level=high
-# npm run test:e2e (planned, not implemented per decision A-41)
+# e2e tests: planned, not implemented per decision A-41
 ```
 
 - [ ] Every command passes on a clean clone with no `.env`.

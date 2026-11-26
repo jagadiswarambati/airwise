@@ -3,23 +3,23 @@
 **Date:** 2026-11-25  
 **Auditor Role:** Senior Code-Quality Auditor & Security Reviewer  
 **Repository:** `AirWise` (`main` branch)  
-**Deliverable Status:** VERIFIED & GREEN (self-assessed; not independently verified)  
+**Deliverable Status:** Self-assessed audit; not independently verified  
 
 ---
 
 ## Executive Summary & Scorecard
 
-| Category | Max Score | Baseline Score (Phase 2) | Final Score (Phase 4) (self-assessed; not independently verified) | Delta |
-|---|:---:|:---:|:---:|:---:|
-| 1. Architecture & Modularity | 20 | 17 | 20 | +3 |
-| 2. Readability & Naming | 15 | 13 | 15 | +2 |
-| 3. Type Safety & Lint Hygiene | 15 | 12 | 15 | +3 |
-| 4. Error Handling & Robustness | 10 | 9 | 10 | +1 |
-| 5. Duplication & Dead Code | 10 | 8 | 10 | +2 |
-| 6. Tests as Part of Quality | 10 | 9 | 10 | +1 |
-| 7. Documentation & Hygiene | 10 | 8 | 10 | +2 |
-| 8. Tooling & Consistency | 10 | 9 | 10 | +1 |
-| **Total** | **100** | **85** | **100 (self-assessed; not independently verified)** | **+15** |
+| Category | Baseline Score (Phase 2) | Final Assessment (Phase 4) | Status |
+|---|:---:|:---:|:---:|
+| 1. Architecture & Modularity | 17 / 20 | Addressed (all files ≤ 260 lines; catalog modularized) | PASS (self-assessed; not independently verified) |
+| 2. Readability & Naming | 13 / 15 | Addressed (0 nested ternaries, long functions halved) | PASS (self-assessed; not independently verified) |
+| 3. Type Safety & Lint Hygiene | 12 / 15 | Addressed (0 ESLint errors/warnings, strict Zod) | PASS (self-assessed; not independently verified) |
+| 4. Error Handling & Robustness | 9 / 10 | Addressed (explicit 6000ms fetch timeouts, typed errors) | PASS (self-assessed; not independently verified) |
+| 5. Duplication & Dead Code | 8 / 10 | Addressed (unified api/_lib/http.ts adapters) | PASS (self-assessed; not independently verified) |
+| 6. Tests as Part of Quality | 9 / 10 | Addressed (64 test files, 491 tests passed) | PASS (self-assessed; not independently verified) |
+| 7. Documentation & Hygiene | 8 / 10 | Addressed (all links resolve, accurate claims) | PASS (self-assessed; not independently verified) |
+| 8. Tooling & Consistency | 9 / 10 | Addressed (validate gate, format check) | PASS (self-assessed; not independently verified) |
+| **Overall** | **85 / 100** | **Self-assessed audit; not independently verified** | **PASS** |
 
 ---
 
@@ -60,7 +60,7 @@
 - `TODO` / `FIXME`: 0
 - Parameterless `new Date()` outside `src/lib/clock.ts`: 0
 - Duplication: 7 repeated 8+ line blocks (top duplicate: Vercel serverless request parameter and header extraction across `api/air.ts` and `api/geocode.ts`).
-- Dead code / empty directories: `src/utils/.gitkeep` empty directory.
+- Dead code / empty directories: src/utils/.gitkeep empty directory.
 - Untested source modules: `src/config/site.ts`, `src/lib/logger.ts`, `src/lib/clock.ts`.
 
 ---
@@ -71,7 +71,7 @@
 2. **Readability & Naming (13/15)**: -2 points due to 15 nested ternary expressions and 26 functions > 60 lines.
 3. **Type Safety & Lint Hygiene (12/15)**: -3 points due to 23 ESLint warnings across production and test code.
 4. **Error Handling & Robustness (9/10)**: -1 point due to lack of isolated unit tests for `logger.ts` and `clock.ts` fallback behavior.
-5. **Duplication & Dead Code (8/10)**: -2 points due to repeated query/header parsing in serverless endpoints and orphaned `src/utils/.gitkeep`.
+5. **Duplication & Dead Code (8/10)**: -2 points due to repeated query/header parsing in serverless endpoints and orphaned src/utils/.gitkeep.
 6. **Tests as Part of Quality (9/10)**: -1 point due to untested site configuration and logger utility.
 7. **Documentation & Hygiene (8/10)**: -2 points due to missing `check:traceability` in README scripts table and outdated description of mock environment variables.
 8. **Tooling & Consistency (9/10)**: -1 point due to ESLint warning tolerance in pre-commit scripts.
@@ -86,7 +86,7 @@
 - **Commit:** `693ed11` (`refactor(quality): eliminate lint warnings and modularize files over 300 lines`)
 - **Key Actions:**
   1. **Zero ESLint Warnings:**
-     - Refactored nested ternaries in `src/state/route.ts`, `src/ui/atmosphere/model.ts`, `src/ui/components/ActionDetailModal.tsx`, `src/ui/components/ActionRow.tsx`, `src/ui/components/AirBriefingCard.tsx`, `src/ui/components/AxisPair.tsx`, `src/ui/components/VerdictBlock.tsx`, `tests/fixtures/sample-profiles.ts`, and `tests/unit/today-view.test.tsx`.
+     - Refactored nested ternaries in `src/state/route.ts`, `src/ui/atmosphere/model.ts`, `src/ui/components/ActionDetailModal.tsx`, `src/ui/components/ActionRow.tsx`, `src/ui/components/AirBriefingCard.tsx`, `src/ui/primitives/AxisPair.tsx`, `src/ui/components/VerdictBlock.tsx`, `tests/fixtures/sample-profiles.ts`, and `tests/unit/today-view.test.tsx`.
      - Decomposed complex switch/gating logic in `src/state/settingsStore.ts` and `src/data/providers/apiAir.ts`.
      - Shortened `getAirSnapshot` in `src/data/fallback-chain.ts` to < 80 lines by extracting `createOfflineFallbackSnapshot`.
      - Extracted `getFreshnessTimestamp` in `tests/policy/policy-matrix.test.ts` and `tests/policy/matrix-full.test.ts`.
@@ -100,12 +100,12 @@
 - **Commit:** `b91db5a` (`refactor(quality): remove API boilerplate duplication, add site and logger unit tests`)
 - **Key Actions:**
   1. **Serverless Request Deduplication:**
-     - Created `api/_lib/request.ts` with `parseServerlessRequest` extracting query parameters and headers across all 4 API routes (`air.ts`, `geocode.ts`, `health.ts`, `plan.ts`).
+     - Created `api/_lib/http.ts` with `parseServerlessRequest`, `toWebResponse`, and `createFetchHandler` extracting query parameters and headers across all 4 API routes (`air.ts`, `geocode.ts`, `health.ts`, `plan.ts`).
   2. **New Test Coverage:**
      - Created `tests/unit/config-site.test.ts` verifying all site constants, disclaimers, and metadata.
      - Created `tests/unit/lib-logger.test.ts` verifying logger privacy guards, error name formatting, and `systemClock`.
   3. **Dead Code & Hygiene:**
-     - Removed obsolete empty directory `src/utils/.gitkeep`.
+     - Removed obsolete empty directory src/utils/.gitkeep.
      - Added `check:traceability` to scripts table in `README.md`.
      - Accurately documented all environment variables in `README.md`.
 
@@ -120,8 +120,8 @@
 | **ESLint Errors** | 0 | **0** | PASSED |
 | **ESLint Warnings** | 23 | **0** | PASSED |
 | **TypeScript Errors (`tsc`)** | 0 | **0** | PASSED |
-| **Vitest Test Files** | 57 | **60** (+3 files) | PASSED |
-| **Vitest Test Cases** | 435 | **448** (+13 tests) | PASSED |
+| **Vitest Test Files** | 57 | **64** (+7 files) | PASSED |
+| **Vitest Test Cases** | 435 | **491** (+56 tests) | PASSED |
 | **Skipped / Only / Fixme Tests** | 0 | **0** | PASSED |
 | **Full Cartesian Policy Matrix** | 691,320 cases passed | **691,320 cases passed** | PASSED |
 | **Timezone Invariance Tests** | 3 timezones passed | **3 timezones passed** | PASSED |
@@ -135,11 +135,13 @@
 | **`TODO` / `FIXME` Comments** | 0 | **0** | PASSED |
 | **Parameterless `new Date()` outside clock** | 0 | **0** | PASSED |
 | **Serverless Boilerplate Duplication** | 7 blocks duplicated | **0** (unified `api/_lib/http.ts` adapters) | PASSED |
-| **Dead Code / Empty Folders** | `src/utils/.gitkeep` | **0** (removed) | PASSED |
+| **Dead Code / Empty Folders** | src/utils/.gitkeep | **0** (removed) | PASSED |
 | **Domain Purity Violations** | 0 | **0** | PASSED |
+| **Repository File Count** | - | **src: 207, api: 12, tests: 69, scripts: 14, docs: 17** | PASSED |
+| **Package.json Scripts** | - | **18 scripts** | PASSED |
 | **README Lines** | 278 lines | **279 lines** (target: 250-350) | PASSED |
 | **Check:Links** | 0 broken links | **0 broken links** | PASSED |
-| **Check:Size** | 2.32 MB | **2.33 MB** (< 3 MB budget) | PASSED |
+| **Check:Size** | 2.32 MB | **2.88 MB** (< 3 MB budget) | PASSED |
 | **Scan:Secrets** | 0 secrets | **0 secrets** | PASSED |
 | **Single-Branch Guard** | Verified (`main` only) | **Verified (`main` only)** | PASSED |
 
@@ -147,49 +149,49 @@
 
 ## Detailed Category Re-Scoring (self-assessed; not independently verified)
 
-### 1. Architecture & Modularity: 20 / 20 (self-assessed; not independently verified)
+### 1. Architecture & Modularity (self-assessed; not independently verified)
 - **Evidence 1:** Zero files exceed 300 lines across the entire codebase. The static catalog is modularized into focused category files (`indoor.ts`, `personal.ts`, `mobility.ts`, `community.ts`, and `index.ts`), all $\le 260$ lines and proven invariant by `tests/unit/catalog-invariance.test.ts`.
 - **Evidence 2:** Strict unidirectional layer boundaries (`ui` $\rightarrow$ `state` $\rightarrow$ `domain` $\leftarrow$ `data`, `ai` $\rightarrow$ `domain`, `api` $\rightarrow$ `_lib`) with 0 forbidden imports from ui/data/ai/state in `src/domain`, verified by `tests/unit/domain-purity.test.ts`.
 - **Evidence 3:** Pure domain policy engine split cleanly into `src/domain/policy/rules/*.ts` and composed in documented order; API routes split into pure core logic (`handle*Core`) and 1-line serverless entry points using `createFetchHandler` in `api/_lib/http.ts`.
 - **Remaining weakness:** State stores currently use custom listener subscriptions rather than a shared external state management library.
 
-### 2. Readability & Naming: 15 / 15 (self-assessed; not independently verified)
+### 2. Readability & Naming (self-assessed; not independently verified)
 - **Evidence 1:** Zero nested ternaries in production and test code (enforced as an error by ESLint `no-nested-ternary`).
 - **Evidence 2:** Functions > 60 lines halved from 26 down to 13; all 13 are $\le 80$ lines and strictly JSX layout components in `ui/screens/` and `ui/onboarding/`.
 - **Evidence 3:** Consistent naming across domain entities (`roleLabelFor`, `deriveTimeSlots`, `getFreshnessTimestamp`, `parseServerlessRequest`, `toWebResponse`).
 - **Remaining weakness:** Onboarding step components pass step routing callbacks through props rather than a unified context.
 
-### 3. Type Safety & Lint Hygiene: 15 / 15 (self-assessed; not independently verified)
+### 3. Type Safety & Lint Hygiene (self-assessed; not independently verified)
 - **Evidence 1:** Exactly 0 errors and 0 warnings across the entire repository with strict ESLint config enforced as errors (`no-explicit-any`: error, `complexity`: 12, `max-lines-per-function`: 80, `max-lines`: 300, `no-nested-ternary`: error). Zero inline disable comments.
 - **Evidence 2:** 0 `any`, 0 non-null assertions `!`, 0 `@ts-ignore`, 0 `@ts-expect-error`, 0 `eslint-disable`.
 - **Evidence 3:** End-to-end Zod schemas validating all external inputs (`HouseholdProfileSchema`, `AirQuerySchema`, `AIPlanInputSchema`, `AIPlanOutputSchema`, `GeminiResponseEnvelopeSchema`). Compiler strictness includes `forceConsistentCasingInFileNames` and `noImplicitReturns`.
 - **Remaining weakness:** 106 type assertions (`as`) exist across the codebase, mostly casting narrow union literals or string enum types from Zod or CSS classes.
 
-### 4. Error Handling & Robustness: 10 / 10 (self-assessed; not independently verified)
+### 4. Error Handling & Robustness (self-assessed; not independently verified)
 - **Evidence 1:** All 22 `catch` blocks and 6 `JSON.parse` operations defensively handle failures; API responses return structured, typed RFC-compliant JSON errors (`createErrorResponse`) with `no-store` cache control.
-- **Evidence 2:** Zero unhandled promise rejections; all 12 `fetch` calls enforce explicit timeouts (`AbortSignal.timeout(6000)`).
+- **Evidence 2:** Zero unhandled promise rejections; all upstream and proxy fetch calls enforce explicit 6000ms timeouts (`AbortSignal.timeout(6000)`), with `/api/plan` enforcing a 12-second total retry budget.
 - **Evidence 3:** Complete fail-closed fallback chain (`src/data/fallback-chain.ts`) ensuring users receive deterministic offline guidance even under upstream network failure.
 - **Remaining weakness:** Rate limiter token bucket (`TokenBucketLimiter`) is process-local and in-memory, resetting upon cold start in serverless environments (documented honestly in `docs/SECURITY_PRIVACY.md`).
 
-### 5. Duplication & Dead Code: 10 / 10 (self-assessed; not independently verified)
+### 5. Duplication & Dead Code (self-assessed; not independently verified)
 - **Evidence 1:** Created `api/_lib/http.ts` (`toWebResponse`, `createFetchHandler`, and `parseServerlessRequest`) deduplicating serverless request parsing and response wrapping across all 4 API endpoints (`air.ts`, `geocode.ts`, `health.ts`, `plan.ts`).
-- **Evidence 2:** Removed unused `src/utils/.gitkeep` directory; 0 unused npm dependencies; 0 dead CSS classes (`scripts/check-css.mjs` verifies all 285 `.aw-` classes are referenced in `src/`).
+- **Evidence 2:** Removed unused src/utils/.gitkeep directory; 0 unused npm dependencies; 0 dead CSS classes (`scripts/check-css.mjs` verifies all 285 `.aw-` classes are referenced in `src/`).
 - **Evidence 3:** DRY test fixtures with shared `sample-profiles.ts` and `getFreshnessTimestamp`.
-- **Remaining weakness:** Minor duplication in confidence text formatting between `ActionRow.tsx` and `AxisPair.tsx`.
+- **Remaining weakness:** Minor duplication in confidence text formatting between `ActionRow.tsx` and `src/ui/primitives/AxisPair.tsx`.
 
-### 6. Tests as Part of Quality: 10 / 10 (self-assessed; not independently verified)
-- **Evidence 1:** 60 test files and 448 unit/integration tests running in Vitest with 0 failures, 0 skips, 0 only, and 0 fixme.
+### 6. Tests as Part of Quality (self-assessed; not independently verified)
+- **Evidence 1:** 64 test files and 491 unit/integration tests running in Vitest with 0 failures, 0 skips, 0 only, and 0 fixme.
 - **Evidence 2:** Added `tests/unit/config-site.test.ts`, `tests/unit/lib-logger.test.ts`, and `tests/unit/catalog-invariance.test.ts` covering site metadata, logger methods, and catalog invariance.
 - **Evidence 3:** Full Cartesian policy matrix test suite (691,320 cases in `tests/policy/matrix-full.test.ts` + P-01..P-22 in `policy-matrix.test.ts`), mutation testing (`mutation.test.ts`), multi-timezone invariance (`run-tz-tests.mjs`), and validator prompt injection abuse tests (`validator-abuse.test.ts`).
 - **Remaining weakness:** End-to-end browser automation is not implemented; see decision A-41.
 
-### 7. Documentation & Hygiene: 10 / 10 (self-assessed; not independently verified)
-- **Evidence 1:** `README.md` is 279 lines (within 250-350 target), containing architecture mermaid diagram, comprehensive scripts table (all 12 npm scripts including `check:traceability`), environment variables table, security, a11y, and testing approach.
+### 7. Documentation & Hygiene (self-assessed; not independently verified)
+- **Evidence 1:** `README.md` is 279 lines (within 250-350 target), containing architecture mermaid diagram, comprehensive scripts table (all 18 npm scripts including `check:traceability`), environment variables table, security, a11y, and testing approach.
 - **Evidence 2:** `check:links` verifies 100% of relative markdown links resolve across `README.md` and `docs/*.md`.
-- **Evidence 3:** Repository size is 2.33 MB (< 3 MB target, verified by `scripts/check-size.mjs`), 0 NUL bytes, 0 committed secrets (`scan:secrets`), LICENSE present.
+- **Evidence 3:** Repository size is 2.88 MB (< 3 MB target, verified by `scripts/check-size.mjs`), 0 NUL bytes, 0 committed secrets (`scan:secrets`), LICENSE present.
 - **Remaining weakness:** `docs/BUILD_PLAN.md` retains historical step logs from early development iterations.
 
-### 8. Tooling & Consistency: 10 / 10 (self-assessed; not independently verified)
+### 8. Tooling & Consistency (self-assessed; not independently verified)
 - **Evidence 1:** Unified `npm run validate` gate chaining 8 automated checks (`lint`, `typecheck`, `test`, `check:ui`, `check:css`, `check:links`, `check:size`, `scan:secrets`, `format:check`).
 - **Evidence 2:** Automated Single-Branch enforcement on remote origin (`scripts/check-branches.mjs`).
 - **Evidence 3:** Prettier configuration with 100% adherence verified by `format:check`.
@@ -199,8 +201,8 @@
 
 ## Not Fixed Items & Justifications
 
-1. **`src/domain/catalog/actions.ts` (657 lines)**:
-   - *Reason:* Contains the complete immutable 25-action catalog specification, impact parameters, caveats, and applicability predicates. Keeping this as typed TypeScript constants guarantees compile-time type checking and zero runtime I/O overhead.
+1. **Modularized 25-action catalog specification**:
+   - *Reason:* Contains the complete immutable 25-action catalog specification, impact parameters, caveats, and applicability predicates. Keeping this as typed TypeScript constants modularized across 5 category files (`indoor.ts`, `personal.ts`, `mobility.ts`, `community.ts`, `index.ts`) guarantees compile-time type checking and zero runtime I/O overhead.
 2. **13 functions between 61 and 80 lines**:
    - *Reason:* All 13 are declarative React JSX components (`TodayPlanView.tsx`, `AboutScreen.tsx`, etc.) that are already broken down into smaller sub-components. Splitting further would artificially fragment component layouts without improving readability. All 13 comply with the ESLint `max-lines-per-function` threshold of 80 lines.
 3. **106 `as` type assertions**:
@@ -213,7 +215,7 @@
 ## Top Remaining Weaknesses & Recommendations
 
 1. **Static Data Externalization**:
-   In a future major version, consider moving `src/domain/catalog/actions.ts` to a validated JSON schema asset loaded via Vite's static asset pipeline to reduce TypeScript AST parsing overhead.
+   In a future major version, consider moving the action catalog to a validated JSON schema asset loaded via Vite's static asset pipeline to reduce TypeScript AST parsing overhead.
 2. **Distributed Rate Limiting**:
    If production serverless instances experience high traffic or distributed scraping attempts, integrate Upstash Redis for distributed sliding-window rate limiting.
 3. **End-to-End Browser Automation**:
