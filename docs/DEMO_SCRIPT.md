@@ -33,11 +33,11 @@ Total: 90 seconds. If you run long, cut the Move beat to one sentence.
 | Stale | Menu → scenario | Confidence drop, suppression of outdoor and ventilation advice (P-03) |
 | Low-cost household | Priya (low budget, no purifier) | Free-first ranking, substitutes for missing equipment (P-10, P-11) |
 | Community | Community tab | Seeded briefing and aggregate (C1) |
-| No AI / no network | Offline plus `LLM_PROVIDER=none` | Deterministic fallback, "Standard plan", cached or sample data labelled |
+| No AI / cached air data | Network failure plus `LLM_PROVIDER=none` | Deterministic fallback, "Standard plan", cached or sample data labelled |
 
 ## 4. Fallback demonstration (30 s add-on for Q&A)
 
-1. Turn on airplane mode, reload. The shell loads from the service worker.
+1. Disconnect network or switch to offline scenario. Cached data or sample fallback is used (offline shell/service worker is not implemented).
 2. The banner states the data age. The plan is intact and badged *Standard plan*.
 3. Say: "No network and no model, and the plan is still complete."
 Only claim "cached data" if a live snapshot was fetched earlier on this device. If not, select a demo scenario and say it is sample data.
@@ -48,7 +48,7 @@ Only claim "cached data" if a live snapshot was fetched earlier on this device. 
 - [ ] Phone at 100% battery, Do Not Disturb on, screen brightness high.
 - [ ] Scenarios switch correctly (Severe, Stale) and the Priya preset lands on Severe.
 - [ ] Impact and Community tabs load; Copy briefing works (clipboard permission granted).
-- [ ] Airplane-mode rehearsal done once; service worker is registered.
+- [ ] Fallback rehearsal done once; sample and cached scenarios display properly (service worker is not implemented).
 - [ ] Both AI states checked: with a valid key the badge shows "AI-personalised"; without, "Standard plan". Know which you are showing.
 - [ ] A backup screen recording of the full run is on the device.
 - [ ] Live data may be clean on judging day: **say so**, and use scenarios ("live data is clear today, so I'll load a real winter smog scenario").

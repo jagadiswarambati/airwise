@@ -89,8 +89,8 @@ Status values: **Accepted**, **Deferred**, **To Verify**. Where a decision chang
 
 ## ADR-015 Vite + React + TypeScript stack
 - **Options:** Next.js, Vite+React, SvelteKit.
-- **Chosen:** Vite + React + strict TypeScript, Vitest, Playwright, Zod. Few dependencies; `vite-plugin-pwa` for the service worker.
-- **Reason:** Fast static PWA, trivial to test, small bundle; serverless only where secrets or CORS require it.
+- **Chosen:** Vite + React + strict TypeScript, Vitest, Zod. Few dependencies; service worker, `vite-plugin-pwa`, and Playwright were considered but are not implemented (see decision A-41).
+- **Reason:** Fast static web application, trivial to test, small bundle; serverless only where secrets or CORS require it (PWA/offline service worker not implemented).
 - **Status:** Accepted.
 
 ## ADR-016 Thin serverless API
@@ -98,7 +98,7 @@ Status values: **Accepted**, **Deferred**, **To Verify**. Where a decision chang
 - **Status:** Accepted.
 
 ## ADR-017 Testing and CI strategy
-- **Chosen:** Pyramid in `docs/TEST_PLAN.md`: unit, exhaustive policy matrix, validator abuse, contract, golden, content lint, Playwright + axe, size/secret/branch/audit guards. CI is the merge gate (single branch, so "merge" = push).
+- **Chosen:** Pyramid in `docs/TEST_PLAN.md`: unit, exhaustive policy matrix, validator abuse, contract, golden, content lint, size/secret/branch/audit guards (Playwright + axe-core browser automation is planned, not implemented per A-41). CI is the merge gate (single branch, so "merge" = push).
 - **Status:** Accepted.
 
 ## ADR-018 Privacy minimisation for the LLM
@@ -138,7 +138,7 @@ Status values: **Accepted**, **Deferred**, **To Verify**. Where a decision chang
 | A-15 | CSP: no inline `style` attributes (use classes and CSS custom properties set via stylesheet); system font stack, no external fonts; relaxed CSP applies to dev server only. |
 | A-16 | Hindi/Telugu UI strings are deferred out of the submission. Keep i18n-ready keys only. |
 | A-17 | CM-02 carpool board deferred; CM-03 reduced to a counts line in the briefing. |
-| A-18 | Sample scenarios live in `src/data/samples/` and load lazily; `public/` holds icons and manifest only. |
+| A-18 | Sample scenarios live in `src/data/samples/` and load lazily; `public/` holds static brand assets (favicon, og.png, robots.txt) only; web manifest is not implemented. |
 | A-19 | Deployment wording: with one branch there are no separate preview deployments; production deploys from `main`. Do not enable Dependabot or any bot that opens branches or PRs. Agents never create branches or push tags other than `attempt-N`. |
 | A-20 | `tripsPerWeek` = round trips per week. `Mode` = `car` \| `two_wheeler` \| `auto_rickshaw` \| `bus` \| `metro_rail` \| `cycle` \| `walk`. Default carpool occupancy = 2, shown as an assumption. |
 | A-21 | CO₂e (E2) is behind a `SHOW_CO2E` constant, off until emission factors are sourced and recorded in `DATA_SOURCES.md` during Phase 2/7. |
@@ -146,7 +146,7 @@ Status values: **Accepted**, **Deferred**, **To Verify**. Where a decision chang
 | A-23 | Global CAMS domain is coarse in space and time. No claim finer than ~3-hour blocks; ventilation windows and commute comparisons are phrased as "around HH:00" and use window means. |
 | A-24 | `aqi.standard` is `'US' \| 'EU'` from Open-Meteo. `'IN'` only if computed locally and labelled "computed". |
 | A-25 | MO-02 (public transport) is not offered for trips involving sensitive members at effective level ≥ 3, since it implies outdoor waiting (conflicts with P-09). |
-| A-26 | CI: Playwright e2e job is added in Phase 4, not Phase 0. |
+| A-26 | CI: Playwright e2e and browser automation jobs are planned, not implemented (decision A-41). |
 | A-27 | Radar weights in `src/domain/config/radar-weights.ts`; member weight = max of age and flag weights (no summing). Documented in `docs/IMPACT_METHODOLOGY.md` §Radar. |
 | A-28 | The "Try Priya's household" preset sets profile (`budget: low`) **and** scenario `severe`. |
 | A-29 | Plan cache key uses a hash of the plan-input payload (levels, candidates, descriptors), never the raw profile or location. |

@@ -7,14 +7,14 @@ Purpose: the phase-by-phase execution plan for Antigravity. Source of truth for 
 | Change | Reason |
 |---|---|
 | Phase 1 split into **1A** (types, config, levels, freshness, trend, radar, ventilation, catalog, templates) and **1B** (policy, plan-builder, impact, confidence, quick checks, policy matrix). | Phase 1 is the largest. Two commits keep each reviewable. |
-| Phase 4 split into **4A** (Today shell + deterministic plan) and **4B** (Severe Mode, Quick Checks, action detail, Trust Panel, service worker). | First usable product earlier; offline gate sits at 4B. |
+| Phase 4 split into **4A** (Today shell + deterministic plan) and **4B** (Severe Mode, Quick Checks, action detail, Trust Panel). | First usable product earlier (service worker and offline shell are not implemented). |
 | Playwright e2e and axe-core automation: Planned, not implemented (decision A-41). | Accessibility currently verified with Vitest render tests, check:ui, manual keyboard/screen-reader checks, and Chrome Lighthouse (docs/evidence/lighthouse.md). |
 | `api/geocode.ts` added in Phase 2. | CSP `connect-src 'self'` (A-02). |
 | Policy-matrix *full* enumeration runs in Phase 1B; Phase 8 adds sharding, perf budget, and regression fixtures. | Safety proven before UI exists. |
 
 ## Attempt cut line (minimum credible Attempt 1)
 
-Must exist at Gate A: onboarding + Priya preset; live/cached/sample air with Trust Panel; deterministic plan; Risk Radar; Severe Mode; Low-Cost Mode; Quick Checks; action detail with dual-axis impact for **every** action; AI overlay with validator and fallback; Indoor (Ventilation Advisor); Move (Commute Planner); Impact tab with E1 and X1; Community (seeded, pledges, copy briefing); offline/sample mode; matrix, validator, contract, golden tests; README.
+Must exist at Gate A: onboarding + Priya preset; live/cached/sample air with Trust Panel; deterministic plan; Risk Radar; Severe Mode; Low-Cost Mode; Quick Checks; action detail with dual-axis impact for **every** action; AI overlay with validator and fallback; Indoor (Ventilation Advisor); Move (Commute Planner); Impact tab with E1 and X1; Community (seeded, pledges, copy briefing); sample demo mode (offline shell not implemented); matrix, validator, contract, golden tests; README.
 Cut from Attempt 1: CO₂e, carpool board, weekly history, Hindi/Telugu, OpenAQ, any chart beyond the inline sparkline.
 
 ## Global rules for every phase
@@ -85,12 +85,12 @@ Cut from Attempt 1: CO₂e, carpool board, weekly history, Hindi/Telugu, OpenAQ,
 **Acceptance:** Priya preset → Today in ≤ 3 taps and ≤ 10 s; all four scenarios render correct level and plan; no AI code involved.
 **Commit:** `feat(today): briefing, risk radar, deterministic plan and timeline`
 
-## Phase 4B — Severe Mode, Quick Checks, action detail, Trust Panel, offline
-**Tasks:** Severe Mode layout (auto/manual, ≥ 20 px, max 3 actions, no charts); Quick Checks; action detail sheet (Why, dual-axis, doesNotChange, assumptions, cost/effort); Trust Panel (plan source and confidence); stale/no-data banners; `vite-plugin-pwa` (shell + last air snapshot only; never cache `/api/plan`); error boundary per tab.
-**Acceptance:** works offline with `LLM_PROVIDER=none`; stale scenario suppresses walking/ventilation and lowers confidence; 100% of visible actions show all impact fields; accessibility verified clean incl. Severe Mode via Vitest render tests, check:ui, and Lighthouse (docs/evidence/lighthouse.md); axe-core automation: Planned, not implemented (decision A-41).
+## Phase 4B — Severe Mode, Quick Checks, action detail, Trust Panel (offline shell/PWA not implemented)
+**Tasks:** Severe Mode layout (auto/manual, ≥ 20 px, max 3 actions, no charts); Quick Checks; action detail sheet (Why, dual-axis, doesNotChange, assumptions, cost/effort); Trust Panel (plan source and confidence); stale/no-data banners; error boundary per tab. (Service worker and `vite-plugin-pwa`: not implemented).
+**Acceptance:** operates without AI keys (`LLM_PROVIDER=none`, rules-only mode); stale scenario suppresses walking/ventilation and lowers confidence; 100% of visible actions show all impact fields; accessibility verified clean incl. Severe Mode via Vitest render tests, check:ui, and Lighthouse (docs/evidence/lighthouse.md); axe-core automation: Planned, not implemented (decision A-41).
 **Manual:** browser test of all scenarios at 360 px width and 200% text.
-**Commit:** `feat(today): severe mode, quick checks, action detail, trust panel, offline`
-**Gate:** Works offline with no AI. **This is the first usable product.**
+**Commit:** `feat(today): severe mode, quick checks, action detail, trust panel`
+**Gate:** Operates in rules-only mode with no AI (live air data needs network). **This is the first usable product.**
 
 ## Phase 5 — AI plan layer
 **Tasks:** `ai/schema.ts`, `prompts/` (+`PROMPT_VERSION`), `api/plan.ts` (Zod body validation, server-built prompt, JSON mode, no body logging, timeout, rate limit), `ai/client.ts`, `validator.ts` (7 checks + A-12), `overlay.ts` (confidence ceiling), `plan-cache.ts` (A-29), UI swap-in with badge and polite live-region announcement; settings toggle.

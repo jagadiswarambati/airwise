@@ -74,7 +74,7 @@ The deterministic plan renders first. The AI result swaps in when and if it vali
 | Module | Responsibility |
 |---|---|
 | `providers/apiAir.ts`, `geocodeClient.ts` | Thin adapters behind interfaces; Zod-parse responses. |
-| `fallback-chain.ts` | Primary (live) → cached reading (aging/stale) → honest offline fallback (none), never silently substituting sample data (Decision A-32). |
+| `fallback-chain.ts` | Primary (live) → cached reading (aging/stale) → fallback reading (freshness: 'none'), never silently substituting sample data (Decision A-32; offline shell is not implemented). |
 | `cache.ts` | TTL cache (client) with explicit timestamps. |
 | `samples/` | `clear.json`, `moderate.json`, `severe.json`, `stale.json`, and a tiny city list. |
 | `trust.ts` | Builds the Trust Panel model (source, data type, freshness, fallback, notes). |
@@ -121,7 +121,7 @@ Screens (Today, Indoor, Move, Impact, Community, Onboarding), shared components 
 | Cache | Key | TTL | Notes |
 |---|---|---|---|
 | Server air | rounded lat/lon + date-hour | 10 min | Reduces provider calls. |
-| Client air | rounded lat/lon | 15 min | Persisted for offline; timestamp always shown. |
+| Client air | rounded lat/lon | 15 min | Persisted across reloads in localStorage; timestamp always shown (offline shell is not implemented). |
 | Plan | profile hash + hour bucket + data signature + PROMPT_VERSION | Hour bucket | Avoids repeat LLM calls. |
 
 ## 7. Error taxonomy

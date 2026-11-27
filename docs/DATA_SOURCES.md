@@ -65,10 +65,10 @@ Everything from Open-Meteo is **Modelled**. The `observed` data type exists in t
 
 ## 9. Offline and sample data
 - `src/data/samples/` (`clear.json`, `moderate.json`, `severe.json`, `stale.json`, `cities.json`); each snapshot is a fully valid `AirSnapshot` with `source.dataType = 'sample'`; timestamps are generated relative to "now" at load (except `stale`, which is fixed ≥ 24 h old). Total ≤ 200 KB.
-- Service worker caches shell and last live snapshot only.
+- Offline shell and service worker are not implemented (client caching uses browser localStorage and in-memory caches).
 
 ## 10. Caching
-Server air: key = rounded lat/lon + date-hour, TTL 10 min. Client air: key = rounded lat/lon, TTL 15 min, persisted, timestamp always shown. Never cache `/api/plan` in the service worker. Plan cache per ARCHITECTURE §6 with A-29.
+Server air: key = rounded lat/lon + date-hour, TTL 10 min. Client air: key = rounded lat/lon, TTL 15 min, persisted in localStorage, timestamp always shown. Plan cache per ARCHITECTURE §6 with A-29.
 
 ## 11. Error and fallback behaviour
 Provider error/timeout/schema drift → cached snapshot (marked by age, becomes stale per A-06) → sample (labelled). Missing hours → compute from available hours and mark `ProviderSchemaError` in Trust notes; if the current hour is missing → freshness `none` (P-04). Weather failure → plan without inversion hint and without daylight, so MO-07 is not offered (A-22).
