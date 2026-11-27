@@ -366,4 +366,54 @@ describe('/api/plan Serverless Handler Contract & Safety Suite', () => {
     expect(body.fallback).toBe(true);
     expect(body.message).toBe('AI personalisation is unavailable right now.');
   });
+
+  it('accepts and uses an injected clock parameter for deterministic execution', async () => {
+    process.env.LLM_PROVIDER = 'gemini';
+    process.env.GEMINI_API_KEY = 'test-key';
+
+    let fakeTime = 1000000;
+    const mockClock = vi.fn().mockImplementation(() => {
+      fakeTime += 100;
+      return fakeTime;
+    });
+
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () =>
+        Promise.resolve({
+          candidates: [
+            {
+              content: {
+                parts: [
+                  {
+                    text: JSON.stringify({
+                      schemaVersion: 1,
+                      headline: 'Clear day air plan',
+                      topActionIds: ['IN-01', 'PE-02', 'IN-02'],
+                      timeline: [],
+                      explanations: {},
+                      assumptions: [],
+                      planConfidence: 'high',
+                      confidenceReason: 'Verified',
+                    }),
+                  },
+                ],
+              },
+            },
+          ],
+        }),
+    });
+    vi.stubGlobal('fetch', mockFetch);
+
+    const res = await handlePlanCore(
+      JSON.stringify(validPayload),
+      { 'content-type': 'application/json' },
+      'POST',
+      undefined,
+      mockClock,
+    );
+
+    expect(res.status).toBe(200);
+    expect(mockClock).toHaveBeenCalled();
+  });
 });

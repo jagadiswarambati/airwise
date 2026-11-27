@@ -89,6 +89,7 @@ export async function handlePlanCore(
   headers: Record<string, string | string[] | undefined> = {},
   method: string = 'POST',
   bodyBytes?: number,
+  clock: () => number = () => Date.now(),
 ): Promise<ApiResponse<PlanApiResponse | ApiErrorBody>> {
   const actualBytes = bodyBytes ?? Buffer.byteLength(rawBody, 'utf-8');
 
@@ -127,7 +128,7 @@ export async function handlePlanCore(
       }
 
       const candidateSummaries = buildCandidateSummaries(input.approvedCandidateIds);
-      const planResult = await handlePlanRequest(input, candidateSummaries);
+      const planResult = await handlePlanRequest(input, candidateSummaries, clock);
 
       return {
         status: 200,
@@ -221,6 +222,7 @@ async function callGeminiJsonMode(
 export async function handlePlanRequest(
   input: AIPlanInput,
   candidateSummaries: CandidateSummary[],
+  clock: () => number = () => Date.now(),
 ): Promise<PlanApiResponse> {
   const provider = process.env.LLM_PROVIDER || 'none';
   const apiKey = process.env.GEMINI_API_KEY;
@@ -234,13 +236,13 @@ export async function handlePlanRequest(
   }
 
   const prompt = buildPlanPrompt(input, candidateSummaries);
-  const startTime = Date.now();
+  const startTime = clock();
   const TOTAL_BUDGET_MS = 12000;
   const ATTEMPT_TIMEOUT_MS = 6000;
   const MIN_RETRY_REMAINING_MS = 3000;
 
   try {
-    const elapsed1 = Date.now() - startTime;
+    const elapsed1 = clock() - startTime;
     const remaining1 = TOTAL_BUDGET_MS - elapsed1;
     const timeout1 = Math.min(ATTEMPT_TIMEOUT_MS, Math.max(0, remaining1));
     const rawResult = await callGeminiJsonMode(prompt, apiKey, AbortSignal.timeout(timeout1));
@@ -250,7 +252,7 @@ export async function handlePlanRequest(
     }
 
     // Skip retry if less than 3 seconds remain of total budget
-    const elapsedAfterAttempt1 = Date.now() - startTime;
+    const elapsedAfterAttempt1 = clock() - startTime;
     const remainingForRetry = TOTAL_BUDGET_MS - elapsedAfterAttempt1;
     if (remainingForRetry < MIN_RETRY_REMAINING_MS) {
       return {
