@@ -1,4 +1,4 @@
-/* Restored from the Attempt 1 stylesheet: rules removed by the CSS split while the code still uses these classes. */
+/* Shared component, modal, radar, trust panel, and utility layout styles; imported last in index.css so feature overrides take cascade precedence over screen defaults. */
 
 .error-message {
   color: var(--haze-3-ink);

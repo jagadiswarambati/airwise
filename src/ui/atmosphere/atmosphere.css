@@ -55,25 +55,6 @@
   }
 }
 
-/* Atmospheric Online Video Layer */
-.aw-atmosphere-video {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  opacity: 0.32;
-  pointer-events: none;
-  filter: contrast(1.1) saturate(1.1);
-  mix-blend-mode: overlay;
-  transition: opacity var(--transition-fast);
-}
-
-[data-theme="dark"] .aw-atmosphere-video {
-  opacity: 0.25;
-  mix-blend-mode: screen;
-}
-
 /* 2. Celestial Body (Sun / Moon) */
 .aw-atmosphere-celestial {
   position: absolute;

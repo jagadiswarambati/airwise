@@ -11,28 +11,21 @@ export interface AtmosphereProps {
   isFallback?: boolean;
 }
 
-/**
- * Curated online atmospheric video sources representing weather/air conditions based on result.
- * Videos loop seamlessly, muted and optimized for atmospheric background appearance.
- */
-const RESULT_ATMOSPHERE_VIDEOS: Record<number, string> = {
-  0: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
-  1: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
-  2: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4',
-  3: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyBlazes.mp4',
-  4: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4',
-};
+function cssVars(vars: Record<`--${string}`, string | number>): React.CSSProperties {
+  // React.CSSProperties does not include CSS custom properties (`--*`) in its index signature.
+  return vars as React.CSSProperties;
+}
 
 const AtmosphereSpecks: React.FC<{ specks: AtmosphereModel['specks'] }> = ({ specks }) => (
   <>
     {specks.map((speck) => {
-      const speckStyle: React.CSSProperties = {
-        ['--speck-x' as string]: speck.xPct,
-        ['--speck-y' as string]: speck.yPct,
-        ['--speck-size' as string]: speck.sizePx,
-        ['--speck-duration' as string]: speck.durationS,
-        ['--speck-delay' as string]: speck.delayS,
-      } as React.CSSProperties;
+      const speckStyle = cssVars({
+        '--speck-x': speck.xPct,
+        '--speck-y': speck.yPct,
+        '--speck-size': speck.sizePx,
+        '--speck-duration': speck.durationS,
+        '--speck-delay': speck.delayS,
+      });
 
       return (
         <div
@@ -50,12 +43,12 @@ const AtmosphereStreaks: React.FC<{ windStreaks: AtmosphereModel['windStreaks'] 
 }) => (
   <>
     {windStreaks.map((streak) => {
-      const streakStyle: React.CSSProperties = {
-        ['--streak-top' as string]: streak.topPct,
-        ['--streak-width' as string]: streak.widthPx,
-        ['--streak-duration' as string]: streak.durationS,
-        ['--streak-delay' as string]: streak.delayS,
-      } as React.CSSProperties;
+      const streakStyle = cssVars({
+        '--streak-top': streak.topPct,
+        '--streak-width': streak.widthPx,
+        '--streak-duration': streak.durationS,
+        '--streak-delay': streak.delayS,
+      });
 
       return (
         <div
@@ -68,39 +61,20 @@ const AtmosphereStreaks: React.FC<{ windStreaks: AtmosphereModel['windStreaks'] 
   </>
 );
 
-const AtmosphereVideo: React.FC<{ url: string; onError: () => void }> = ({
-  url,
-  onError,
-}) => (
-  <video
-    key={url}
-    className="aw-atmosphere-video"
-    autoPlay
-    loop
-    muted
-    playsInline
-    aria-hidden="true"
-    tabIndex={-1}
-    onError={onError}
-  >
-    <source src={url} type="video/mp4" />
-  </video>
-);
-
 const AtmosphereCelestial: React.FC<{
   celestial: 'sun' | 'moon';
   sunXPct: number;
   sunYPct: number;
   discRingOpacity: number;
 }> = ({ celestial, sunXPct, sunYPct, discRingOpacity }) => {
-  const celestialStyle: React.CSSProperties = {
-    ['--sun-x' as string]: sunXPct,
-    ['--sun-y' as string]: sunYPct,
-  } as React.CSSProperties;
+  const celestialStyle = cssVars({
+    '--sun-x': sunXPct,
+    '--sun-y': sunYPct,
+  });
 
-  const ringStyle: React.CSSProperties = {
-    ['--ring-opacity' as string]: discRingOpacity,
-  } as React.CSSProperties;
+  const ringStyle = cssVars({
+    '--ring-opacity': discRingOpacity,
+  });
 
   return (
     <div className="aw-atmosphere-celestial" style={celestialStyle}>
@@ -118,13 +92,13 @@ const AtmosphereCelestial: React.FC<{
 };
 
 const AtmosphereHaze: React.FC<{ opacities: [number, number] }> = ({ opacities }) => {
-  const haze1Style: React.CSSProperties = {
-    ['--haze-1-opacity' as string]: opacities[0],
-  } as React.CSSProperties;
+  const haze1Style = cssVars({
+    '--haze-1-opacity': opacities[0],
+  });
 
-  const haze2Style: React.CSSProperties = {
-    ['--haze-2-opacity' as string]: opacities[1],
-  } as React.CSSProperties;
+  const haze2Style = cssVars({
+    '--haze-2-opacity': opacities[1],
+  });
 
   return (
     <>
@@ -142,7 +116,6 @@ export const Atmosphere: React.FC<AtmosphereProps> = ({
   isFallback = false,
 }) => {
   const [isVisible, setIsVisible] = useState<boolean>(true);
-  const [videoError, setVideoError] = useState<boolean>(false);
 
   useEffect(() => {
     if (typeof document === 'undefined') return;
@@ -163,11 +136,6 @@ export const Atmosphere: React.FC<AtmosphereProps> = ({
     [level, localHour, windKmh, enabled, isFallback],
   );
 
-  const videoUrl =
-    level !== null
-      ? RESULT_ATMOSPHERE_VIDEOS[level] || RESULT_ATMOSPHERE_VIDEOS[0]
-      : RESULT_ATMOSPHERE_VIDEOS[0];
-
   return (
     <div
       className="aw-atmosphere"
@@ -176,11 +144,6 @@ export const Atmosphere: React.FC<AtmosphereProps> = ({
       data-hidden={isVisible ? 'false' : 'true'}
     >
       <div className="aw-atmosphere-sky" data-phase={model.dayPhase} />
-
-      {/* Dynamic atmospheric online video overlay based on result */}
-      {model.enabled && !videoError && (
-        <AtmosphereVideo url={videoUrl} onError={() => setVideoError(true)} />
-      )}
 
       <AtmosphereCelestial
         celestial={model.celestial}

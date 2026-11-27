@@ -157,12 +157,12 @@ The project includes automated verification guards for testing, code quality, ac
 
 | Script | Purpose & Scope |
 |---|---|
-| `npm run validate` | Runs full pre-commit pipeline: lint, typecheck, test, UI, CSS, links, size, secrets, format |
+| `npm run validate` | Runs full pre-commit pipeline: lint, typecheck, test, UI, CSS, links, size, traceability, secrets, format |
 | `npm run dev` | Starts Vite local development server with API proxy middleware |
 | `npm run build` | Validates TypeScript types (`tsc --noEmit`) and compiles optimized production bundles |
 | `npm run lint` | Runs ESLint across all source and test files |
 | `npm run typecheck` | Strict compiler typechecking without emitting JavaScript files |
-| `npm test` | Executes Vitest unit, contract, integration, and golden test suites (see npm test) |
+| `npm test` | Executes Vitest test suite (69 test files, 554 tests; see `npm test`) |
 | `npm run test:policy` | Runs policy oracle tests and negative-oracle (bad-output) checks (P-01 to P-22) |
 | `npm run test:tz` | Tests slot and timeline invariance across UTC, Asia/Kolkata, and America/Los_Angeles |
 | `npm run test:matrix` | Runs full Cartesian policy matrix locally (not in CI); output saved in docs/matrix-run.txt (2026-11-24) |

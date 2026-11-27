@@ -122,7 +122,7 @@ Purpose: a practical, testable accessibility spec for a phone-first web applicat
 
 ### Automated
 - Automated checks: Vitest test suite (`npm test`) runs automated axe-core accessibility audits via `vitest-axe` in `tests/render/accessibility-axe.test.tsx` (auditing About, Today moderate & severe, each onboarding step 1–5, Indoor, Move, Impact, Community, Privacy, Terms, and open modal dialogs with zero violations). In addition, `tests/unit/tokens-contrast.test.ts` computes contrast ratios for every token pair against WCAG AA, `tests/unit/motion-reduction.test.ts` verifies complete animation disabling under `prefers-reduced-motion`, `tests/unit/keyboard-navigation.test.tsx` verifies Tab order progression and dialog Escape focus restoration, and `npm run check:ui` verifies UI token compliance.
-- Lighthouse accessibility audit: score of 100 on mobile (see [`docs/evidence/lighthouse.md`](./evidence/lighthouse.md)).
+- Lighthouse accessibility audit: measured **100** on `#/today` and `#/community`, and **96** on `#/about` (4.35:1 contrast on `.opacity-80` CTA sub-label) on mobile (see [`docs/evidence/lighthouse.md`](./evidence/lighthouse.md)).
 - End-to-end browser automation (Playwright): planned, not implemented (decision A-41). Core user journeys are verified via Vitest render and integration tests.
 
 ### Manual checklist
@@ -157,5 +157,5 @@ Tracked in [`docs/a11y-report.md`](./a11y-report.md) (manual checklist with chec
 | 5 | AI swap-in does not move focus; status announcement present; "AI-personalised" vs "Standard plan" is text |
 | 6 | Indoor and Move: verdicts have reasons in text; "not suitable today" has a reason; UI checks pass |
 | 7 | Impact formulas readable as text, not images; Copy briefing announced; community counts have text; UI checks pass |
-| 8 | Manual checklist in §15 established; Lighthouse accessibility 100; no hard-coded colours; automated render tests pass |
+| 8 | Manual checklist in §15 established; Lighthouse accessibility audited (see [`docs/evidence/lighthouse.md`](./evidence/lighthouse.md)); no hard-coded colours; automated render tests pass |
 | 9 | Manual checklist tracked in docs/a11y-report.md; copy reading-level pass; verification documented |
