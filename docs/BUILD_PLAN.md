@@ -180,7 +180,7 @@ Always keep a tagged known-good commit (`git tag attempt-N`) before submitting. 
 | **Secret Leakage Guard** | Zero committed credentials or keys | **PASS** (0 secrets detected) | `npm run scan:secrets` |
 | **Single-Branch Guard** | Exactly `main` only on origin remote | **PASS** (remote origin has only `main`) | `npm run check:branches` |
 | **Production Build Size** | Clean bundle, optimized code splitting | Entry JS: **413.08 kB** (124.16 kB gzip); CSS: **75.83 kB** (11.45 kB gzip); Font: **34.00 kB** WOFF2 | `npm run build` |
-| **Mobile Lighthouse Scores** | Score >= 90 across all categories | Performance: **85–93**, Accessibility: **96–100**, Best Practices: **92–96**, SEO: **100** | See [`docs/evidence/lighthouse.md`](./evidence/lighthouse.md) |
+| **Mobile Lighthouse Scores** | Score >= 90 across all categories | Performance: **62–100**, Accessibility: **100**, Best Practices: **96–100**, SEO: **100** | See [`docs/evidence/lighthouse.md`](./evidence/lighthouse.md) |
 
 ## Appendix A: Action catalog (approved candidate universe)
 

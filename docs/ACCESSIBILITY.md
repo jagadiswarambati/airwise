@@ -122,7 +122,7 @@ Purpose: a practical, testable accessibility spec for a phone-first web applicat
 
 ### Automated
 - Automated checks: Vitest test suite (`npm test`) runs automated axe-core accessibility audits via `vitest-axe` in `tests/render/accessibility-axe.test.tsx` (auditing About, Today moderate & severe, each onboarding step 1–5, Indoor, Move, Impact, Community, Privacy, Terms, and open modal dialogs with zero violations). In addition, `tests/unit/tokens-contrast.test.ts` computes contrast ratios for every token pair against WCAG AA, `tests/unit/motion-reduction.test.ts` verifies complete animation disabling under `prefers-reduced-motion`, `tests/unit/keyboard-navigation.test.tsx` verifies Tab order progression and dialog Escape focus restoration, and `npm run check:ui` verifies UI token compliance.
-- Lighthouse accessibility audit: measured **100** on `#/today` and `#/community`, and **96** on `#/about` (4.35:1 contrast on `.opacity-80` CTA sub-label) on mobile (see [`docs/evidence/lighthouse.md`](./evidence/lighthouse.md)).
+- Lighthouse accessibility audit: score of **100** on mobile across onboarding (`/`), `#/about`, `#/today`, and `#/community` (see [`docs/evidence/lighthouse.md`](./evidence/lighthouse.md)).
 - End-to-end browser automation (Playwright): planned, not implemented (decision A-41). Core user journeys are verified via Vitest render and integration tests.
 
 ### Manual checklist

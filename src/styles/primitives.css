@@ -361,7 +361,7 @@
 
 .form-input::placeholder {
   color: var(--ink-2);
-  opacity: 0.75;
+  opacity: 1;
 }
 
 .form-select option {

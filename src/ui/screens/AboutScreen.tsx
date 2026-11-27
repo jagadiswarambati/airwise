@@ -115,7 +115,7 @@ const AboutCtaCard: React.FC<AboutCtaProps> = ({ onStart, onDemo }) => (
         onClick={onDemo}
       >
         <span>Try a demo household</span>
-        <span className="text-xs opacity-80">(Instant preview)</span>
+        <span className="text-xs">(Instant preview)</span>
       </button>
       <button
         type="button"
@@ -123,7 +123,7 @@ const AboutCtaCard: React.FC<AboutCtaProps> = ({ onStart, onDemo }) => (
         onClick={onStart}
       >
         <span>Set up my household</span>
-        <span className="text-xs opacity-80">(Takes 2 minutes)</span>
+        <span className="text-xs">(Takes 2 minutes)</span>
       </button>
     </div>
 

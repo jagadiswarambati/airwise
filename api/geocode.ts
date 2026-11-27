@@ -1,3 +1,4 @@
+import '../src/lib/zodConfig';
 import { z } from 'zod';
 import { createErrorResponse, type ApiResponse, type ApiErrorBody } from './_lib/errors';
 import { getSecurityHeaders } from './_lib/headers';

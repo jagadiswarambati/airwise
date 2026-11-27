@@ -16,7 +16,7 @@
 | 3. Type Safety & Lint Hygiene | 12 / 15 | Addressed (0 ESLint errors/warnings, strict Zod) | PASS (self-assessed; not independently verified) |
 | 4. Error Handling & Robustness | 9 / 10 | Addressed (explicit 6000ms fetch timeouts, typed errors) | PASS (self-assessed; not independently verified) |
 | 5. Duplication & Dead Code | 8 / 10 | Addressed (unified api/_lib/http.ts adapters) | PASS (self-assessed; not independently verified) |
-| 6. Tests as Part of Quality | 9 / 10 | Addressed (69 test files, 554 tests passed) | PASS (self-assessed; not independently verified) |
+| 6. Tests as Part of Quality | 9 / 10 | Addressed (70 test files, 558 tests passed) | PASS (self-assessed; not independently verified) |
 | 7. Documentation & Hygiene | 8 / 10 | Addressed (all links resolve, accurate claims) | PASS (self-assessed; not independently verified) |
 | 8. Tooling & Consistency | 9 / 10 | Addressed (validate gate, format check) | PASS (self-assessed; not independently verified) |
 | **Overall** | **85 / 100** | **Self-assessed audit; not independently verified** | **PASS** |
@@ -120,8 +120,8 @@
 | **ESLint Errors** | 0 | **0** | PASSED |
 | **ESLint Warnings** | 23 | **0** | PASSED |
 | **TypeScript Errors (`tsc`)** | 0 | **0** | PASSED |
-| **Vitest Test Files** | 57 | **69** (+12 files) | PASSED |
-| **Vitest Test Cases** | 435 | **554** (+119 tests) | PASSED |
+| **Vitest Test Files** | 57 | **70** (+13 files) | PASSED |
+| **Vitest Test Cases** | 435 | **558** (+123 tests) | PASSED |
 | **Skipped / Only / Fixme Tests** | 0 | **0** | PASSED |
 | **Full Cartesian Policy Matrix** | 691,320 cases passed | **691,320 cases passed** | PASSED |
 | **Timezone Invariance Tests** | 3 timezones passed | **3 timezones passed** | PASSED |
@@ -180,7 +180,7 @@
 - **Remaining weakness:** Minor duplication in confidence text formatting between `ActionRow.tsx` and `src/ui/primitives/AxisPair.tsx`.
 
 ### 6. Tests as Part of Quality (self-assessed; not independently verified)
-- **Evidence 1:** 69 test files and 554 unit/integration/render/policy tests running in Vitest with 0 failures, 0 skips, 0 only, and 0 fixme.
+- **Evidence 1:** 70 test files and 558 unit/integration/render/policy tests running in Vitest with 0 failures, 0 skips, 0 only, and 0 fixme.
 - **Evidence 2:** Added `tests/unit/config-site.test.ts`, `tests/unit/lib-logger.test.ts`, and `tests/unit/catalog-invariance.test.ts` covering site metadata, logger methods, and catalog invariance.
 - **Evidence 3:** Full Cartesian policy matrix test suite (691,320 cases in `tests/policy/matrix-full.test.ts` + P-01..P-22 in `policy-matrix.test.ts`), mutation testing (`mutation.test.ts`), multi-timezone invariance (`run-tz-tests.mjs`), and validator prompt injection abuse tests (`validator-abuse.test.ts`).
 - **Remaining weakness:** End-to-end browser automation is not implemented; see decision A-41.

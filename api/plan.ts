@@ -1,3 +1,4 @@
+import '../src/lib/zodConfig';
 import { z } from 'zod';
 import { type AIPlanInput, type AIPlanOutput, AIPlanInputSchema } from '../src/ai/schema';
 import { validateAIPlanOutput } from '../src/ai/validator';

@@ -21,6 +21,44 @@ function getLuminance(hex: string): number {
 }
 
 /**
+ * Alpha-composites a foreground hex color at `alpha` over an opaque background hex color,
+ * matching CSS `opacity` rendering over a solid surface.
+ */
+function blendOverBackground(fgHex: string, bgHex: string, alpha: number): string {
+  const parse = (hex: string) => {
+    const c = hex.replace('#', '').trim();
+    return [
+      parseInt(c.substring(0, 2), 16),
+      parseInt(c.substring(2, 4), 16),
+      parseInt(c.substring(4, 6), 16),
+    ];
+  };
+  const fg = parse(fgHex);
+  const bg = parse(bgHex);
+  const blended = fg.map((f, i) => Math.round(f * alpha + bg[i] * (1 - alpha)));
+  return '#' + blended.map((v) => v.toString(16).padStart(2, '0')).join('');
+}
+
+/**
+ * Extracts effective opacity (1.0 unless an opacity-* class is applied) from class names
+ * by resolving `.opacity-<N>` declarations in primitives.css.
+ */
+function resolveEffectiveOpacity(classAttr: string, primitivesCss: string): number {
+  const classes = classAttr.split(/\s+/).filter(Boolean);
+  let alpha = 1;
+  for (const cls of classes) {
+    const escaped = cls.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const ruleMatch = primitivesCss.match(
+      new RegExp(`\\.${escaped}\\s*\\{[^}]*opacity\\s*:\\s*([0-9.]+)\\s*;`),
+    );
+    if (ruleMatch) {
+      alpha *= Number(ruleMatch[1]);
+    }
+  }
+  return alpha;
+}
+
+/**
  * Calculates WCAG 2.1 contrast ratio between two hex colors.
  */
 function getContrastRatio(hex1: string, hex2: string): number {
@@ -189,6 +227,121 @@ describe('Design Token Contrast Verification (WCAG 2.2 AA)', () => {
     it('meets WCAG AA UI contrast (>= 3.0:1) for severe focus and border lines', () => {
       expect(getContrastRatio(severe.accent, severe.surface)).toBeGreaterThanOrEqual(3.0);
       expect(getContrastRatio(severe.line, severe.surface)).toBeGreaterThanOrEqual(3.0);
+    });
+  });
+
+  describe('Effective Opacity-Blended Contrast (CTA Subtext & Placeholders)', () => {
+    const aboutSrc = fs.readFileSync(
+      path.resolve(__dirname, '../../src/ui/screens/AboutScreen.tsx'),
+      'utf-8',
+    );
+    const primitivesCss = fs.readFileSync(
+      path.resolve(__dirname, '../../src/styles/primitives.css'),
+      'utf-8',
+    );
+    const todayCss = fs.readFileSync(
+      path.resolve(__dirname, '../../src/styles/today.css'),
+      'utf-8',
+    );
+
+    it('renders "(Takes 2 minutes)" and "(Instant preview)" spans with effective contrast >= 4.5:1 across light, dark, and severe themes', () => {
+      const primarySubtextMatch = aboutSrc.match(
+        /<span\s+className="([^"]+)">\(Takes 2 minutes\)<\/span>/,
+      );
+      const secondarySubtextMatch = aboutSrc.match(
+        /<span\s+className="([^"]+)">\(Instant preview\)<\/span>/,
+      );
+      expect(primarySubtextMatch).not.toBeNull();
+      expect(secondarySubtextMatch).not.toBeNull();
+
+      const primaryAlpha = resolveEffectiveOpacity(primarySubtextMatch?.[1] ?? '', primitivesCss);
+      const secondaryAlpha = resolveEffectiveOpacity(
+        secondarySubtextMatch?.[1] ?? '',
+        primitivesCss,
+      );
+
+      const themeButtons = [
+        {
+          name: 'light',
+          accent: '#0369a1',
+          onAccent: '#ffffff',
+          surface: '#ffffff',
+          ink: '#0f172a',
+        },
+        {
+          name: 'dark',
+          accent: '#38bdf8',
+          onAccent: '#082f49',
+          surface: '#131b2e',
+          ink: '#f8fafc',
+        },
+        {
+          name: 'severe',
+          accent: '#c084fc',
+          onAccent: '#1a0526',
+          surface: '#2b093f',
+          ink: '#ffffff',
+        },
+      ];
+
+      for (const theme of themeButtons) {
+        const effectivePrimaryFg = blendOverBackground(theme.onAccent, theme.accent, primaryAlpha);
+        const primaryRatio = getContrastRatio(effectivePrimaryFg, theme.accent);
+        expect(
+          primaryRatio,
+          `(${theme.name}) primary CTA subtext alpha=${primaryAlpha} contrast ${primaryRatio.toFixed(2)}`,
+        ).toBeGreaterThanOrEqual(4.5);
+
+        const effectiveSecondaryFg = blendOverBackground(theme.ink, theme.surface, secondaryAlpha);
+        const secondaryRatio = getContrastRatio(effectiveSecondaryFg, theme.surface);
+        expect(
+          secondaryRatio,
+          `(${theme.name}) secondary CTA subtext alpha=${secondaryAlpha} contrast ${secondaryRatio.toFixed(2)}`,
+        ).toBeGreaterThanOrEqual(4.5);
+      }
+    });
+
+    it('keeps form placeholder text effective contrast >= 4.5:1 in light and dark modes', () => {
+      const placeholderMatch = primitivesCss.match(
+        /\.form-input::placeholder\s*\{[^}]*opacity\s*:\s*([0-9.]+)\s*;/,
+      );
+      const alpha = placeholderMatch ? Number(placeholderMatch[1]) : 1;
+
+      const pairs = [
+        { name: 'light', ink2: '#334155', surface: '#ffffff' },
+        { name: 'dark', ink2: '#94a3b8', surface: '#131b2e' },
+      ];
+      for (const p of pairs) {
+        const effectiveFg = blendOverBackground(p.ink2, p.surface, alpha);
+        expect(
+          getContrastRatio(effectiveFg, p.surface),
+          `${p.name} placeholder alpha=${alpha}`,
+        ).toBeGreaterThanOrEqual(4.5);
+      }
+    });
+
+    it('keeps level hero subtitle opacity-blended contrast >= 4.5:1 across all haze levels', () => {
+      const heroMatch = todayCss.match(
+        /\.aw-level-hero-data-type,\s*\.aw-level-hero-aqi\s*\{[^}]*opacity\s*:\s*([0-9.]+)\s*;/,
+      );
+      const alpha = heroMatch ? Number(heroMatch[1]) : 1;
+
+      const heroPairs = [
+        ['#065f46', '#ecfdf5'],
+        ['#713f12', '#fefce8'],
+        ['#7c2d12', '#fff7ed'],
+        ['#991b1b', '#fef2f2'],
+        ['#581c87', '#faf5ff'],
+        ['#a7f3d0', '#064e3b'],
+        ['#fef08a', '#713f12'],
+        ['#fed7aa', '#7c2d12'],
+        ['#fecaca', '#7f1d1d'],
+        ['#e9d5ff', '#4c1d95'],
+      ];
+      for (const [fg, bg] of heroPairs) {
+        const effectiveFg = blendOverBackground(fg, bg, alpha);
+        expect(getContrastRatio(effectiveFg, bg)).toBeGreaterThanOrEqual(4.5);
+      }
     });
   });
 });

@@ -1,3 +1,4 @@
+import '../src/lib/zodConfig';
 import { type ApiResponse, type ApiErrorBody } from './_lib/errors';
 import { getSecurityHeaders } from './_lib/headers';
 import { parseQuery, AirQuerySchema } from './_lib/validate';
