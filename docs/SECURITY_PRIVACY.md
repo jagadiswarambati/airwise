@@ -99,7 +99,7 @@ Purpose: practical controls, with the exact settings to implement and a checklis
 ## 9. Security headers and CSP (in `vercel.json` and `api/_lib/headers.ts`)
 
 ```
-Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; manifest-src 'self'; worker-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests
+Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; media-src 'self'; worker-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests
 X-Content-Type-Options: nosniff
 X-Frame-Options: DENY
 Referrer-Policy: no-referrer
@@ -208,7 +208,7 @@ Verified via automated test suites and repository checks.
 | Control | Target File(s) | Verification Command / Suite | Result |
 |---|---|---|---|
 | HTTP Security Headers | `api/_lib/headers.ts`, `vercel.json` | `npx vitest run tests/unit/api-headers.test.ts` | 7 tests passed |
-| Content Security Policy | `api/_lib/headers.ts`, `vercel.json` | `npx vitest run tests/unit/api-headers.test.ts` | CSP directives verified (connect-src 'self', media-src 'self' https: data:) |
+| Content Security Policy | `api/_lib/headers.ts`, `vercel.json` | `npx vitest run tests/unit/api-headers.test.ts` | CSP directives verified (connect-src 'self', media-src 'self') |
 | CORS Restrictions | `api/_lib/pipeline.ts` | `npx vitest run tests/unit/api-handlers.test.ts` | Same-origin enforced |
 | Input & Upstream Validation | `api/plan.ts`, `api/_lib/validate.ts`, `src/ai/validator.ts` | `npx vitest run tests/unit/api-plan.test.ts tests/validator/validator-abuse.test.ts` | 31 tests passed |
 | Rate Limiting & Anti-Spoofing IP | `api/_lib/rateLimit.ts` | `npx vitest run tests/unit/api-rate-limit.test.ts` | 10 tests passed |
