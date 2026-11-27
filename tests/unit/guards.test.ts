@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import path from 'path';
 import fs from 'fs';
-import { checkBranches } from '../../scripts/check-branches.mjs';
+import {
+  checkBranches,
+  isValidDependabotBranch,
+  isAuthorizedBranch,
+} from '../../scripts/check-branches.mjs';
 import { scanFile, shouldIgnore, SECRET_PATTERNS } from '../../scripts/scan-secrets.mjs';
 import { getDirSizeBytes } from '../../scripts/check-size.mjs';
 
@@ -54,9 +58,48 @@ describe('Guards Unit Tests: Fail-Closed Behavior & Path Anchoring', () => {
       expect(result).toBe(true);
     });
 
-    it('fails closed when remote origin has extra branches', () => {
+    it('passes when remote origin has "main" and authorized dependabot PR branches', () => {
       const fakeRemoteOutput = [
         '6391d17494f43d89d8429bde4bdb7374ffd69868\trefs/heads/main',
+        'b56ba49b26e50535fa1e7f7db0f4f7b4765d80d1\trefs/heads/dependabot/npm_and_yarn/vite-8.3.8',
+        'c78de49b26e50535fa1e7f7db0f4f7b4765d80d2\trefs/heads/dependabot/github-actions/checkout-4.2.2',
+      ].join('\n');
+
+      const result = checkBranches({ customRemoteHeads: fakeRemoteOutput });
+      expect(result).toBe(true);
+    });
+
+    it('fails closed when remote origin has unauthorized extra branches', () => {
+      const fakeRemoteOutput = [
+        '6391d17494f43d89d8429bde4bdb7374ffd69868\trefs/heads/main',
+        'a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2\trefs/heads/feature-branch',
+      ].join('\n');
+
+      const result = checkBranches({ customRemoteHeads: fakeRemoteOutput });
+      expect(result).toBe(false);
+    });
+
+    it('fails closed when dependabot branch is present but "main" is missing', () => {
+      const fakeRemoteOutput =
+        'b56ba49b26e50535fa1e7f7db0f4f7b4765d80d1\trefs/heads/dependabot/npm_and_yarn/vite-8.3.8';
+      const result = checkBranches({ customRemoteHeads: fakeRemoteOutput });
+      expect(result).toBe(false);
+    });
+
+    it('fails closed when dependabot branch contains traversal or invalid characters', () => {
+      const fakeRemoteOutput = [
+        '6391d17494f43d89d8429bde4bdb7374ffd69868\trefs/heads/main',
+        'b56ba49b26e50535fa1e7f7db0f4f7b4765d80d1\trefs/heads/dependabot/../evil-branch',
+      ].join('\n');
+
+      const result = checkBranches({ customRemoteHeads: fakeRemoteOutput });
+      expect(result).toBe(false);
+    });
+
+    it('fails closed when dependabot branches exist alongside unauthorized branches', () => {
+      const fakeRemoteOutput = [
+        '6391d17494f43d89d8429bde4bdb7374ffd69868\trefs/heads/main',
+        'b56ba49b26e50535fa1e7f7db0f4f7b4765d80d1\trefs/heads/dependabot/npm_and_yarn/vite-8.3.8',
         'a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2\trefs/heads/feature-branch',
       ].join('\n');
 
@@ -73,6 +116,20 @@ describe('Guards Unit Tests: Fail-Closed Behavior & Path Anchoring', () => {
     it('fails closed on empty branch list or unexpected output', () => {
       const result = checkBranches({ customRemoteHeads: '' });
       expect(result).toBe(false);
+    });
+
+    it('correctly validates helper functions isValidDependabotBranch and isAuthorizedBranch', () => {
+      expect(isValidDependabotBranch('dependabot/npm_and_yarn/vite-8.3.8')).toBe(true);
+      expect(isValidDependabotBranch('dependabot/github-actions/checkout-4.2.2')).toBe(true);
+      expect(isValidDependabotBranch('dependabot/')).toBe(false);
+      expect(isValidDependabotBranch('dependabot/../evil')).toBe(false);
+      expect(isValidDependabotBranch('main')).toBe(false);
+      expect(isValidDependabotBranch('feature/dependabot')).toBe(false);
+
+      expect(isAuthorizedBranch('main')).toBe(true);
+      expect(isAuthorizedBranch('dependabot/npm_and_yarn/vite-8.3.8')).toBe(true);
+      expect(isAuthorizedBranch('feature/branch')).toBe(false);
+      expect(isAuthorizedBranch('dev')).toBe(false);
     });
   });
 

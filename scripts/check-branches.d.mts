@@ -3,10 +3,6 @@ export interface CheckBranchesOptions {
   customLocalBranches?: string;
 }
 
-export interface CheckBranchesResult {
-  ok: boolean;
-  branches?: string[];
-  error?: string;
-}
-
-export function checkBranches(options?: CheckBranchesOptions): CheckBranchesResult;
+export function isValidDependabotBranch(name?: string): boolean;
+export function isAuthorizedBranch(name?: string): boolean;
+export function checkBranches(options?: CheckBranchesOptions): boolean;
