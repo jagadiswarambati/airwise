@@ -70,7 +70,13 @@ const IndoorAside: React.FC<{
   <aside className="aw-screen-layout-aside" aria-label="Ventilation advisor and advice context">
     <div className="aw-screen-aside-sticky">
       <div className="aw-desktop-only mb-4">
-        <VerdictBlock verdict={verdict} explanation={explanation} atHour={atHour ?? undefined} />
+        <VerdictBlock
+          verdict={verdict}
+          explanation={explanation}
+          atHour={atHour ?? undefined}
+          as="div"
+          headingId="desktop-verdict-heading"
+        />
       </div>
 
       <div className="card">

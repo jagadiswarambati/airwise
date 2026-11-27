@@ -28,7 +28,7 @@ const SevereActionItem: React.FC<{
       type="button"
       className="aw-btn aw-btn-quiet aw-severe-action-btn"
       onClick={() => onSelect(candidate)}
-      aria-label={`View guidance details for ${candidate.action.title}`}
+      aria-label={`Action guidance & details for ${candidate.action.title}`}
     >
       Action guidance &amp; details →
     </button>

@@ -30,7 +30,10 @@
 
 ## 2. Methodology & Evidence Reference
 - Automated checks:
-  - Contrast ratios and CSS token pairs verified by `npm test` (`tests/unit/tokens.test.ts`).
+  - Automated axe-core accessibility audits in Vitest test suite (`tests/render/accessibility-axe.test.tsx`) asserting 0 violations across all screens, onboarding steps, and dialogs.
+  - Contrast ratios and CSS token pairs verified by `npm test` (`tests/unit/tokens-contrast.test.ts`).
+  - Motion reduction verified by `tests/unit/motion-reduction.test.ts`.
+  - Keyboard navigation and focus restoration verified by `tests/unit/keyboard-navigation.test.tsx`.
   - Heading hierarchy, alert role restrictions, and visual tokens verified by `npm run check:ui`.
   - Automated mobile Lighthouse audit summary documented in [`docs/evidence/lighthouse.md`](./evidence/lighthouse.md).
-- End-to-end browser automation (Playwright and axe-core) is planned, not implemented (see decision A-41).
+- End-to-end browser automation (Playwright) is planned, not implemented (see decision A-41).

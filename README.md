@@ -231,6 +231,7 @@ AirWise enforces safety and correctness through multi-layered automated testing:
 ## Accessibility (a11y)
 
 - **WCAG 2.2 AA Compliance:** Minimum 4.5:1 text contrast on light/dark themes, 3:1 graphical element contrast, and visible `:focus-visible` focus rings.
+- **Automated axe Audits:** Verified with zero violations in the test suite via `vitest-axe` in `tests/render/accessibility-axe.test.tsx` (auditing About, Today moderate & severe, Onboarding steps 1–5, Indoor, Move, Impact, Community, Privacy, Terms, and modals), token contrast tests in `tests/unit/tokens-contrast.test.ts`, reduced motion assertions in `tests/unit/motion-reduction.test.ts`, and keyboard navigation tests in `tests/unit/keyboard-navigation.test.tsx`. (End-to-end browser automation with Playwright is planned, not implemented per decision A-41).
 - **Touch Target Sizing:** Interactive buttons, inputs, and toggles enforce a minimum 44×44px hit target (`var(--target-min)`).
 - **Assistive Technology Support:** Semantic headings (`<h1>` through `<h3>`), explicit `<fieldset>` groups, ARIA labels, polite live region announcements, and full keyboard navigation.
 - See [`docs/ACCESSIBILITY.md`](./docs/ACCESSIBILITY.md) for the accessibility audit and screen reader verification guide.

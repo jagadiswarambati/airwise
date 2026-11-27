@@ -7,6 +7,9 @@ export interface VerdictBlockProps {
   atHour?: number;
   durationMinutes?: number;
   className?: string;
+  headingId?: string;
+  ariaLabel?: string;
+  as?: 'section' | 'div';
 }
 
 export const VerdictBlock: React.FC<VerdictBlockProps> = ({
@@ -14,6 +17,9 @@ export const VerdictBlock: React.FC<VerdictBlockProps> = ({
   explanation,
   atHour,
   className = '',
+  headingId,
+  ariaLabel,
+  as = 'section',
 }) => {
   const getHeadline = (): string => {
     switch (verdict) {
@@ -49,13 +55,21 @@ export const VerdictBlock: React.FC<VerdictBlockProps> = ({
 
   const badgeClass = getVerdictBadgeClass(verdict);
 
+  const defaultHeadingId = 'verdict-heading';
+  const effectiveHeadingId = headingId || defaultHeadingId;
+  const Tag = as;
+  const sectionProps = ariaLabel
+    ? { 'aria-label': ariaLabel }
+    : { 'aria-labelledby': effectiveHeadingId };
+  const accessibilityProps = Tag === 'section' ? sectionProps : {};
+
   return (
-    <section
+    <Tag
       className={`card card-callout-primary aw-verdict-block ${className}`.trim()}
-      aria-labelledby="verdict-heading"
+      {...accessibilityProps}
     >
       <div className="flex-between mb-2">
-        <h2 id="verdict-heading" className="screen-section-title">
+        <h2 id={effectiveHeadingId} className="screen-section-title">
           <Icon name="wind" size={22} aria-hidden="true" />
           <span>Smart Ventilation Advisor</span>
         </h2>
@@ -73,7 +87,7 @@ export const VerdictBlock: React.FC<VerdictBlockProps> = ({
           Around {atHour}:00
         </div>
       )}
-    </section>
+    </Tag>
   );
 };
 

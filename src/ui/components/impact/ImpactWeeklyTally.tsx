@@ -34,9 +34,10 @@ export function ImpactWeeklyTally({
 }: ImpactWeeklyTallyProps) {
   const headingId = isDesktop ? 'desktop-tally-heading' : 'mobile-tally-heading';
   const className = `card mb-4 ${isDesktop ? 'aw-desktop-only' : 'aw-mobile-only'}`;
+  const Tag = isDesktop ? 'div' : 'section';
 
   return (
-    <section className={className} aria-labelledby={headingId}>
+    <Tag className={className} {...(!isDesktop ? { 'aria-labelledby': headingId } : {})}>
       <h2 id={headingId} className="section-heading mb-2">
         Weekly Household Defensible Tally
       </h2>
@@ -86,6 +87,6 @@ export function ImpactWeeklyTally({
           </div>
         </div>
       </Disclosure>
-    </section>
+    </Tag>
   );
 }
