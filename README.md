@@ -26,6 +26,27 @@ AirWise answers these questions with:
 
 ---
 
+## Chosen Vertical
+
+AirWise targets **urban air quality and everyday household decision-making during winter smog**. Its primary users are urban families and households—including households with vulnerable members (children, older adults, or people with asthma/COPD, heart conditions, or pregnancy) and budget-constrained homes without mechanical air purifiers or exhaust fans. Rather than leaving families with raw AQI scores, AirWise translates PM2.5 forecasts and household context into clear, prioritized daily routines covering ventilation timing, indoor cleaner-room setup, protective gear, and commute adjustments.
+
+## Approach and Logic
+
+- **Deterministic policy engine decides safety:** Pure TypeScript rules (`P-01` to `P-22` in `src/domain`) evaluate PM2.5 concentrations, data freshness, household vulnerabilities, heating/cooking equipment, and budget to determine risk levels, mandatory precautions, and candidate actions.
+- **Gemini acts only as a bounded overlay:** When `LLM_PROVIDER=gemini` is enabled, the model receives anonymized enums and pre-approved action IDs (no names, coordinates, or free-text chat) solely to reorder approved actions and write brief household explanations.
+- **Strict validation and fail-closed fallback:** Every model output passes a Zod schema check and eight deterministic validator rules (`checkSchema`, `checkIds`, `checkMustInclude`, `checkLinks`, `checkBannedPhrases`, `checkReadingLevel`, `checkConfidenceCeiling`, and `checkNumbers`); any failure falls back immediately to the deterministic plan.
+- **Dual-axis impact accounting:** Every action separates **Exposure** (what household members breathe) from **Emissions** (pollution caused by the household), always disclosing confidence, assumptions, and what the action does not change (see [`docs/IMPACT_METHODOLOGY.md`](./docs/IMPACT_METHODOLOGY.md) and [`docs/DECISIONS.md`](./docs/DECISIONS.md)).
+
+## Assumptions
+
+- **Modelled CAMS data via Open-Meteo, not ground sensors:** Air quality and weather forecasts come from Open-Meteo (CAMS global modelled domain, ~25 km spatial resolution, 1–3 hourly series updated every 12–24 h). Readings are labelled *Modelled* or *Sample* (the *Measured* label is unused in the MVP), Open-Meteo exposure confidence is capped at *medium*, and stale or missing data forces *low* confidence ([`docs/DATA_SOURCES.md`](./docs/DATA_SOURCES.md), [`docs/DECISIONS.md`](./docs/DECISIONS.md) ADR-007).
+- **Impact figures are estimates with stated limits and ranges:** Quantitative outputs (`E1` vehicle-km avoided bounded to 0–100 km one-way and 0–14 round trips/week with 2-person default carpool occupancy and 2 default carpool/remote days, `X1` commute window means shown only when difference is ≥ 5 µg/m³ and ≥ 15%, and `C1` community totals using fixed demo seed parameters) are labelled *Estimated* with visible formulas and assumptions; all other advice is qualitative (*Recommended*), and CO₂e (`E2`) remains disabled (`SHOW_CO2E = false`) until emission factors are sourced ([`docs/IMPACT_METHODOLOGY.md`](./docs/IMPACT_METHODOLOGY.md), [`docs/DATA_SOURCES.md`](./docs/DATA_SOURCES.md)).
+- **Profile and state remain in `localStorage`:** Household profiles (with rounded coordinates to 2 decimal places / ~1.1 km and coarse health flags), preferences, and cached air snapshots are stored unencrypted in browser `localStorage` with an in-memory fallback, no user accounts or database, and JSON export / delete-all controls in the menu ([`docs/DECISIONS.md`](./docs/DECISIONS.md) ADR-008, ADR-009).
+- **Informational guidance, not medical diagnosis:** AirWise provides non-clinical exposure guidance with fixed clinician-plan and respirator cautions, never medical diagnosis, medication, dosing, or guaranteed health outcomes ([`docs/IMPACT_METHODOLOGY.md`](./docs/IMPACT_METHODOLOGY.md), [`docs/DECISIONS.md`](./docs/DECISIONS.md) ADR-019).
+- **India-focused defaults:** Initial fallback location defaults to New Delhi (`IN`), preset profiles and sample cities target Indian urban contexts, regional PM2.5 bands default to India CPCB breakpoints applied over a 6-hour rolling mean (switching to US EPA when a US location/override is active), and rules model local housing and commute realities such as LPG/biomass cooking without exhaust, combustion heating, two-wheelers, and auto-rickshaws ([`docs/DATA_SOURCES.md`](./docs/DATA_SOURCES.md)).
+
+---
+
 ## How It Works
 
 AirWise is designed around a **deterministic core with an optional AI overlay**:
