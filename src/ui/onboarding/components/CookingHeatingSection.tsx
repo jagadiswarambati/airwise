@@ -1,4 +1,9 @@
-import { type CookingFuel, type HomeHeating } from '../../../domain/types';
+import {
+  type CookingFuel,
+  type HomeHeating,
+  CookingFuelSchema,
+  HomeHeatingSchema,
+} from '../../../domain/types';
 import { Field } from '../../primitives/Field';
 import { Fieldset } from '../../primitives/Fieldset';
 import { COOKING_FUEL_OPTIONS, HOME_HEATING_OPTIONS } from '../options';
@@ -26,7 +31,10 @@ export function CookingHeatingSection({
         <Field id="cooking-fuel" label="Primary cooking fuel">
           <select
             value={fuel}
-            onChange={(e) => setFuel(e.target.value as CookingFuel)}
+            onChange={(e) => {
+              const res = CookingFuelSchema.safeParse(e.target.value);
+              if (res.success) setFuel(res.data);
+            }}
             className="form-select"
           >
             {COOKING_FUEL_OPTIONS.map((opt) => (
@@ -57,7 +65,10 @@ export function CookingHeatingSection({
         >
           <select
             value={homeHeating}
-            onChange={(e) => setHomeHeating(e.target.value as HomeHeating)}
+            onChange={(e) => {
+              const res = HomeHeatingSchema.safeParse(e.target.value);
+              if (res.success) setHomeHeating(res.data);
+            }}
             className="form-select"
           >
             {HOME_HEATING_OPTIONS.map((opt) => (

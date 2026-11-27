@@ -5,6 +5,9 @@ import {
   type HomeHeating,
   type HousingType,
   type Tenure,
+  BudgetTierSchema,
+  HousingTypeSchema,
+  TenureSchema,
 } from '../../../domain/types';
 import { Field } from '../../primitives/Field';
 import { Fieldset } from '../../primitives/Fieldset';
@@ -30,7 +33,10 @@ function HousingStructureSection({ tenure, setTenure, housingType, setHousingTyp
         <Field id="housing-tenure" label="Housing tenure">
           <select
             value={tenure}
-            onChange={(e) => setTenure(e.target.value as Tenure)}
+            onChange={(e) => {
+              const res = TenureSchema.safeParse(e.target.value);
+              if (res.success) setTenure(res.data);
+            }}
             className="form-select"
           >
             {HOUSING_TENURE_OPTIONS.map((opt) => (
@@ -44,7 +50,10 @@ function HousingStructureSection({ tenure, setTenure, housingType, setHousingTyp
         <Field id="housing-type" label="Home type">
           <select
             value={housingType}
-            onChange={(e) => setHousingType(e.target.value as HousingType)}
+            onChange={(e) => {
+              const res = HousingTypeSchema.safeParse(e.target.value);
+              if (res.success) setHousingType(res.data);
+            }}
             className="form-select"
           >
             {HOUSING_TYPE_OPTIONS.map((opt) => (
@@ -75,7 +84,10 @@ function BudgetField({
     >
       <select
         value={budget}
-        onChange={(e) => setBudget(e.target.value as BudgetTier)}
+        onChange={(e) => {
+          const res = BudgetTierSchema.safeParse(e.target.value);
+          if (res.success) setBudget(res.data);
+        }}
         className="form-select"
       >
         {BUDGET_TIER_OPTIONS.map((opt) => (

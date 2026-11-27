@@ -32,7 +32,7 @@ function isValidTravelInput(travel: HouseholdProfile['travel']): boolean {
     return false;
   }
   return modes.some(
-    (m) => m === 'car' || m === 'two_wheeler' || (m as string) === 'auto_rickshaw',
+    (m) => m === 'car' || m === 'two_wheeler' || m === 'auto_rickshaw',
   );
 }
 

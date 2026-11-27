@@ -53,7 +53,8 @@ export function MenuProfileSection({
 
     const reader = new FileReader();
     reader.onload = (evt) => {
-      const text = evt.target?.result as string;
+      const text = evt.target?.result;
+      if (typeof text !== 'string') return;
       const res = importProfileJson(text);
       if (res.success) {
         setImportError(null);

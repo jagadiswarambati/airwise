@@ -10,22 +10,28 @@ export interface FieldProps {
   children: React.ReactNode;
 }
 
+interface AccessibleFieldProps {
+  id?: string;
+  'aria-describedby'?: string;
+  'aria-invalid'?: boolean;
+}
+
 function getEnhancedChild(
   children: React.ReactNode,
   id: string,
   describedBy?: string,
   error?: string,
 ) {
-  if (!React.isValidElement<React.HTMLAttributes<HTMLElement>>(children)) {
+  if (!React.isValidElement<AccessibleFieldProps>(children)) {
     return children;
   }
-  const childProps = children.props as { id?: string; 'aria-describedby'?: string };
+  const childProps = children.props;
   return React.cloneElement(children, {
     id: childProps.id || id,
     'aria-describedby':
       [childProps['aria-describedby'], describedBy].filter(Boolean).join(' ') || undefined,
     'aria-invalid': error ? true : undefined,
-  } as React.HTMLAttributes<HTMLElement>);
+  });
 }
 
 export const Field: React.FC<FieldProps> = ({

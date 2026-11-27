@@ -1,5 +1,5 @@
 import React from 'react';
-import { type AgeGroup, type Flag, type Member } from '../../../domain/types';
+import { type Flag, type Member, AgeGroupSchema } from '../../../domain/types';
 import { Field } from '../../primitives/Field';
 import { Fieldset } from '../../primitives/Fieldset';
 import { AGE_GROUP_OPTIONS, FLAG_OPTIONS } from '../options';
@@ -47,7 +47,10 @@ function MemberItem({
       >
         <select
           value={member.ageGroup}
-          onChange={(e) => onUpdate(member.id, { ageGroup: e.target.value as AgeGroup })}
+          onChange={(e) => {
+            const res = AgeGroupSchema.safeParse(e.target.value);
+            if (res.success) onUpdate(member.id, { ageGroup: res.data });
+          }}
           className="form-select"
         >
           {AGE_GROUP_OPTIONS.map((opt) => (

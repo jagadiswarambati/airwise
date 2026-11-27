@@ -112,18 +112,30 @@ function useMembersDraft(initial?: HouseholdProfile | null) {
   return { members, addMember, updateMember, removeMember, toggleFlag };
 }
 
-function getDefaultHome(initial?: HouseholdProfile | null) {
+interface DefaultHomeState {
+  tenure: Tenure;
+  housingType: HousingType;
+  fuel: CookingFuel;
+  hasExhaust: boolean;
+  homeHeating: HomeHeating;
+  hasPurifier: boolean;
+  hasWindowAC: boolean;
+  hasHvac: boolean;
+  budget: BudgetTier;
+}
+
+function getDefaultHome(initial?: HouseholdProfile | null): DefaultHomeState {
   if (!initial) {
     return {
-      tenure: 'rent' as Tenure,
-      housingType: 'apartment' as HousingType,
-      fuel: 'lpg' as CookingFuel,
+      tenure: 'rent',
+      housingType: 'apartment',
+      fuel: 'lpg',
       hasExhaust: false,
-      homeHeating: 'none' as HomeHeating,
+      homeHeating: 'none',
       hasPurifier: false,
       hasWindowAC: true,
       hasHvac: false,
-      budget: 'low' as BudgetTier,
+      budget: 'low',
     };
   }
   return {
@@ -139,13 +151,23 @@ function getDefaultHome(initial?: HouseholdProfile | null) {
   };
 }
 
-function getDefaultCommute(initial?: HouseholdProfile | null) {
+interface DefaultCommuteState {
+  modes: Mode[];
+  oneWayKm: number;
+  tripsPerWeek: number;
+  transitAvailable: boolean | 'unknown';
+  canShiftTime: boolean;
+  canWorkRemotely: boolean;
+  outdoorWorker: boolean;
+}
+
+function getDefaultCommute(initial?: HouseholdProfile | null): DefaultCommuteState {
   if (!initial) {
     return {
-      modes: ['two_wheeler'] as Mode[],
+      modes: ['two_wheeler'],
       oneWayKm: 12,
       tripsPerWeek: 5,
-      transitAvailable: true as boolean | 'unknown',
+      transitAvailable: true,
       canShiftTime: false,
       canWorkRemotely: false,
       outdoorWorker: false,

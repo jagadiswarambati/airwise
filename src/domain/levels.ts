@@ -36,6 +36,19 @@ export function hasSensitiveMembers(members: Member[]): boolean {
   });
 }
 
+export function isRiskLevel(val: unknown): val is RiskLevel {
+  return typeof val === 'number' && Number.isInteger(val) && val >= 0 && val <= 4;
+}
+
+export function clampToRiskLevel(val: number): RiskLevel {
+  const clamped = Math.min(4, Math.max(0, Math.round(val)));
+  if (clamped === 0) return 0;
+  if (clamped === 1) return 1;
+  if (clamped === 2) return 2;
+  if (clamped === 3) return 3;
+  return 4;
+}
+
 /**
  * Rule P-02: Effective level = base level + 1 if any sensitive member, capped at 4.
  * Outdoor-worker flag changes exposure guidance/emphasis, not the base household level.
@@ -43,7 +56,7 @@ export function hasSensitiveMembers(members: Member[]): boolean {
 export function computeEffectiveLevel(baseLevel: RiskLevel, members: Member[]): RiskLevel {
   const isSensitive = hasSensitiveMembers(members);
   const adjusted = isSensitive ? baseLevel + 1 : baseLevel;
-  return Math.min(4, Math.max(0, adjusted)) as RiskLevel;
+  return clampToRiskLevel(adjusted);
 }
 
 /**

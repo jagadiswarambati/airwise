@@ -127,32 +127,33 @@ const AxisPairFull: React.FC<{
   </div>
 );
 
+function isAxisDetails(val: unknown): val is AxisDetails {
+  return typeof val === 'object' && val !== null && !React.isValidElement(val);
+}
+
 export const AxisPair: React.FC<AxisPairProps> = ({
   exposure,
   emissions,
   variant = 'full',
   className = '',
 }) => {
-  const isExposureNode = React.isValidElement(exposure) || typeof exposure === 'string';
-  const isEmissionsNode = React.isValidElement(emissions) || typeof emissions === 'string';
+  if (isAxisDetails(exposure) || isAxisDetails(emissions)) {
+    const exp: AxisDetails = isAxisDetails(exposure) ? exposure : {};
+    const em: AxisDetails = isAxisDetails(emissions) ? emissions : {};
 
-  if (isExposureNode || isEmissionsNode) {
-    return (
-      <div className={`aw-axis-pair ${className}`.trim()}>
-        <div className="aw-axis-card aw-axis-exposure">{exposure as React.ReactNode}</div>
-        <div className="aw-axis-card aw-axis-emissions">{emissions as React.ReactNode}</div>
-      </div>
-    );
+    if (variant === 'summary') {
+      return <AxisPairSummary exp={exp} em={em} className={className} />;
+    }
+
+    return <AxisPairFull exp={exp} em={em} className={className} />;
   }
 
-  const exp = (exposure || {}) as AxisDetails;
-  const em = (emissions || {}) as AxisDetails;
-
-  if (variant === 'summary') {
-    return <AxisPairSummary exp={exp} em={em} className={className} />;
-  }
-
-  return <AxisPairFull exp={exp} em={em} className={className} />;
+  return (
+    <div className={`aw-axis-pair ${className}`.trim()}>
+      <div className="aw-axis-card aw-axis-exposure">{exposure}</div>
+      <div className="aw-axis-card aw-axis-emissions">{emissions}</div>
+    </div>
+  );
 };
 
 export default AxisPair;

@@ -1,6 +1,6 @@
-import { type AirSnapshot, type HouseholdProfile, type RiskLevel } from '../domain/types';
+import { type AirSnapshot, type HouseholdProfile } from '../domain/types';
 import { calculateAvoidedVkm } from '../domain/impact';
-import { LEVEL_NAMES } from '../domain/levels';
+import { isRiskLevel, LEVEL_NAMES } from '../domain/levels';
 import { type Clock, systemClock } from '../lib/clock';
 
 /**
@@ -87,7 +87,7 @@ export function generateShareableBriefing(
   injectedDateOrClock: Date | string | Clock = systemClock,
   societyName: string = GREEN_MEADOWS_SOCIETY.name,
 ): string {
-  const levelLabel = LEVEL_NAMES[effectiveLevel as RiskLevel] || 'Caution';
+  const levelLabel = isRiskLevel(effectiveLevel) ? LEVEL_NAMES[effectiveLevel] : 'Caution';
   const pm25Now = snapshot.pm25.now !== null ? Math.round(snapshot.pm25.now) : 'Unmeasured';
 
   let resolvedDate: Date | string;

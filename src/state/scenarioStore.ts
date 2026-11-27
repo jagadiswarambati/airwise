@@ -10,14 +10,20 @@ function notify() {
   for (const l of scenarioListeners) l();
 }
 
+const VALID_SCENARIOS = new Set<ScenarioType>(['live', 'clear', 'moderate', 'severe', 'stale']);
+
+function isScenarioType(val: unknown): val is ScenarioType {
+  return typeof val === 'string' && VALID_SCENARIOS.has(val as ScenarioType);
+}
+
 export function getScenario(): ScenarioType {
   if (typeof window === 'undefined' || !window.localStorage) {
     return inMemoryScenario;
   }
   try {
     const val = window.localStorage.getItem(SCENARIO_STORAGE_KEY);
-    if (val && ['live', 'clear', 'moderate', 'severe', 'stale'].includes(val)) {
-      inMemoryScenario = val as ScenarioType;
+    if (isScenarioType(val)) {
+      inMemoryScenario = val;
       return inMemoryScenario;
     }
   } catch (_e) {

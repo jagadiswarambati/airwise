@@ -2,8 +2,7 @@ import { Chip } from '../../primitives/Chip';
 import { Icon } from '../../icons';
 import { BriefingPreview } from '../BriefingPreview';
 import { GREEN_MEADOWS_SOCIETY } from '../../../data/community';
-import { type RiskLevel } from '../../../domain/types';
-import { LEVEL_NAMES } from '../../../domain/levels';
+import { isRiskLevel, LEVEL_NAMES } from '../../../domain/levels';
 
 export interface CommunityBriefingCardProps {
   effectiveLevel: number;
@@ -17,7 +16,7 @@ export function CommunityBriefingCard({
   shareableText,
 }: CommunityBriefingCardProps) {
   const society = GREEN_MEADOWS_SOCIETY;
-  const levelName = LEVEL_NAMES[effectiveLevel as RiskLevel] || 'Caution';
+  const levelName = isRiskLevel(effectiveLevel) ? LEVEL_NAMES[effectiveLevel] : 'Caution';
 
   return (
     <section className="card mb-4" aria-labelledby="society-briefing-title">
