@@ -2,6 +2,9 @@ import { type Daylight, type DataFreshness, type HouseholdProfile, type RiskLeve
 import { COMMUTE_DIFF_MIN_PERCENT, COMMUTE_DIFF_MIN_UGM3 } from './config/thresholds';
 import { getNowInLocation, parseLocalMinuteOfDay } from './time';
 
+/**
+ * MobilityPolicyResult.
+ */
 export interface MobilityPolicyResult {
   actionIds: string[];
   forbiddenActionIds: string[];

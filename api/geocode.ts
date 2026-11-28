@@ -6,6 +6,9 @@ import { parseQuery, GeocodeQuerySchema } from './_lib/validate';
 import { withApiGuards } from './_lib/pipeline';
 import { createFetchHandler } from './_lib/http';
 
+/**
+ * GeocodeItem.
+ */
 export interface GeocodeItem {
   name: string;
   adminRegion: string;
@@ -15,6 +18,9 @@ export interface GeocodeItem {
   timezone?: string;
 }
 
+/**
+ * UpstreamGeocodeItemSchema.
+ */
 export const UpstreamGeocodeItemSchema = z.object({
   name: z.string().optional(),
   admin1: z.string().optional(),
@@ -24,10 +30,16 @@ export const UpstreamGeocodeItemSchema = z.object({
   timezone: z.string().optional(),
 });
 
+/**
+ * UpstreamGeocodeResponseSchema.
+ */
 export const UpstreamGeocodeResponseSchema = z.object({
   results: z.array(UpstreamGeocodeItemSchema).optional(),
 });
 
+/**
+ * UpstreamGeocodeItem.
+ */
 export type UpstreamGeocodeItem = z.infer<typeof UpstreamGeocodeItemSchema>;
 
 function mapGeocodeResults(results: UpstreamGeocodeItem[]): GeocodeItem[] {

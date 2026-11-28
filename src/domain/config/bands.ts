@@ -1,5 +1,8 @@
 import { type RiskLevel } from '../types';
 
+/**
+ * BandBreakpoint.
+ */
 export interface BandBreakpoint {
   max: number; // Upper bound (inclusive)
   level: RiskLevel;
@@ -7,6 +10,9 @@ export interface BandBreakpoint {
   officialCategory: string;
 }
 
+/**
+ * RegionBandProfile.
+ */
 export interface RegionBandProfile {
   region: 'IN' | 'US';
   name: string;

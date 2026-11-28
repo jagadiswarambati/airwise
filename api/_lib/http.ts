@@ -1,10 +1,16 @@
 import { type ApiResponse } from './errors';
 
+/**
+ * ServerlessContext.
+ */
 export interface ServerlessContext {
   query: Record<string, string>;
   headers: Record<string, string>;
 }
 
+/**
+ * ServerlessEndpoint.
+ */
 export interface ServerlessEndpoint {
   fetch(request: Request): Promise<Response>;
 }

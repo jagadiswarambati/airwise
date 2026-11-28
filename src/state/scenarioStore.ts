@@ -1,6 +1,9 @@
 import { useState, useEffect, useMemo } from 'react';
 import { type ScenarioType } from '../data/fallback-chain';
 
+/**
+ * SCENARIO_STORAGE_KEY.
+ */
 export const SCENARIO_STORAGE_KEY = 'airwise_scenario_v1';
 
 let inMemoryScenario: ScenarioType = 'live';
@@ -16,6 +19,10 @@ function isScenarioType(val: unknown): val is ScenarioType {
   return typeof val === 'string' && VALID_SCENARIOS.has(val as ScenarioType);
 }
 
+/**
+ * getScenario.
+ * @returns
+ */
 export function getScenario(): ScenarioType {
   if (typeof window === 'undefined' || !window.localStorage) {
     return inMemoryScenario;
@@ -32,6 +39,11 @@ export function getScenario(): ScenarioType {
   return inMemoryScenario;
 }
 
+/**
+ * setScenario.
+ * @param scenario
+ * @returns
+ */
 export function setScenario(scenario: ScenarioType): void {
   inMemoryScenario = scenario;
   try {
@@ -44,6 +56,10 @@ export function setScenario(scenario: ScenarioType): void {
   notify();
 }
 
+/**
+ * useScenario.
+ * @returns
+ */
 export function useScenario(): {
   scenario: ScenarioType;
   setScenario: (s: ScenarioType) => void;

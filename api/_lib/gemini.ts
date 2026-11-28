@@ -1,5 +1,8 @@
 import { z } from 'zod';
 
+/**
+ * GeminiResponseEnvelopeSchema.
+ */
 export const GeminiResponseEnvelopeSchema = z.object({
   candidates: z
     .array(

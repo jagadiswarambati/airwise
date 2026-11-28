@@ -7,13 +7,37 @@ import { type Clock, systemClock } from '../lib/clock';
  * Seeded Community Demo Constants (IMPACT_METHODOLOGY.md §9, Decision A-17)
  */
 export const SEEDED_TOTAL_HOMES = 120;
+/**
+ * SEEDED_NO_BURNING_PLEDGES.
+ */
 export const SEEDED_NO_BURNING_PLEDGES = 84;
+/**
+ * SEEDED_CARPOOL_HOUSEHOLDS.
+ */
 export const SEEDED_CARPOOL_HOUSEHOLDS = 18;
+/**
+ * SEEDED_ASSUMED_ONE_WAY_KM.
+ */
 export const SEEDED_ASSUMED_ONE_WAY_KM = 12;
+/**
+ * SEEDED_ASSUMED_CARPOOL_DAYS.
+ */
 export const SEEDED_ASSUMED_CARPOOL_DAYS = 2;
+/**
+ * SEEDED_ASSUMED_OCCUPANCY.
+ */
 export const SEEDED_ASSUMED_OCCUPANCY = 2;
+/**
+ * SEEDED_SENIORS_COUNT.
+ */
 export const SEEDED_SENIORS_COUNT = 24;
+/**
+ * SEEDED_CHILDREN_U12_COUNT.
+ */
 export const SEEDED_CHILDREN_U12_COUNT = 19;
+/**
+ * SEEDED_RESPIRATORY_FLAGGED_COUNT.
+ */
 export const SEEDED_RESPIRATORY_FLAGGED_COUNT = 9;
 
 /**
@@ -28,6 +52,9 @@ export const SEEDED_BASELINE_CARPOOL_VKM =
     SEEDED_ASSUMED_CARPOOL_DAYS *
     (1 - 1 / SEEDED_ASSUMED_OCCUPANCY));
 
+/**
+ * SeededSociety.
+ */
 export interface SeededSociety {
   name: string;
   totalHomes: number;
@@ -43,6 +70,9 @@ export interface SeededSociety {
   seededWeeklyAvoidedVkm: number;
 }
 
+/**
+ * GREEN_MEADOWS_SOCIETY.
+ */
 export const GREEN_MEADOWS_SOCIETY: SeededSociety = {
   name: 'Green Meadows Apartments',
   totalHomes: SEEDED_TOTAL_HOMES,

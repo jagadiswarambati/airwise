@@ -5,14 +5,26 @@ interface Bucket {
   lastRefill: number;
 }
 
+/**
+ * DEFAULT_MAX_BUCKETS.
+ */
 export const DEFAULT_MAX_BUCKETS = 10000;
+/**
+ * DEFAULT_IDLE_TTL_MS.
+ */
 export const DEFAULT_IDLE_TTL_MS = 10 * 60 * 1000; // 10 minutes
 
+/**
+ * RateLimitResult.
+ */
 export interface RateLimitResult {
   allowed: boolean;
   retryAfterSeconds?: number;
 }
 
+/**
+ * LimiterOptions.
+ */
 export interface LimiterOptions {
   maxBuckets?: number;
   idleTtlMs?: number;

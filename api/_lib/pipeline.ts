@@ -5,6 +5,9 @@ import { checkRateLimit, getClientIp } from './rateLimit';
 import { validatePayloadSize } from './validate';
 import { type Clock, systemClock } from '../../src/lib/clock';
 
+/**
+ * GuardConfig.
+ */
 export interface GuardConfig {
   endpointName: string;
   allowedMethods: string[];
@@ -14,6 +17,9 @@ export interface GuardConfig {
   requireJsonContentType?: boolean;
 }
 
+/**
+ * GuardContext.
+ */
 export interface GuardContext {
   headers?: Record<string, string | string[] | undefined>;
   method?: string;

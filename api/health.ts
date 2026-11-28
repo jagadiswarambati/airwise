@@ -4,6 +4,9 @@ import { getSecurityHeaders } from './_lib/headers';
 import { withApiGuards } from './_lib/pipeline';
 import { createFetchHandler } from './_lib/http';
 
+/**
+ * HealthResponseBody.
+ */
 export interface HealthResponseBody {
   status: 'ok';
   llmEnabled: boolean;

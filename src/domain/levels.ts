@@ -2,6 +2,9 @@ import { type Member, type RiskLevel } from './types';
 import { getBandForPm25 } from './config/bands';
 import { DEFAULT_FALLBACK_RISK_LEVEL } from './config/thresholds';
 
+/**
+ * LEVEL_NAMES.
+ */
 export const LEVEL_NAMES: Record<RiskLevel, string> = {
   0: 'Clear',
   1: 'Watch',
@@ -36,10 +39,20 @@ export function hasSensitiveMembers(members: Member[]): boolean {
   });
 }
 
+/**
+ * isRiskLevel.
+ * @param val
+ * @returns
+ */
 export function isRiskLevel(val: unknown): val is RiskLevel {
   return typeof val === 'number' && Number.isInteger(val) && val >= 0 && val <= 4;
 }
 
+/**
+ * clampToRiskLevel.
+ * @param val
+ * @returns
+ */
 export function clampToRiskLevel(val: number): RiskLevel {
   const clamped = Math.min(4, Math.max(0, Math.round(val)));
   if (clamped === 0) return 0;

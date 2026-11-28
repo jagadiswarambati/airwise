@@ -2,18 +2,27 @@ import { z } from 'zod';
 import { type ApiResponse, createErrorResponse, type ApiErrorBody } from './errors';
 
 // Latitude (-90..90) and Longitude (-180..180) schemas with server-side 2dp rounding
+/**
+ * LatSchema.
+ */
 export const LatSchema = z.coerce
   .number()
   .min(-90, 'Latitude must be >= -90')
   .max(90, 'Latitude must be <= 90')
   .transform((val) => Math.round(val * 100) / 100);
 
+/**
+ * LonSchema.
+ */
 export const LonSchema = z.coerce
   .number()
   .min(-180, 'Longitude must be >= -180')
   .max(180, 'Longitude must be <= 180')
   .transform((val) => Math.round(val * 100) / 100);
 
+/**
+ * AirQuerySchema.
+ */
 export const AirQuerySchema = z
   .object({
     lat: LatSchema,
@@ -21,8 +30,16 @@ export const AirQuerySchema = z
   })
   .strict();
 
+/**
+ * GEOCODE_QUERY_REGEX.
+ */
 export const GEOCODE_QUERY_REGEX = /^[\p{L}\p{M}\p{Nd}\s',.-]+$/u;
 
+/**
+ * hasControlCharacters.
+ * @param val
+ * @returns
+ */
 export function hasControlCharacters(val: string): boolean {
   for (let i = 0; i < val.length; i++) {
     const cp = val.charCodeAt(i);
@@ -33,6 +50,9 @@ export function hasControlCharacters(val: string): boolean {
   return false;
 }
 
+/**
+ * GeocodeQuerySchema.
+ */
 export const GeocodeQuerySchema = z
   .object({
     q: z
@@ -52,7 +72,13 @@ export const GeocodeQuerySchema = z
   })
   .strict();
 
+/**
+ * AirQuery.
+ */
 export type AirQuery = z.infer<typeof AirQuerySchema>;
+/**
+ * GeocodeQuery.
+ */
 export type GeocodeQuery = z.infer<typeof GeocodeQuerySchema>;
 
 /**

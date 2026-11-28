@@ -1,5 +1,8 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 
+/**
+ * AppRoute.
+ */
 export type AppRoute =
   | 'today'
   | 'indoor'
@@ -10,6 +13,9 @@ export type AppRoute =
   | 'privacy'
   | 'terms';
 
+/**
+ * ALLOWED_ROUTES.
+ */
 export const ALLOWED_ROUTES: readonly AppRoute[] = [
   'today',
   'indoor',
@@ -21,6 +27,9 @@ export const ALLOWED_ROUTES: readonly AppRoute[] = [
   'terms',
 ] as const;
 
+/**
+ * ROUTE_TITLES.
+ */
 export const ROUTE_TITLES: Record<AppRoute, string> = {
   today: 'Today - AirWise',
   indoor: 'At home - AirWise',
@@ -32,6 +41,9 @@ export const ROUTE_TITLES: Record<AppRoute, string> = {
   terms: 'Terms - AirWise',
 };
 
+/**
+ * ROUTE_LABELS.
+ */
 export const ROUTE_LABELS: Record<AppRoute, string> = {
   today: 'Today',
   indoor: 'At home',
@@ -43,6 +55,9 @@ export const ROUTE_LABELS: Record<AppRoute, string> = {
   terms: 'Terms',
 };
 
+/**
+ * ROUTE_DESCRIPTIONS.
+ */
 export const ROUTE_DESCRIPTIONS: Record<AppRoute, string> = {
   today: 'What to do for clean air today, and how far to trust it.',
   indoor: 'Simple steps to keep the air in your home cleaner.',

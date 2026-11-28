@@ -1,5 +1,8 @@
 import { type AirSnapshot, type Confidence } from '../domain/types';
 
+/**
+ * TrustModel.
+ */
 export interface TrustModel {
   sourceName: string;
   attribution: string;
@@ -16,6 +19,10 @@ export interface TrustModel {
   uncertaintyDisclaimer: string;
 }
 
+/**
+ * buildTrustModel.
+ * @returns
+ */
 export function buildTrustModel(
   snapshot: AirSnapshot,
   planConfidence: Confidence,

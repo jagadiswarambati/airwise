@@ -9,6 +9,9 @@ import { getSecurityHeaders } from './_lib/headers';
 import { withApiGuards } from './_lib/pipeline';
 import { createFetchHandler, readBodyWithLimit } from './_lib/http';
 
+/**
+ * PlanApiResponse.
+ */
 export interface PlanApiResponse {
   success: boolean;
   plan?: AIPlanOutput;

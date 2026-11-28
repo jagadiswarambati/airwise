@@ -1,3 +1,6 @@
+/**
+ * CorsValidationResult.
+ */
 export interface CorsValidationResult {
   allowed: boolean;
   headers: Record<string, string>;

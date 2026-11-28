@@ -1,6 +1,9 @@
 import { createErrorResponse, type ApiResponse, type ApiErrorBody } from './errors';
 import { type Clock } from '../../src/lib/clock';
 
+/**
+ * UpstreamAirQualityResponse.
+ */
 export interface UpstreamAirQualityResponse {
   current?: {
     time?: string;
@@ -15,6 +18,9 @@ export interface UpstreamAirQualityResponse {
   utc_offset_seconds?: number;
 }
 
+/**
+ * UpstreamWeatherResponse.
+ */
 export interface UpstreamWeatherResponse {
   daily?: {
     sunrise?: string[];
@@ -26,17 +32,26 @@ export interface UpstreamWeatherResponse {
   };
 }
 
+/**
+ * ApiHourlyPoint.
+ */
 export interface ApiHourlyPoint {
   time: string;
   pm25: number | null;
   aqi?: number | null;
 }
 
+/**
+ * ApiWeatherHourlyPoint.
+ */
 export interface ApiWeatherHourlyPoint {
   time: string;
   windSpeed10m?: number | null;
 }
 
+/**
+ * ApiAirResponseData.
+ */
 export interface ApiAirResponseData {
   currentPm25: number | null;
   hourly: ApiHourlyPoint[];
@@ -65,6 +80,10 @@ export interface ApiAirResponseData {
   };
 }
 
+/**
+ * fetchUpstream.
+ * @returns
+ */
 export async function fetchUpstream(
   lat: number,
   lon: number,
@@ -153,6 +172,10 @@ function parseAirHourly(hourlyData?: UpstreamAirQualityResponse['hourly']): ApiH
   }));
 }
 
+/**
+ * normalizeUpstream.
+ * @returns
+ */
 export function normalizeUpstream(
   airJson: UpstreamAirQualityResponse,
   weatherJson: UpstreamWeatherResponse | null,

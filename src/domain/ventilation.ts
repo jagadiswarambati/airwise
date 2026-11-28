@@ -7,6 +7,9 @@ import {
 import { getLevel1Threshold } from './config/bands';
 import { isMinuteInSlot, parseLocalHour, parseTimeToMinutes } from './time';
 
+/**
+ * VentilationEngineInputs.
+ */
 export interface VentilationEngineInputs {
   snapshot: AirSnapshot;
   effectiveLevel: RiskLevel;

@@ -2,6 +2,9 @@ import { type AirSnapshot } from '../../domain/types';
 import { normalizeAirQuality, type RawAirDataInput } from '../../domain/normalization';
 import { type Clock, systemClock } from '../../lib/clock';
 
+/**
+ * ApiAirResponse.
+ */
 export interface ApiAirResponse {
   currentPm25: number | null;
   hourly: Array<{
@@ -37,6 +40,9 @@ export interface ApiAirResponse {
   };
 }
 
+/**
+ * OPEN_METEO_ATTRIBUTION.
+ */
 export const OPEN_METEO_ATTRIBUTION =
   'Air quality and weather data by Open-Meteo, derived from Copernicus Atmosphere Monitoring Service (CAMS) information.';
 

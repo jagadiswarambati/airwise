@@ -21,17 +21,33 @@ interface CacheEntry {
   expiresAt: number;
 }
 
+/**
+ * MAX_AIR_CACHE_ENTRIES.
+ */
 export const MAX_AIR_CACHE_ENTRIES = 500;
 const serverAirCache = new Map<string, CacheEntry>();
 
+/**
+ * clearAirCache.
+ * @returns
+ */
 export function clearAirCache(): void {
   serverAirCache.clear();
 }
 
+/**
+ * getAirCacheSize.
+ * @returns
+ */
 export function getAirCacheSize(): number {
   return serverAirCache.size;
 }
 
+/**
+ * pruneExpiredAirCache.
+ * @param now
+ * @returns
+ */
 export function pruneExpiredAirCache(now: number): void {
   for (const [key, entry] of serverAirCache.entries()) {
     if (now >= entry.expiresAt) {
@@ -40,6 +56,14 @@ export function pruneExpiredAirCache(now: number): void {
   }
 }
 
+/**
+ * setAirCacheEntry.
+ * @param key
+ * @param data
+ * @param expiresAt
+ * @param now
+ * @returns
+ */
 export function setAirCacheEntry(key: string, data: ApiAirResponseData, expiresAt: number, now: number): void {
   pruneExpiredAirCache(now);
   while (serverAirCache.size >= MAX_AIR_CACHE_ENTRIES) {
@@ -50,6 +74,10 @@ export function setAirCacheEntry(key: string, data: ApiAirResponseData, expiresA
   serverAirCache.set(key, { data, expiresAt });
 }
 
+/**
+ * parseAirRequest.
+ * @returns
+ */
 export function parseAirRequest(
   query: Record<string, string | string[] | undefined>,
 ): { success: true; lat: number; lon: number } | { success: false; response: ApiResponse<ApiErrorBody> } {
@@ -60,6 +88,13 @@ export function parseAirRequest(
   return { success: true, lat: parsed.data.lat, lon: parsed.data.lon };
 }
 
+/**
+ * lookupAirCache.
+ * @param lat
+ * @param lon
+ * @param clock
+ * @returns
+ */
 export function lookupAirCache(lat: number, lon: number, clock: Clock): ApiAirResponseData | null {
   const now = clock().getTime();
   const dateHour = clock().toISOString().slice(0, 13);

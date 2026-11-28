@@ -5,6 +5,10 @@ const PLEDGE_CHANGE_EVENT = 'airwise_community_pledge_changed';
 
 let inMemoryPledge = false;
 
+/**
+ * getCommunityPledge.
+ * @returns
+ */
 export function getCommunityPledge(): boolean {
   if (typeof window === 'undefined' || !window.localStorage) {
     return inMemoryPledge;
@@ -18,6 +22,11 @@ export function getCommunityPledge(): boolean {
   }
 }
 
+/**
+ * setCommunityPledge.
+ * @param pledged
+ * @returns
+ */
 export function setCommunityPledge(pledged: boolean): void {
   inMemoryPledge = pledged;
 
@@ -31,6 +40,10 @@ export function setCommunityPledge(pledged: boolean): void {
   }
 }
 
+/**
+ * useCommunityPledge.
+ * @returns
+ */
 export function useCommunityPledge(): [boolean, (pledged: boolean) => void] {
   const [pledged, setPledged] = useState<boolean>(() => getCommunityPledge());
 

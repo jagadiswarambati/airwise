@@ -1,9 +1,18 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 
+/**
+ * SETTINGS_STORAGE_KEY.
+ */
 export const SETTINGS_STORAGE_KEY = 'airwise_settings_v1';
 
+/**
+ * AppTheme.
+ */
 export type AppTheme = 'system' | 'light' | 'dark';
 
+/**
+ * AirWiseSettings.
+ */
 export interface AirWiseSettings {
   aiEnabled: boolean;
   theme: AppTheme;

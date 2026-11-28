@@ -1,3 +1,6 @@
+/**
+ * GeocodeResult.
+ */
 export interface GeocodeResult {
   name: string;
   adminRegion: string;

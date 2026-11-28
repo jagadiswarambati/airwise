@@ -3,6 +3,9 @@ import { computeBaseLevel, computeEffectiveLevel } from './levels';
 import { decideVentilation } from './ventilation';
 import { deriveTimeSlots } from './radar';
 
+/**
+ * QuickCheckResult.
+ */
 export interface QuickCheckResult {
   question: string;
   verdict: 'Yes' | 'No' | 'Brief' | 'With precautions';

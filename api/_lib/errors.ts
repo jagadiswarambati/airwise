@@ -1,5 +1,8 @@
 import { getSecurityHeaders } from './headers';
 
+/**
+ * ApiErrorCode.
+ */
 export type ApiErrorCode =
   | 'DataUnavailable'
   | 'DataStale'
@@ -17,6 +20,9 @@ export type ApiErrorCode =
   | 'NotFound'
   | 'InternalError';
 
+/**
+ * ApiErrorBody.
+ */
 export interface ApiErrorBody {
   error: {
     code: ApiErrorCode | string;
@@ -24,6 +30,9 @@ export interface ApiErrorBody {
   };
 }
 
+/**
+ * ApiResponse.
+ */
 export interface ApiResponse<T = unknown> {
   status: number;
   headers: Record<string, string>;

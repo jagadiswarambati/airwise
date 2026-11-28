@@ -10,6 +10,9 @@ import {
 import { determineFreshness } from './freshness';
 import { calculateTrend } from './trend';
 
+/**
+ * RawAirDataInput.
+ */
 export interface RawAirDataInput {
   currentPm25: number | null;
   hourly: Array<{

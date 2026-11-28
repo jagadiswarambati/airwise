@@ -8,18 +8,45 @@ import {
   type SlotId,
 } from './types';
 
+/**
+ * ActionCategorySchema.
+ */
 export const ActionCategorySchema = z.enum(['indoor', 'personal', 'mobility', 'community']);
+/**
+ * ActionCategory.
+ */
 export type ActionCategory = z.infer<typeof ActionCategorySchema>;
 
+/**
+ * ActionCostSchema.
+ */
 export const ActionCostSchema = z.enum(['free', 'low', 'medium', 'high']);
+/**
+ * ActionCost.
+ */
 export type ActionCost = z.infer<typeof ActionCostSchema>;
 
+/**
+ * ActionEffortSchema.
+ */
 export const ActionEffortSchema = z.union([z.literal(1), z.literal(2), z.literal(3)]);
+/**
+ * ActionEffort.
+ */
 export type ActionEffort = z.infer<typeof ActionEffortSchema>;
 
+/**
+ * ActionEvidenceSchema.
+ */
 export const ActionEvidenceSchema = z.enum(['high', 'medium', 'low']);
+/**
+ * ActionEvidence.
+ */
 export type ActionEvidence = z.infer<typeof ActionEvidenceSchema>;
 
+/**
+ * ImpactSpec.
+ */
 export interface ImpactSpec {
   exposure: {
     direction: ImpactDirection;
@@ -38,6 +65,9 @@ export interface ImpactSpec {
   doesNotChange: string;
 }
 
+/**
+ * Action.
+ */
 export interface Action {
   id: string;
   title: string;
@@ -54,6 +84,9 @@ export interface Action {
   requiresExhaust?: boolean;
 }
 
+/**
+ * ActionCandidate.
+ */
 export interface ActionCandidate {
   action: Action;
   impact: ImpactStatement;
@@ -72,6 +105,9 @@ export interface ActionCandidate {
   fixedDisclaimers?: string[];
 }
 
+/**
+ * TimelineSlot.
+ */
 export interface TimelineSlot {
   slotId: SlotId;
   slotLabel: string;
@@ -80,6 +116,9 @@ export interface TimelineSlot {
   note?: string;
 }
 
+/**
+ * Plan.
+ */
 export interface Plan {
   source: 'deterministic' | 'ai';
   generatedAt: string;

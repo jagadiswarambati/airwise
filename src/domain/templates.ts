@@ -15,6 +15,9 @@ export interface ActionCopy {
   fixedDisclaimer?: string;
 }
 
+/**
+ * ACTION_TEMPLATES.
+ */
 export const ACTION_TEMPLATES: Record<string, ActionCopy> = {
   // --------------------------------------------------------------------------
   // Indoor Actions (IN-01 to IN-10)
@@ -237,6 +240,9 @@ export const ACTION_TEMPLATES: Record<string, ActionCopy> = {
   },
 };
 
+/**
+ * COMBUSTION_SAFETY_CAVEAT.
+ */
 export const COMBUSTION_SAFETY_CAVEAT =
   'Ensure adequate fresh air ventilation if using combustion heaters or biomass cooking; never seal rooms completely with unvented heaters.';
 

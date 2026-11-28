@@ -11,13 +11,31 @@ import severeScenario from './samples/severe.json';
 import staleScenario from './samples/stale.json';
 
 // Parse and validate sample scenarios at load time with the domain schema
+/**
+ * parsedClearScenario.
+ */
 export const parsedClearScenario: AirSnapshot = AirSnapshotSchema.parse(clearScenario);
+/**
+ * parsedModerateScenario.
+ */
 export const parsedModerateScenario: AirSnapshot = AirSnapshotSchema.parse(moderateScenario);
+/**
+ * parsedSevereScenario.
+ */
 export const parsedSevereScenario: AirSnapshot = AirSnapshotSchema.parse(severeScenario);
+/**
+ * parsedStaleScenario.
+ */
 export const parsedStaleScenario: AirSnapshot = AirSnapshotSchema.parse(staleScenario);
 
+/**
+ * ScenarioType.
+ */
 export type ScenarioType = 'live' | 'clear' | 'moderate' | 'severe' | 'stale';
 
+/**
+ * AirDataResult.
+ */
 export interface AirDataResult {
   snapshot: AirSnapshot;
   sourceTier: 'live' | 'cached' | 'sample' | 'none';
@@ -149,6 +167,10 @@ function createOfflineFallbackSnapshot(clock: Clock, fallbackReason: string): Ai
   };
 }
 
+/**
+ * getAirSnapshot.
+ * @returns
+ */
 export async function getAirSnapshot(
   options: {
     location: Location;

@@ -14,6 +14,9 @@ import {
   DEFAULT_CARPOOL_OCCUPANCY,
 } from './config/thresholds';
 
+/**
+ * ImpactCalculationOptions.
+ */
 export interface ImpactCalculationOptions {
   commuteForecastDiffUgm3?: number;
 }

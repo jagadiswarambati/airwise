@@ -2,6 +2,9 @@ import { type AirSnapshot } from '../domain/types';
 import { determineFreshness } from '../domain/freshness';
 import { type Clock, systemClock } from '../lib/clock';
 
+/**
+ * CacheEntry.
+ */
 export interface CacheEntry {
   snapshot: AirSnapshot;
   cachedAt: number;
@@ -9,6 +12,9 @@ export interface CacheEntry {
   utcOffsetSeconds?: number;
 }
 
+/**
+ * AIR_CACHE_TTL_MS.
+ */
 export const AIR_CACHE_TTL_MS = 15 * 60 * 1000; // 15 minutes
 
 function isValidCacheEntry(entry: unknown): entry is CacheEntry {
@@ -135,4 +141,7 @@ class ClientAirCache {
   }
 }
 
+/**
+ * airCache.
+ */
 export const airCache = new ClientAirCache();

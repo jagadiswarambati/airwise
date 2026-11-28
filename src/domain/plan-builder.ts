@@ -13,6 +13,9 @@ import { getLevelHeadline } from './levels';
 import { ACTION_TEMPLATES } from './templates';
 import { getConfidenceExplanation } from './confidence';
 
+/**
+ * PlanBuilderOptions.
+ */
 export interface PlanBuilderOptions {
   communityMode?: boolean;
   targetRegion?: 'IN' | 'US';

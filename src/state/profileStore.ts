@@ -4,6 +4,9 @@ import { STORAGE_KEY_PROFILE } from './keys';
 import { getSettings, setSettings, type AirWiseSettings } from './settingsStore';
 import { warn as logWarn } from '../lib/logger';
 
+/**
+ * PROFILE_STORAGE_KEY.
+ */
 export const PROFILE_STORAGE_KEY = STORAGE_KEY_PROFILE;
 
 /**
@@ -53,6 +56,10 @@ function notifyListeners() {
   }
 }
 
+/**
+ * getProfile.
+ * @returns
+ */
 export function getProfile(): HouseholdProfile | null {
   if (typeof window === 'undefined' || !window.localStorage) {
     return inMemoryProfile;
@@ -97,6 +104,11 @@ export function getProfile(): HouseholdProfile | null {
   }
 }
 
+/**
+ * saveProfile.
+ * @param profile
+ * @returns
+ */
 export function saveProfile(profile: HouseholdProfile): void {
   const normalised: HouseholdProfile = {
     ...profile,
@@ -123,6 +135,10 @@ export function saveProfile(profile: HouseholdProfile): void {
   notifyListeners();
 }
 
+/**
+ * deleteProfile.
+ * @returns
+ */
 export function deleteProfile(): void {
   inMemoryProfile = null;
   cachedRawJson = null;
@@ -137,16 +153,27 @@ export function deleteProfile(): void {
   notifyListeners();
 }
 
+/**
+ * hasProfile.
+ * @returns
+ */
 export function hasProfile(): boolean {
   return getProfile() !== null;
 }
 
+/**
+ * ProfileExportPayload.
+ */
 export interface ProfileExportPayload {
   schemaVersion: 1;
   profile: HouseholdProfile;
   settings?: AirWiseSettings;
 }
 
+/**
+ * exportProfileJson.
+ * @returns
+ */
 export function exportProfileJson(): string {
   const profile = getProfile();
   if (!profile) throw new Error('No profile available to export');
@@ -159,6 +186,11 @@ export function exportProfileJson(): string {
   return JSON.stringify(payload, null, 2);
 }
 
+/**
+ * importProfileJson.
+ * @param jsonStr
+ * @returns
+ */
 export function importProfileJson(jsonStr: string): { success: boolean; error?: string } {
   try {
     const parsed = JSON.parse(jsonStr);
@@ -182,11 +214,19 @@ export function importProfileJson(jsonStr: string): { success: boolean; error?: 
   }
 }
 
+/**
+ * loadPriyaPreset.
+ * @returns
+ */
 export function loadPriyaPreset(): HouseholdProfile {
   saveProfile(PRIYA_PRESET);
   return PRIYA_PRESET;
 }
 
+/**
+ * useProfile.
+ * @returns
+ */
 export function useProfile(): {
   profile: HouseholdProfile | null;
   save: (p: HouseholdProfile) => void;
