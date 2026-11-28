@@ -12,45 +12,15 @@ import {
   roleLabelFor,
 } from '../../../domain/types';
 import { announce } from '../../components/liveRegionAnnouncer';
+import {
+  getSessionDraft,
+  saveSessionDraft,
+} from './draftStorage';
+import { getDefaultHome, getDefaultCommute } from './draftDefaults';
 
-const ONBOARDING_SESSION_CACHE_KEY = 'airwise_onboarding_session_draft_v1';
-
-/**
- * Retrieves temporary session-cached draft to preserve inputs across browser session refreshes.
- */
-export function getSessionDraft(): HouseholdProfile | null {
-  if (typeof window === 'undefined' || !window.sessionStorage) return null;
-  try {
-    const raw = window.sessionStorage.getItem(ONBOARDING_SESSION_CACHE_KEY);
-    return raw ? JSON.parse(raw) : null;
-  } catch {
-    return null;
-  }
-}
-
-/**
- * Persists active draft to sessionStorage.
- */
-export function saveSessionDraft(draft: HouseholdProfile): void {
-  if (typeof window === 'undefined' || !window.sessionStorage) return;
-  try {
-    window.sessionStorage.setItem(ONBOARDING_SESSION_CACHE_KEY, JSON.stringify(draft));
-  } catch {
-    // Ignore storage write errors (e.g. quota limits)
-  }
-}
-
-/**
- * Clears temporary session draft upon onboarding completion or reset.
- */
-export function clearSessionDraft(): void {
-  if (typeof window === 'undefined' || !window.sessionStorage) return;
-  try {
-    window.sessionStorage.removeItem(ONBOARDING_SESSION_CACHE_KEY);
-  } catch {
-    // Ignore cleanup errors
-  }
-}
+export { getSessionDraft, saveSessionDraft, clearSessionDraft } from './draftStorage';
+export { getDefaultHome, getDefaultCommute } from './draftDefaults';
+export type { DefaultHomeState, DefaultCommuteState } from './draftDefaults';
 
 function useLocationDraft(initial?: HouseholdProfile | null) {
   const [cityLabel, setCityLabel] = useState(initial?.location.label || 'Hyderabad, India');
@@ -110,78 +80,6 @@ function useMembersDraft(initial?: HouseholdProfile | null) {
   };
 
   return { members, addMember, updateMember, removeMember, toggleFlag };
-}
-
-interface DefaultHomeState {
-  tenure: Tenure;
-  housingType: HousingType;
-  fuel: CookingFuel;
-  hasExhaust: boolean;
-  homeHeating: HomeHeating;
-  hasPurifier: boolean;
-  hasWindowAC: boolean;
-  hasHvac: boolean;
-  budget: BudgetTier;
-}
-
-function getDefaultHome(initial?: HouseholdProfile | null): DefaultHomeState {
-  if (!initial) {
-    return {
-      tenure: 'rent',
-      housingType: 'apartment',
-      fuel: 'lpg',
-      hasExhaust: false,
-      homeHeating: 'none',
-      hasPurifier: false,
-      hasWindowAC: true,
-      hasHvac: false,
-      budget: 'low',
-    };
-  }
-  return {
-    tenure: initial.housing.tenure,
-    housingType: initial.housing.type,
-    fuel: initial.cooking.fuel,
-    hasExhaust: initial.cooking.hasExhaust,
-    homeHeating: initial.homeHeating,
-    hasPurifier: initial.equipment.purifier,
-    hasWindowAC: initial.equipment.windowAC,
-    hasHvac: initial.equipment.hvac,
-    budget: initial.budget,
-  };
-}
-
-interface DefaultCommuteState {
-  modes: Mode[];
-  oneWayKm: number;
-  tripsPerWeek: number;
-  transitAvailable: boolean | 'unknown';
-  canShiftTime: boolean;
-  canWorkRemotely: boolean;
-  outdoorWorker: boolean;
-}
-
-function getDefaultCommute(initial?: HouseholdProfile | null): DefaultCommuteState {
-  if (!initial) {
-    return {
-      modes: ['two_wheeler'],
-      oneWayKm: 12,
-      tripsPerWeek: 5,
-      transitAvailable: true,
-      canShiftTime: false,
-      canWorkRemotely: false,
-      outdoorWorker: false,
-    };
-  }
-  return {
-    modes: initial.travel.modes,
-    oneWayKm: initial.travel.oneWayKm,
-    tripsPerWeek: initial.travel.tripsPerWeek,
-    transitAvailable: initial.travel.transitAvailable,
-    canShiftTime: initial.travel.canShiftTime,
-    canWorkRemotely: initial.travel.canWorkRemotely,
-    outdoorWorker: initial.travel.outdoorWorker,
-  };
 }
 
 function useHomeDraft(initial?: HouseholdProfile | null) {
