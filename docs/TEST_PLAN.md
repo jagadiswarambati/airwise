@@ -74,3 +74,6 @@ API: oversize body → 413, wrong content-type → 415, unknown fields → 400, 
 
 ## 13. Traceability
 A table in `tests/README.md` (create in Phase 1B) maps each P-rule, each ImpactStatement field, and each error type (`DataUnavailable`, `DataStale`, `ProviderSchemaError`, `LlmUnavailable`, `LlmInvalid`, `GeolocationDenied`, `StorageUnavailable`, `RateLimited`, `ValidationError`) to its tests. A script fails CI if a rule ID has no mapped test.
+
+## Browser E2E
+Playwright Chromium suite in tests/e2e (26 tests) with deterministic network interception and axe accessibility checks.

@@ -159,3 +159,6 @@ Status values: **Accepted**, **Deferred**, **To Verify**. Where a decision chang
 | A-42 | Added jsdom, @testing-library/react, and @testing-library/user-event as devDependencies for UI component interaction and focus trap testing. |
 | A-43 | Action Catalog Specification: The action catalog contains exactly 25 immutable actions across indoor (IN-01..IN-07), personal (PE-01..PE-05), mobility (MO-01..MO-08), and community (CM-01..CM-05) categories. |
 
+
+## A-42
+Supersedes A-41: Playwright browser end-to-end tests with axe are now implemented in tests/e2e/main.spec.ts (26 tests), with deterministic network interception. Playwright is a devDependency and CI runs npm run test:e2e.

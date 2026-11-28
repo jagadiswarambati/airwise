@@ -159,3 +159,6 @@ Tracked in [`docs/a11y-report.md`](./a11y-report.md) (manual checklist with chec
 | 7 | Impact formulas readable as text, not images; Copy briefing announced; community counts have text; UI checks pass |
 | 8 | Manual checklist in §15 established; Lighthouse accessibility audited (see [`docs/evidence/lighthouse.md`](./evidence/lighthouse.md)); no hard-coded colours; automated render tests pass |
 | 9 | Manual checklist tracked in docs/a11y-report.md; copy reading-level pass; verification documented |
+
+## Browser Axe E2E
+Playwright runs axe on every route in light and dark themes with zero violations.

@@ -14,6 +14,7 @@ export default defineConfig({
     exclude: [
       '**/node_modules/**',
       '**/dist/**',
+      'tests/e2e/**',
       ...(process.env.RUN_MATRIX === '1' ? [] : ['tests/policy/matrix-full.test.ts']),
     ],
   },

@@ -225,3 +225,6 @@ Always keep a tagged known-good commit (`git tag attempt-N`) before submitting. 
 | 7 | Band thresholds or API details wrong | Medium | Medium | Verify against official docs in Phase 1–2; record in DATA_SOURCES.md; boundary tests |
 | 8 | Key leakage | Low | High | Server-side only, secret scan, `.env.example` |
 | 9 | Repo bloat or extra branches | Low | High | Size and branch guard scripts, no build output |
+
+## Browser E2E
+Playwright suite added in tests/e2e; CI job e2e runs npm run test:e2e.

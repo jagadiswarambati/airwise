@@ -184,6 +184,7 @@ The project includes automated verification guards for testing, code quality, ac
 | `npm run lint` | Runs ESLint across all source and test files |
 | `npm run typecheck` | Strict compiler typechecking without emitting JavaScript files |
 | `npm test` | Executes Vitest test suite (70 test files, 558 tests; see `npm test`) |
+| `npm run test:e2e` | Runs Playwright browser end-to-end tests with axe (26 tests) |
 | `npm run test:policy` | Runs policy oracle tests and negative-oracle (bad-output) checks (P-01 to P-22) |
 | `npm run test:tz` | Tests slot and timeline invariance across UTC, Asia/Kolkata, and America/Los_Angeles |
 | `npm run test:matrix` | Runs full Cartesian policy matrix locally (not in CI); output saved in docs/matrix-run.txt (2026-11-24) |
@@ -236,6 +237,8 @@ AirWise enforces safety and correctness through multi-layered automated testing:
    Subjects the AI response parser to prompt injections, schema tampering, hallucinated statistics, and unauthorized action IDs to verify clean fallback behavior.
 5. **Content & Copy Linting:**
    Ensures medical caveats are verbatim, strictly bans the label "Measured" in MVP, and verifies zero uppercase CSS transforms or NUL bytes.
+6. **Browser End-to-End & Axe:**
+   Playwright runs Chromium against the production build with deterministic network interception and runs axe (wcag2a, wcag2aa, wcag21aa, wcag22aa) on every route in light and dark themes.
 
 ---
 

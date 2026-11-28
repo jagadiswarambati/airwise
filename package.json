@@ -33,6 +33,7 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "test:e2e": "playwright test",
     "test:tz": "node scripts/run-tz-tests.mjs",
     "test:policy": "vitest run tests/policy/policy-matrix.test.ts tests/policy/mutation.test.ts",
     "test:matrix": "node scripts/run-matrix.mjs",
@@ -52,7 +53,9 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.14.1",
     "@eslint/js": "^9.16.0",
+    "@playwright/test": "^1.65.1",
     "@testing-library/react": "^16.3.3",
     "@testing-library/user-event": "^14.6.13",
     "@types/node": "^22.10.2",
