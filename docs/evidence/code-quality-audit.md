@@ -1,222 +1,96 @@
-# AirWise Final Code-Quality Audit & Verification Report
+# AirWise Code-Quality Evidence (Measured)
 
-**Date:** 2026-11-25  
-**Auditor Role:** Senior Code-Quality Auditor & Security Reviewer  
-**Repository:** `AirWise` (`main` branch)  
-**Deliverable Status:** Self-assessed audit; not independently verified  
+**Date:** 2026-11-28
+**BASELINE_SHA:** e30e0a95ba73920fe0d3975d49e1ebf986727b5c
+**Branch:** main
+**Working tree:** clean (git status)
 
----
+This document contains only measured tool output captured on the date above. No scores or subjective assessments are included.
 
-## Executive Summary & Scorecard
+## Preflight commands and results
 
-| Category | Baseline Score (Phase 2) | Final Assessment (Phase 4) | Status |
-|---|:---:|:---:|:---:|
-| 1. Architecture & Modularity | 17 / 20 | Addressed (all files ≤ 260 lines; catalog modularized) | PASS (self-assessed; not independently verified) |
-| 2. Readability & Naming | 13 / 15 | Addressed (0 nested ternaries, long functions halved) | PASS (self-assessed; not independently verified) |
-| 3. Type Safety & Lint Hygiene | 12 / 15 | Addressed (0 ESLint errors/warnings, strict Zod) | PASS (self-assessed; not independently verified) |
-| 4. Error Handling & Robustness | 9 / 10 | Addressed (explicit 6000ms fetch timeouts, typed errors) | PASS (self-assessed; not independently verified) |
-| 5. Duplication & Dead Code | 8 / 10 | Addressed (unified api/_lib/http.ts adapters) | PASS (self-assessed; not independently verified) |
-| 6. Tests as Part of Quality | 9 / 10 | Addressed (70 test files, 558 tests passed) | PASS (self-assessed; not independently verified) |
-| 7. Documentation & Hygiene | 8 / 10 | Addressed (all links resolve, accurate claims) | PASS (self-assessed; not independently verified) |
-| 8. Tooling & Consistency | 9 / 10 | Addressed (validate gate, format check) | PASS (self-assessed; not independently verified) |
-| **Overall** | **85 / 100** | **Self-assessed audit; not independently verified** | **PASS** |
+- `git status` -> `On branch main ... nothing to commit, working tree clean`
+- `npm ci` -> `added 244 packages, and audited 245 packages ... found 0 vulnerabilities`
+- `npm run validate` -> passed (lint, typecheck, test, check:ui, check:css, check:links, check:size, check:traceability, scan:secrets, format:check)
+- `npm run test:policy` -> `Test Files 2 passed (2); Tests 9 passed (9)`
+- `npm run test:tz` -> passed across UTC, Asia/Kolkata, America/Los_Angeles
+- `npm run build` -> `306 modules transformed`; built successfully
 
----
+## Vitest summary
 
-## Phase 1: Baseline Measurements (Pre-Fix)
+- `npm run test` (`vitest run`): `Test Files 70 passed (70)`; `Tests 558 passed (558)`
+- `npm run test:policy`: `Test Files 2 passed (2)`; `Tests 9 passed (9)`
 
-### 1. Verification Suites Output
-- `npm run validate`:
-  - ESLint: 0 errors, 23 warnings (`no-nested-ternary`: 15, `complexity`: 7, `max-lines-per-function`: 1).
-  - TypeScript `tsc --noEmit`: 0 errors.
-  - Vitest: 57 test files, 435 tests passed.
-  - `check:ui`: Passed (0 undefined tokens, 0 literal colors, 0 non-custom-prop inline styles, 0 emojis, 0 uppercase transforms).
-  - `check:css`: Passed (14 files scanned, 439 selector blocks, 285 `.aw-` classes, 8 motion-only `!important`).
-  - `check:links`: Passed (All relative links in `README.md` and `docs/*.md` resolve).
-  - `check:size`: Passed (2.32 MB < 3 MB budget target).
-  - `scan:secrets`: Passed (0 detected secrets).
-  - `format:check`: Passed.
-- `npm run test:policy`: 2 test files, 9 tests passed.
-- `npm run test:tz`: Passed across `UTC`, `Asia/Kolkata`, `America/Los_Angeles`.
-- `npm run build`: 301 modules transformed; bundle: JS 494.4 kB (gzip 148.5 kB), CSS 54.09 kB (gzip 8.87 kB); built in 1.75s.
+## Lint and typecheck
 
-### 2. Baseline Size & Structure
-- Top largest files:
-  1. `src/domain/catalog/actions.ts`: 657 lines
-  2. `src/domain/types.ts`: 341 lines (> 300 line threshold)
-  3. `api/air.ts`: 316 lines (> 300 line threshold)
-  4. `src/ai/validator.ts`: 300 lines
-  5. `src/ui/screens/AboutScreen.tsx`: 297 lines
-- Files > 300 lines outside tests/catalog: 2 (`src/domain/types.ts`, `api/air.ts`).
-- Functions > 60 lines: 26 functions.
+- `npm run lint` (`eslint .`): no errors reported in validate run
+- `npm run typecheck` (`tsc --noEmit`): no errors reported in validate run
 
-### 3. Baseline Escape Hatches & Hygiene
-- `any`: 0
-- Type assertions (`as`): 98
-- Non-null assertions (`!`): 0
-- `@ts-ignore` / `@ts-expect-error`: 0
-- `eslint-disable`: 0
-- `console.*` outside `logger.ts`: 0
-- `TODO` / `FIXME`: 0
-- Parameterless `new Date()` outside `src/lib/clock.ts`: 0
-- Duplication: 7 repeated 8+ line blocks (top duplicate: Vercel serverless request parameter and header extraction across `api/air.ts` and `api/geocode.ts`).
-- Dead code / empty directories: src/utils/.gitkeep empty directory.
-- Untested source modules: `src/config/site.ts`, `src/lib/logger.ts`, `src/lib/clock.ts`.
+## CSS audit (npm run check:css)
 
----
+- Total CSS files scanned: 15
+- Total selector blocks: 634
+- Defined `.aw-` classes: 366
+- Allow-listed dynamic `.aw-` classes: 8
+- `!important` declarations verified: 11 (all inside accessible motion reduction)
+- Used-class audit: 539 referenced classes in src/, all have corresponding CSS rules
 
-## Phase 2: Baseline Scoring & Deductions
+## UI checks (npm run check:ui)
 
-1. **Architecture & Modularity (17/20)**: -3 points due to `src/domain/types.ts` (341) and `api/air.ts` (316) exceeding the 300-line modularity threshold, coupling household profile schemas directly with atmospheric models.
-2. **Readability & Naming (13/15)**: -2 points due to 15 nested ternary expressions and 26 functions > 60 lines.
-3. **Type Safety & Lint Hygiene (12/15)**: -3 points due to 23 ESLint warnings across production and test code.
-4. **Error Handling & Robustness (9/10)**: -1 point due to lack of isolated unit tests for `logger.ts` and `clock.ts` fallback behavior.
-5. **Duplication & Dead Code (8/10)**: -2 points due to repeated query/header parsing in serverless endpoints and orphaned src/utils/.gitkeep.
-6. **Tests as Part of Quality (9/10)**: -1 point due to untested site configuration and logger utility.
-7. **Documentation & Hygiene (8/10)**: -2 points due to missing `check:traceability` in README scripts table and outdated description of mock environment variables.
-8. **Tooling & Consistency (9/10)**: -1 point due to ESLint warning tolerance in pre-commit scripts.
+- 0 undefined tokens, 0 literal colors in code, 0 non-custom-prop inline styles, 0 emojis in UI, 0 uppercase transforms, 0 disallowed alerts
 
-**Baseline Total: 85 / 100**
+## Links (npm run check:links)
 
----
+- All relative links in README.md and docs/*.md resolve successfully
 
-## Phase 3: Applied Fixes
+## Size (npm run check:size)
 
-### Fix Group 1: Eliminate All Lint Warnings & Modularize Large Files
-- **Commit:** `693ed11` (`refactor(quality): eliminate lint warnings and modularize files over 300 lines`)
-- **Key Actions:**
-  1. **Zero ESLint Warnings:**
-     - Refactored nested ternaries in `src/state/route.ts`, `src/ui/atmosphere/model.ts`, `src/ui/components/ActionDetailModal.tsx`, `src/ui/components/ActionRow.tsx`, `src/ui/components/AirBriefingCard.tsx`, `src/ui/primitives/AxisPair.tsx`, `src/ui/components/VerdictBlock.tsx`, `tests/fixtures/sample-profiles.ts`, and `tests/unit/today-view.test.tsx`.
-     - Decomposed complex switch/gating logic in `src/state/settingsStore.ts` and `src/data/providers/apiAir.ts`.
-     - Shortened `getAirSnapshot` in `src/data/fallback-chain.ts` to < 80 lines by extracting `createOfflineFallbackSnapshot`.
-     - Extracted `getFreshnessTimestamp` in `tests/policy/policy-matrix.test.ts` and `tests/policy/matrix-full.test.ts`.
-     - Extracted cartesian runner helpers in `tests/policy/matrix-full.test.ts` reducing test arrow function complexity from 19 to $\le 12$.
-     - Decomposed `assertAllPolicyInvariants` in `tests/policy/predicates.ts` from a single function of complexity 99 into 6 focused sub-checks ($\le 12$ complexity each).
-  2. **Modularize Files > 300 Lines:**
-     - Extracted household profile types into `src/domain/profileTypes.ts` (119 lines), re-exported via `src/domain/types.ts` (reducing `types.ts` from 341 to 227 lines while keeping 100% backwards compatibility and domain purity).
-     - Extracted Open-Meteo upstream mapping into `api/_lib/airUpstream.ts` (186 lines), reducing `api/air.ts` from 316 to 129 lines.
+- Repository size: 2.95 MB (30,94,137 bytes including .git); within budget (< 3 MB)
 
-### Fix Group 2: Remove Duplication, Add Missing Unit Tests & Docs Hygiene
-- **Commit:** `b91db5a` (`refactor(quality): remove API boilerplate duplication, add site and logger unit tests`)
-- **Key Actions:**
-  1. **Serverless Request Deduplication:**
-     - Created `api/_lib/http.ts` with `parseServerlessRequest`, `toWebResponse`, and `createFetchHandler` extracting query parameters and headers across all 4 API routes (`air.ts`, `geocode.ts`, `health.ts`, `plan.ts`).
-  2. **New Test Coverage:**
-     - Created `tests/unit/config-site.test.ts` verifying all site constants, disclaimers, and metadata.
-     - Created `tests/unit/lib-logger.test.ts` verifying logger privacy guards, error name formatting, and `systemClock`.
-  3. **Dead Code & Hygiene:**
-     - Removed obsolete empty directory src/utils/.gitkeep.
-     - Added `check:traceability` to scripts table in `README.md`.
-     - Accurately documented all environment variables in `README.md`.
+## Traceability (npm run check:traceability)
 
----
+- All 22 P-rules, 5 Impact fields, 9 Error types, and 27 referenced test files verified
 
-## Phase 4: Final Measurements & Before/After Comparison
+## Secrets (npm run scan:secrets)
 
-### Before vs. After Comparison Matrix
+- No secrets detected in scanned files
 
-| Metric | Phase 1 (Baseline) | Phase 4 (Final) | Status |
-|---|---|---|:---:|
-| **ESLint Errors** | 0 | **0** | PASSED |
-| **ESLint Warnings** | 23 | **0** | PASSED |
-| **TypeScript Errors (`tsc`)** | 0 | **0** | PASSED |
-| **Vitest Test Files** | 57 | **70** (+13 files) | PASSED |
-| **Vitest Test Cases** | 435 | **558** (+123 tests) | PASSED |
-| **Skipped / Only / Fixme Tests** | 0 | **0** | PASSED |
-| **Full Cartesian Policy Matrix** | 691,320 cases passed | **691,320 cases passed** | PASSED |
-| **Timezone Invariance Tests** | 3 timezones passed | **3 timezones passed** | PASSED |
-| **Files > 300 Lines (outside catalog)** | 2 (`types.ts`, `air.ts`) | **0** (all files $\le 260$ lines) | PASSED |
-| **Functions > 60 Lines** | 26 | **13** ($\le 80$ lines layout only) | PASSED |
-| **`any` Escapes** | 0 | **0** | PASSED |
-| **Non-Null Assertions (`!`)** | 0 | **0** | PASSED |
-| **`@ts-ignore` / `@ts-expect-error`** | 0 | **0** | PASSED |
-| **`eslint-disable`** | 0 | **0** | PASSED |
-| **`console.*` outside logger** | 0 | **0** | PASSED |
-| **`TODO` / `FIXME` Comments** | 0 | **0** | PASSED |
-| **Parameterless `new Date()` outside clock** | 0 | **0** | PASSED |
-| **Serverless Boilerplate Duplication** | 7 blocks duplicated | **0** (unified `api/_lib/http.ts` adapters) | PASSED |
-| **Dead Code / Empty Folders** | src/utils/.gitkeep | **0** (removed) | PASSED |
-| **Domain Purity Violations** | 0 | **0** | PASSED |
-| **Repository File Count** | - | **src: 207, api: 12, tests: 69, scripts: 14, docs: 17** | PASSED |
-| **Package.json Scripts** | - | **18 scripts** | PASSED |
-| **README Lines** | 278 lines | **279 lines** (target: 250-350) | PASSED |
-| **Check:Links** | 0 broken links | **0 broken links** | PASSED |
-| **Check:Size** | 2.32 MB | **2.88 MB** (< 3 MB budget) | PASSED |
-| **Scan:Secrets** | 0 secrets | **0 secrets** | PASSED |
-| **Single-Branch Guard** | Verified (`main` only) | **Verified (`main` only)** | PASSED |
+## Format (npm run format:check)
 
----
+- All matched files use Prettier code style
 
-## Detailed Category Re-Scoring (self-assessed; not independently verified)
+## File counts
 
-### 1. Architecture & Modularity (self-assessed; not independently verified)
-- **Evidence 1:** Zero files exceed 300 lines across the entire codebase. The static catalog is modularized into focused category files (`indoor.ts`, `personal.ts`, `mobility.ts`, `community.ts`, and `index.ts`), all $\le 260$ lines and proven invariant by `tests/unit/catalog-invariance.test.ts`.
-- **Evidence 2:** Strict unidirectional layer boundaries (`ui` $\rightarrow$ `state` $\rightarrow$ `domain` $\leftarrow$ `data`, `ai` $\rightarrow$ `domain`, `api` $\rightarrow$ `_lib`) with 0 forbidden imports from ui/data/ai/state in `src/domain`, verified by `tests/unit/domain-purity.test.ts`.
-- **Evidence 3:** Pure domain policy engine split cleanly into `src/domain/policy/rules/*.ts` and composed in documented order; API routes split into pure core logic (`handle*Core`) and 1-line serverless entry points using `createFetchHandler` in `api/_lib/http.ts`.
-- **Remaining weakness:** State stores currently use custom listener subscriptions rather than a shared external state management library.
+- src/ files (ts/tsx/css): 201
+- api/ files (ts): 12
+- test files: 70 (per Vitest summary)
 
-### 2. Readability & Naming (self-assessed; not independently verified)
-- **Evidence 1:** Zero nested ternaries in production and test code (enforced as an error by ESLint `no-nested-ternary`).
-- **Evidence 2:** Functions > 60 lines halved from 26 down to 13; all 13 are $\le 80$ lines and strictly JSX layout components in `ui/screens/` and `ui/onboarding/`.
-- **Evidence 3:** Consistent naming across domain entities (`roleLabelFor`, `deriveTimeSlots`, `getFreshnessTimestamp`, `parseServerlessRequest`, `toWebResponse`).
-- **Remaining weakness:** Onboarding step components pass step routing callbacks through props rather than a unified context.
+## Largest files under src/ and api/ (by line count)
 
-### 3. Type Safety & Lint Hygiene (self-assessed; not independently verified)
-- **Evidence 1:** Exactly 0 errors and 0 warnings across the entire repository with strict ESLint config enforced as errors (`no-explicit-any`: error, `complexity`: 12, `max-lines-per-function`: 80, `max-lines`: 300, `no-nested-ternary`: error). Zero inline disable comments.
-- **Evidence 2:** 0 `any`, 0 non-null assertions `!`, 0 `@ts-ignore`, 0 `@ts-expect-error`, 0 `eslint-disable`.
-- **Evidence 3:** End-to-end Zod schemas validating all external inputs (`HouseholdProfileSchema`, `AirQuerySchema`, `AIPlanInputSchema`, `AIPlanOutputSchema`, `GeminiResponseEnvelopeSchema`). Compiler strictness includes `forceConsistentCasingInFileNames` and `noImplicitReturns`.
-- **Remaining weakness:** 106 type assertions (`as`) exist across the codebase, mostly casting narrow union literals or string enum types from Zod or CSS classes.
+1. src/styles/primitives.css - 773
+2. src/styles/today.css - 571
+3. src/styles/shell.css - 538
+4. src/styles/legal.css - 451
+5. src/styles/restored.css - 401
+6. src/styles/tokens.css - 323
+7. src/ai/validator.ts - 321
+8. src/ui/onboarding/hooks/useOnboardingDraft.ts - 308
+9. api/plan.ts - 307
+10. src/ui/screens/AboutScreen.tsx - 296
+11. src/domain/catalog/indoor.ts - 261
+12. src/domain/templates.ts - 242
+13. src/styles/community.css - 233
+14. src/ui/screens/MoveScreen.tsx - 233
+15. src/data/fallback-chain.ts - 226
 
-### 4. Error Handling & Robustness (self-assessed; not independently verified)
-- **Evidence 1:** All 22 `catch` blocks and 6 `JSON.parse` operations defensively handle failures; API responses return structured, typed RFC-compliant JSON errors (`createErrorResponse`) with `no-store` cache control.
-- **Evidence 2:** Zero unhandled promise rejections; all upstream and proxy fetch calls enforce explicit 6000ms timeouts (`AbortSignal.timeout(6000)`), with `/api/plan` enforcing a 12-second total retry budget.
-- **Evidence 3:** Complete fail-closed fallback chain (`src/data/fallback-chain.ts`) ensuring users receive deterministic offline guidance even under upstream network failure.
-- **Remaining weakness:** Rate limiter token bucket (`TokenBucketLimiter`) is process-local and in-memory, resetting upon cold start in serverless environments (documented honestly in `docs/SECURITY_PRIVACY.md`).
+## Type assertions (`as`) outside tests
 
-### 5. Duplication & Dead Code (self-assessed; not independently verified)
-- **Evidence 1:** Created `api/_lib/http.ts` (`toWebResponse`, `createFetchHandler`, and `parseServerlessRequest`) deduplicating serverless request parsing and response wrapping across all 4 API endpoints (`air.ts`, `geocode.ts`, `health.ts`, `plan.ts`).
-- **Evidence 2:** Removed unused src/utils/.gitkeep directory; 0 unused npm dependencies; 0 dead CSS classes (`scripts/check-css.mjs` verifies all 285 `.aw-` classes are referenced in `src/`).
-- **Evidence 3:** DRY test fixtures with shared `sample-profiles.ts` and `getFreshnessTimestamp`.
-- **Remaining weakness:** Minor duplication in confidence text formatting between `ActionRow.tsx` and `src/ui/primitives/AxisPair.tsx`.
+- Count: 48 (grep: ` as [A-Za-z]` in src/ and api/, excluding `as const` and tests/)
 
-### 6. Tests as Part of Quality (self-assessed; not independently verified)
-- **Evidence 1:** 70 test files and 558 unit/integration/render/policy tests running in Vitest with 0 failures, 0 skips, 0 only, and 0 fixme.
-- **Evidence 2:** Added `tests/unit/config-site.test.ts`, `tests/unit/lib-logger.test.ts`, and `tests/unit/catalog-invariance.test.ts` covering site metadata, logger methods, and catalog invariance.
-- **Evidence 3:** Full Cartesian policy matrix test suite (691,320 cases in `tests/policy/matrix-full.test.ts` + P-01..P-22 in `policy-matrix.test.ts`), mutation testing (`mutation.test.ts`), multi-timezone invariance (`run-tz-tests.mjs`), and validator prompt injection abuse tests (`validator-abuse.test.ts`).
-- **Remaining weakness:** End-to-end browser automation is not implemented; see decision A-41.
+## Branch check
 
-### 7. Documentation & Hygiene (self-assessed; not independently verified)
-- **Evidence 1:** `README.md` is 279 lines (within 250-350 target), containing architecture mermaid diagram, comprehensive scripts table (all 18 npm scripts including `check:traceability`), environment variables table, security, a11y, and testing approach.
-- **Evidence 2:** `check:links` verifies 100% of relative markdown links resolve across `README.md` and `docs/*.md`.
-- **Evidence 3:** Repository size is 2.88 MB (< 3 MB target, verified by `scripts/check-size.mjs`), 0 NUL bytes, 0 committed secrets (`scan:secrets`), LICENSE present.
-- **Remaining weakness:** `docs/BUILD_PLAN.md` retains historical step logs from early development iterations.
+- `npm run check:branches` is part of final verification; single-branch policy (main only).
 
-### 8. Tooling & Consistency (self-assessed; not independently verified)
-- **Evidence 1:** Unified `npm run validate` gate chaining automated checks (`lint`, `typecheck`, `test`, `check:ui`, `check:css`, `check:links`, `check:size`, `check:traceability`, `scan:secrets`, `format:check`).
-- **Evidence 2:** Automated Single-Branch enforcement on remote origin (`scripts/check-branches.mjs`).
-- **Evidence 3:** Prettier configuration with 100% adherence verified by `format:check`.
-- **Remaining weakness:** PowerShell on Windows requires semicolon chaining rather than POSIX `&&` when executing chained commands locally outside npm scripts.
+## Files changed in this task
 
----
-
-## Not Fixed Items & Justifications
-
-1. **Modularized 25-action catalog specification**:
-   - *Reason:* Contains the complete immutable 25-action catalog specification, impact parameters, caveats, and applicability predicates. Keeping this as typed TypeScript constants modularized across 5 category files (`indoor.ts`, `personal.ts`, `mobility.ts`, `community.ts`, `index.ts`) guarantees compile-time type checking and zero runtime I/O overhead.
-2. **13 functions between 61 and 80 lines**:
-   - *Reason:* All 13 are declarative React JSX components (`TodayPlanView.tsx`, `AboutScreen.tsx`, etc.) that are already broken down into smaller sub-components. Splitting further would artificially fragment component layouts without improving readability. All 13 comply with the ESLint `max-lines-per-function` threshold of 80 lines.
-3. **106 `as` type assertions**:
-   - *Reason:* The vast majority are narrowing string unions for Zod schemas (`as RiskLevel`, `as AgeGroup`) or asserting immutable tuple constants. None bypass safety or use `as unknown as T` or `as any`.
-4. **Process-local in-memory rate limiting**:
-   - *Reason:* AirWise is a zero-database application designed to run entirely serverless on Vercel or locally with zero infrastructure cost. Upgrading to a distributed Redis/Upstash rate limiter would introduce an external dependency and cost contrary to project constraints.
-
----
-
-## Top Remaining Weaknesses & Recommendations
-
-1. **Static Data Externalization**:
-   In a future major version, consider moving the action catalog to a validated JSON schema asset loaded via Vite's static asset pipeline to reduce TypeScript AST parsing overhead.
-2. **Distributed Rate Limiting**:
-   If production serverless instances experience high traffic or distributed scraping attempts, integrate Upstash Redis for distributed sliding-window rate limiting.
-3. **End-to-End Browser Automation**:
-   End-to-end browser automation is not implemented; see decision A-41.
+- docs/evidence/code-quality-audit.md (this file)
