@@ -31,4 +31,6 @@ Thumbs.db
 *.sln
 *.sw?
 coverage/
+playwright-report/
+test-results/
 
